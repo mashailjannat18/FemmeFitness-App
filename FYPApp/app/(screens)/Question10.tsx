@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { addUserToSupabase, setUserData } from '@/datafiles/userData';
+import { useUserAuth } from '@/context/UserAuthContext';
 
 const Question10: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ const Question10: React.FC = () => {
   const [showPasswordError, setShowPasswordError] = useState(false);
   const [showUsernameError, setShowUsernameError] = useState(false);
   const router = useRouter();
+  const { signUp } = useUserAuth();
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -45,16 +47,17 @@ const Question10: React.FC = () => {
     } else if (username.length < 3) {
       Alert.alert('Error', 'Username must be at least 3 characters long');
     } else {
-      setUserData('email', email);
-      setUserData('password', password);
-      setUserData('username', username);
-
       try {
+        await signUp(email, password, username);
+        setUserData('email', email);
+        setUserData('password', password);
+        setUserData('username', username);
         await addUserToSupabase();
         console.log('Sign up successful, navigating to tabs');
-        router.push('../(tabs)');
-      } catch (err) {
-        Alert.alert('Error', 'Failed to sign up. Please try again.');
+        router.push('/(tabs)/Home');
+      } catch (err: any) {
+        console.error('Sign up error:', err);
+        Alert.alert('Error', err.message || 'Failed to sign up. Please try again.');
       }
     }
   };
@@ -99,7 +102,12 @@ const Question10: React.FC = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, email && password && username && isEmailValid && password.length >= 6 && username.length >= 3 ? styles.activeButton : styles.disabledButton]}
+          style={[
+            styles.button,
+            email && password && username && isEmailValid && password.length >= 6 && username.length >= 3
+              ? styles.activeButton
+              : styles.disabledButton,
+          ]}
           onPress={handleSignUp}
           disabled={!email || !password || !username || !isEmailValid || password.length < 6 || username.length < 3}
         >
@@ -110,7 +118,6 @@ const Question10: React.FC = () => {
   );
 };
 
-// Styles remain unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,

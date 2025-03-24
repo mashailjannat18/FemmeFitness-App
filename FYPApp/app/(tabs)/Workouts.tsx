@@ -1,38 +1,78 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import { useUserAuth } from '@/context/UserAuthContext';
 
-const days = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'];
+type DailyWorkout = {
+  id: string;
+  day_name: string;
+  day_number: number;
+  daily_workout_date: string;
+};
 
 export default function Workouts() {
+  const [dailyWorkouts, setDailyWorkouts] = useState<DailyWorkout[]>([]);
   const router = useRouter();
+  const { user } = useUserAuth();
 
-  const navigateToExercises = (day: string) => {
-    router.push(`../(screens)/Exercises?day=${day}`);
+  useEffect(() => {
+    if (!user) {
+      router.push('/Login');
+      return;
+    }
+
+    const fetchWorkoutPlan = async () => {
+      try {
+        const { data: planData, error: planError } = await supabase
+          .from('WorkoutPlans')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single();
+
+        if (planError || !planData) throw new Error('No active workout plan found');
+
+        const { data: dailyData, error: dailyError } = await supabase
+          .from('DailyWorkouts')
+          .select('id, day_name, day_number, daily_workout_date')
+          .eq('workout_plan_id', planData.id)
+          .order('day_number', { ascending: true });
+
+        if (dailyError) throw dailyError;
+        setDailyWorkouts(dailyData || []);
+      } catch (error) {
+        console.error('Error fetching workout plan:', error);
+        setDailyWorkouts([]);
+      }
+    };
+
+    fetchWorkoutPlan();
+  }, [user, router]);
+
+  const navigateToExercises = (dayName: string) => {
+    router.push(`/(screens)/Exercises?day=${dayName}`);
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-
       <View style={styles.imageContainer}>
         <Image source={require('../../assets/images/2.jpg')} style={styles.image} />
       </View>
 
       <View style={styles.content}>
         <Text style={styles.title}>Workout of the Day</Text>
-        <Text style={styles.description}>
-          Select a day to view its workout plan.
-        </Text>
+        <Text style={styles.description}>Select a day to view its workout plan.</Text>
 
         <View style={styles.options}>
-          {days.map((day, index) => (
+          {dailyWorkouts.map((day) => (
             <TouchableOpacity
-              key={index}
-              onPress={() => navigateToExercises(day)} 
+              key={day.id}
+              onPress={() => navigateToExercises(day.day_name)}
               style={styles.optionButton}
             >
-              <Text style={styles.optionText}>{day}</Text>
+              <Text style={styles.optionText}>{day.day_name} ({day.daily_workout_date})</Text>
             </TouchableOpacity>
           ))}
         </View>

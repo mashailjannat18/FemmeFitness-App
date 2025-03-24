@@ -4,13 +4,22 @@ import { BackHandler } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { useUserAuth } from '@/context/UserAuthContext';
 
-type Exercises = {
-  image: string;
-  exercise_name: string;
-  calories_burn: number;
-  repetitions: number;
+type Exercise = {
   id: string;
+  exercise_name: string;
+  calories_burned: number;
+  reps: string;
+  description: string;
+  daily_workout_id: string;
+};
+
+type DailyWorkout = {
+  id: string;
+  day_name: string;
+  daily_workout_date: string;
+  exercises: Exercise[];
 };
 
 function getCurrentMonth() {
@@ -30,38 +39,68 @@ function getCurrentMonthDates() {
 
 export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
-  const [exercises, setExercises] = useState<Exercises | null>(null);
+  const [dailyWorkout, setDailyWorkout] = useState<DailyWorkout | null>(null);
   const dates = getCurrentMonthDates();
   const router = useRouter();
+  const { user, logout } = useUserAuth();
 
   useEffect(() => {
-    const fetchFirstExercise = async () => {
-      const { data, error } = await supabase
-        .from('Exercises')
-        .select('image, exercise_name, calories_burn, repetitions, id')
-        .limit(1)
-        .single();
-      if (error) {
-        console.error('Error fetching exercise:', error);
-      } else {
-        setExercises(data);
+    if (!user) {
+      router.push('/Login');
+      return;
+    }
+
+    const fetchTodayWorkout = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const { data: planData, error: planError } = await supabase
+          .from('WorkoutPlans')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single();
+
+        if (planError || !planData) throw new Error('No active workout plan found');
+
+        const { data: dailyData, error: dailyError } = await supabase
+          .from('DailyWorkouts')
+          .select('id, day_name, daily_workout_date')
+          .eq('workout_plan_id', planData.id)
+          .eq('daily_workout_date', today)
+          .single();
+
+        if (dailyError || !dailyData) {
+          setDailyWorkout(null);
+          return; // No workout for today
+        }
+
+        const { data: exerciseData, error: exerciseError } = await supabase
+          .from('Workouts')
+          .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
+          .eq('daily_workout_id', dailyData.id);
+
+        if (exerciseError) throw exerciseError;
+
+        setDailyWorkout({
+          id: dailyData.id,
+          day_name: dailyData.day_name,
+          daily_workout_date: dailyData.daily_workout_date,
+          exercises: exerciseData || [],
+        });
+      } catch (error) {
+        console.error('Error fetching today’s workout:', error);
+        setDailyWorkout(null);
       }
     };
 
-    fetchFirstExercise();
-  }, []);
+    fetchTodayWorkout();
+  }, [user, router]);
 
   useFocusEffect(
     React.useCallback(() => {
-      const backAction = () => {
-        return true;
-      };
-
+      const backAction = () => true;
       BackHandler.addEventListener('hardwareBackPress', backAction);
-
-      return () => {
-        BackHandler.removeEventListener('hardwareBackPress', backAction);
-      };
+      return () => BackHandler.removeEventListener('hardwareBackPress', backAction);
     }, [])
   );
 
@@ -93,8 +132,7 @@ export default function Home() {
 
       <View style={styles.section2}>
         <Text style={styles.heading1}>Daily Progress</Text>
-
-        {[ 
+        {[
           { title: 'Calories Burnt', value: 300, target: 500 },
           { title: 'Calories Gained', value: 1500, target: 2000 },
           { title: 'Sleep Intake', value: 6, target: 8 },
@@ -105,15 +143,10 @@ export default function Home() {
             <View style={styles.progressRow}>
               <View style={styles.progressBar}>
                 <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${(item.value / item.target) * 100}%` },
-                  ]}
+                  style={[styles.progressFill, { width: `${(item.value / item.target) * 100}%` }]}
                 />
               </View>
-              <Text style={styles.progressValue}>
-                {item.value}/{item.target}
-              </Text>
+              <Text style={styles.progressValue}>{item.value}/{item.target}</Text>
             </View>
           </View>
         ))}
@@ -121,26 +154,38 @@ export default function Home() {
 
       <View style={styles.section3}>
         <Text style={styles.heading}>Today's Workout</Text>
-        {exercises && (
-          <TouchableOpacity
-          style={styles.exerciseContainer}
-          onPress={() => router.push(`/ExerciseDetail?id=${exercises.id}`)} 
-        >
-          <Image source={{ uri: exercises?.image }} style={styles.exerciseImage} />
-          <View style={styles.exerciseInfo}>
-            <Text style={styles.exerciseName}>{exercises?.exercise_name}</Text>
-            <View style={styles.exerciseStats}>
-              <Text style={styles.statsText}>🔥 {exercises?.calories_burn} cal</Text>
-              <Text style={styles.statsText}>🔁 {exercises?.repetitions} reps</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-             
+        {dailyWorkout ? (
+          dailyWorkout.exercises.map((exercise) => (
+            <TouchableOpacity
+              key={exercise.id}
+              style={styles.exerciseContainer}
+              onPress={() => router.push(`/ExerciseDetail?id=${exercise.id}`)}
+            >
+              <Image
+                source={{ uri: 'https://via.placeholder.com/100' }}
+                style={styles.exerciseImage}
+              />
+              <View style={styles.exerciseInfo}>
+                <Text style={styles.exerciseName}>{exercise.exercise_name}</Text>
+                <View style={styles.exerciseStats}>
+                  <Text style={styles.statsText}>🔥 {exercise.calories_burned} cal</Text>
+                  <Text style={styles.statsText}>🔁 {exercise.reps} reps</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
+          <Text style={styles.noWorkoutText}>No workout scheduled for today.</Text>
         )}
       </View>
 
       <View style={styles.section4}>
         <Text style={styles.heading}>Today's Meal</Text>
+        {user && (
+          <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );
@@ -191,11 +236,6 @@ const styles = StyleSheet.create({
     color: 'black',
     textAlign: 'right',
     textDecorationLine: 'underline',
-  },
-  section: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
   },
   section1: {
     flex: 1,
@@ -270,7 +310,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     padding: 15,
     marginTop: 10,
-    height: 150,
+    width: '100%',
   },
   exerciseImage: {
     width: 100,
@@ -294,5 +334,23 @@ const styles = StyleSheet.create({
   statsText: {
     fontSize: 16,
     marginLeft: 5,
+  },
+  noWorkoutText: {
+    fontSize: 16,
+    color: '#555',
+    marginTop: 10,
+  },
+  logoutButton: {
+    backgroundColor: '#d63384',
+    paddingVertical: 8,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });

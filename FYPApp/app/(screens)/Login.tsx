@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useUserAuth } from '@/context/UserAuthContext'; 
-import { supabase } from '@/lib/supabase';
+import { useUserAuth } from '@/context/UserAuthContext';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,9 +10,8 @@ const Login: React.FC = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(true);
   const [showEmailError, setShowEmailError] = useState(false);
   const [showPasswordError, setShowPasswordError] = useState(false);
-  const [showLoginError, setShowLoginError] = useState(false);
+  const [showLoginError, setShowLoginError] = useState<string | null>(null);
   const router = useRouter();
-
   const { login } = useUserAuth();
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -22,13 +20,13 @@ const Login: React.FC = () => {
     setEmail(text);
     setIsEmailValid(emailRegex.test(text) || text === '');
     setShowEmailError(text !== '' && !emailRegex.test(text));
-    setShowLoginError(false); 
+    setShowLoginError(null);
   };
 
   const handlePasswordChange = (text: string) => {
     setPassword(text);
     setShowPasswordError(text.length > 0 && text.length < 6);
-    setShowLoginError(false);
+    setShowLoginError(null);
   };
 
   const handleLogin = async () => {
@@ -37,35 +35,27 @@ const Login: React.FC = () => {
       setIsPasswordValid(password !== '');
       return;
     }
-  
+
+    if (!isEmailValid) {
+      setShowEmailError(true);
+      return;
+    }
+
     if (password.length < 6) {
       setShowPasswordError(true);
       return;
     }
-  
+
     try {
-      const { data, error } = await supabase
-        .from('User')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .single(); 
-  
-      if (error || !data) {
-        setShowLoginError(true);
-        return;
-      }
-
-      login(data.username);
-
-      console.log('Logged in user:', data.username);
-
-      router.push('../(tabs)'); 
-    } catch (err) {
+      await login(email, password);
+      console.log('Logged in successfully');
+      router.push('/(tabs)/Home');
+    } catch (err: any) {
       console.error('Login error:', err);
+      setShowLoginError(err.message || 'Invalid email or password. Please try again.');
     }
   };
-  
+
   const handleBack = () => {
     router.push('/');
   };
@@ -75,9 +65,9 @@ const Login: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Let's get you in</Text>
-      
-      {showLoginError && <Text style={styles.errorText}>Invalid email or password. Please try again.</Text>}
-      
+
+      {showLoginError && <Text style={styles.errorText}>{showLoginError}</Text>}
+
       <TextInput
         style={[styles.input, (!isEmailValid || showLoginError) && styles.invalidInput]}
         placeholder="Enter your email"
@@ -87,7 +77,7 @@ const Login: React.FC = () => {
         onSubmitEditing={() => passwordInput?.focus()}
       />
       {showEmailError && <Text style={styles.errorText}>Please enter a valid email address.</Text>}
-      
+
       <TextInput
         ref={(input) => (passwordInput = input)}
         style={[styles.input, (!isPasswordValid || showLoginError) && styles.invalidInput]}
