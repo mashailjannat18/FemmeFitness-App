@@ -42,22 +42,7 @@ export const addUserToSupabase = async (): Promise<void> => {
   try {
     console.log('Starting addUserToSupabase with userData:', userData);
 
-    // Step 1: Get the user ID from the User table based on email
-    const { data: userDataResponse, error: userError } = await supabase
-      .from('User')
-      .select('id')
-      .eq('email', userData.email)
-      .single();
-
-    if (userError || !userDataResponse) {
-      console.error('Supabase user fetch error:', userError);
-      throw new Error(`Failed to fetch user from Supabase: ${userError?.message}`);
-    }
-
-    const userId = userDataResponse.id;
-    console.log(`User fetched from 'User' table with id: ${userId}`);
-
-    // Step 2: Send user data to backend to generate workout plan
+    // Step 1: Prepare the payload for the backend
     const goalMap: { [key: string]: string } = {
       'Lose weight': 'weight_loss',
       'Gain weight': 'gain_weight',
@@ -71,10 +56,13 @@ export const addUserToSupabase = async (): Promise<void> => {
       goal: goalMap[userData.goal] || userData.goal,
       weight: Number(userData.weight),
       challengeDays: Number(userData.challengeDays),
-      preferredRestDay: userData.restDays[0] || 'Sunday',
+      preferredRestDay: Array.isArray(userData.restDays) && userData.restDays.length > 0
+        ? userData.restDays[0]
+        : 'Sunday',
     };
     console.log('Sending payload to backend:', payload);
 
+    // Step 2: Call the backend to generate the workout plan
     console.log('Making fetch request to backend...');
     const response = await fetch('http://192.168.1.7:5000/api/generate-plan', {
       method: 'POST',
@@ -92,95 +80,35 @@ export const addUserToSupabase = async (): Promise<void> => {
     const workoutPlan = await response.json();
     console.log('Workout plan generated:', workoutPlan);
 
-    // Step 3: Store workout plan in Supabase
-    const startDate = new Date();
-    const endDate = new Date(startDate.getTime() + userData.challengeDays * 24 * 60 * 60 * 1000);
+    // Step 3: Call the PostgreSQL function to insert all data atomically
+    const { data, error } = await supabase.rpc('insert_user_and_workout_plan', {
+      p_username: userData.username,
+      p_email: userData.email,
+      p_password: userData.password,
+      p_age: userData.age,
+      p_weight: userData.weight,
+      p_height: userData.height,
+      p_diseases: Array.isArray(userData.diseases) ? userData.diseases.join(', ') : userData.diseases,
+      p_goal: userData.goal,
+      p_areas_of_focus: Array.isArray(userData.areasOfFocus)
+        ? userData.areasOfFocus.join(', ')
+        : userData.areasOfFocus,
+      p_activity_level: userData.activityLevel,
+      p_preferred_rest_days: Array.isArray(userData.restDays) && userData.restDays.length > 0
+        ? userData.restDays.join(', ')
+        : 'Sunday',
+      p_challenge_days: userData.challengeDays,
+      p_workout_plan: workoutPlan.plan, // Pass the workout plan as JSONB
+    });
 
-    console.log('Inserting workout plan into Supabase...');
-    const { data: planData, error: planError } = await supabase
-      .from('WorkoutPlans')
-      .insert([
-        {
-          user_id: userId,
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
-          status: 'active',
-        },
-      ])
-      .select('id')
-      .single();
-
-    if (planError) {
-      console.error('Supabase workout plan insert error:', planError);
-      throw new Error(`Failed to insert workout plan into Supabase: ${planError.message}`);
+    if (error) {
+      console.error('Supabase RPC error:', error);
+      throw new Error(`Failed to insert data into Supabase: ${error.message}`);
     }
 
-    const workoutPlanId = planData.id;
-    console.log(`Workout plan stored in 'WorkoutPlans' table with id: ${workoutPlanId}`);
-
-    // Step 4: Store daily workouts and exercises with dates
-    for (const dailyWorkout of workoutPlan.plan) {
-      const dayNumber = parseInt(dailyWorkout.Day.match(/\d+/)![0], 10);
-      const dailyWorkoutDate = new Date(startDate.getTime() + (dayNumber - 1) * 24 * 60 * 60 * 1000);
-
-      console.log('Inserting daily workout for day:', dailyWorkout.Day, 'on date:', dailyWorkoutDate.toISOString().split('T')[0]);
-      const { data: dailyData, error: dailyError } = await supabase
-        .from('DailyWorkouts')
-        .insert([
-          {
-            workout_plan_id: workoutPlanId,
-            day_number: dayNumber,
-            day_name: dailyWorkout.Day,
-            focus: dailyWorkout.Focus,
-            total_duration_min: dailyWorkout['Total Duration (min)'],
-            total_calories_burned: dailyWorkout['Total Calories Burned'],
-            daily_workout_date: dailyWorkoutDate.toISOString().split('T')[0],
-          },
-        ])
-        .select('id')
-        .single();
-
-      if (dailyError) {
-        console.error('Supabase daily workout insert error:', dailyError);
-        throw new Error(`Failed to insert daily workout into Supabase: ${dailyError.message}`);
-      }
-
-      const dailyWorkoutId = dailyData.id;
-      console.log(`Daily workout stored in 'DailyWorkouts' table with id: ${dailyWorkoutId} for day: ${dailyWorkout.Day}`);
-
-      for (const exercise of dailyWorkout.Workouts) {
-        console.log('Inserting exercise:', exercise.Name);
-        const { error: exerciseError } = await supabase
-          .from('Workouts')
-          .insert([
-            {
-              daily_workout_id: dailyWorkoutId,
-              exercise_name: exercise.Name,
-              target_muscle: exercise['Target Muscle'],
-              type: exercise.Type,
-              met_value: exercise['MET Value'],
-              difficulty: exercise.Difficulty,
-              sets: exercise.Sets,
-              reps: exercise.Reps.toString(),
-              rest_time_sec: exercise['Rest Time (sec)'],
-              duration_min: exercise['Duration (min)'],
-              calories_burned: exercise['Calories Burned'],
-              description: exercise.Description,
-              workout_date: dailyWorkoutDate.toISOString().split('T')[0],
-            },
-          ]);
-
-        if (exerciseError) {
-          console.error('Supabase exercise insert error:', exerciseError);
-          throw new Error(`Failed to insert exercise into Supabase: ${exerciseError.message}`);
-        }
-        console.log(`Exercise '${exercise.Name}' stored in 'Workouts' table for daily_workout_id: ${dailyWorkoutId}`);
-      }
-    }
-
-    console.log('User data and workout plan successfully saved!');
+    console.log('User data and workout plan successfully saved!', data);
   } catch (err) {
     console.error('Error in addUserToSupabase:', err);
-    throw err;
+    throw err; // Re-throw the error to be handled by the caller
   }
 };

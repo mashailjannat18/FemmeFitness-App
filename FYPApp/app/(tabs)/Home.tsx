@@ -22,25 +22,36 @@ type DailyWorkout = {
   exercises: Exercise[];
 };
 
+type WorkoutDay = {
+  day_number: number;
+  day_name: string;
+  date: string;
+};
+
 function getCurrentMonth() {
   const now = new Date();
   return now.toLocaleString('default', { month: 'long', year: 'numeric' });
 }
 
-function getCurrentMonthDates() {
-  const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const dates = [];
-  for (let i = 1; i <= daysInMonth; i++) {
-    dates.push({ day: i.toString(), date: `${now.getFullYear()}-${now.getMonth() + 1}-${i}` });
+function getWorkoutDays(challengeDays: number, startDate: string): WorkoutDay[] {
+  const days: WorkoutDay[] = [];
+  const start = new Date(startDate);
+  for (let i = 1; i <= challengeDays; i++) {
+    const date = new Date(start);
+    date.setDate(start.getDate() + (i - 1));
+    days.push({
+      day_number: i,
+      day_name: `Day ${i}`,
+      date: date.toISOString().split('T')[0], // e.g., "2025-03-27"
+    });
   }
-  return dates;
+  return days;
 }
 
 export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   const [dailyWorkout, setDailyWorkout] = useState<DailyWorkout | null>(null);
-  const dates = getCurrentMonthDates();
+  const [workoutDays, setWorkoutDays] = useState<WorkoutDay[]>([]);
   const router = useRouter();
   const { user, logout } = useUserAuth();
 
@@ -50,17 +61,28 @@ export default function Home() {
       return;
     }
 
-    const fetchTodayWorkout = async () => {
+    const fetchWorkoutData = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        // Fetch active workout plan
         const { data: planData, error: planError } = await supabase
           .from('WorkoutPlans')
-          .select('id')
+          .select('id, start_date, challenge_days')
           .eq('user_id', user.id)
           .eq('status', 'active')
           .single();
 
+        console.log('WorkoutPlans query result:', { planData, planError });
+
         if (planError || !planData) throw new Error('No active workout plan found');
+
+        // Set workout days based on plan
+        const days = getWorkoutDays(planData.challenge_days || 30, planData.start_date);
+        setWorkoutDays(days);
+
+        // Fetch today's workout
+        const today = new Date().toISOString().split('T')[0]; // "2025-03-27"
+        console.log('Fetching workout for today:', today);
+        console.log('Workout plan ID:', planData.id);
 
         const { data: dailyData, error: dailyError } = await supabase
           .from('DailyWorkouts')
@@ -68,6 +90,8 @@ export default function Home() {
           .eq('workout_plan_id', planData.id)
           .eq('daily_workout_date', today)
           .single();
+
+        console.log('DailyWorkouts query result:', { dailyData, dailyError });
 
         if (dailyError || !dailyData) {
           setDailyWorkout(null);
@@ -79,6 +103,8 @@ export default function Home() {
           .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
           .eq('daily_workout_id', dailyData.id);
 
+        console.log('Workouts query result:', { exerciseData, exerciseError });
+
         if (exerciseError) throw exerciseError;
 
         setDailyWorkout({
@@ -88,12 +114,12 @@ export default function Home() {
           exercises: exerciseData || [],
         });
       } catch (error) {
-        console.error('Error fetching today’s workout:', error);
+        console.error('Error fetching workout data:', error);
         setDailyWorkout(null);
       }
     };
 
-    fetchTodayWorkout();
+    fetchWorkoutData();
   }, [user, router]);
 
   useFocusEffect(
@@ -113,14 +139,17 @@ export default function Home() {
         </View>
 
         <FlatList
-          data={dates}
+          data={workoutDays}
           keyExtractor={(item) => item.date}
           horizontal
           showsHorizontalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View style={styles.dateCircle}>
-              <Text style={styles.dateText}>{item.day}</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.dateCircle}
+              onPress={() => router.push(`/Exercises?day=${item.day_name}`)}
+            >
+              <Text style={styles.dateText}>{item.day_number}</Text>
+            </TouchableOpacity>
           )}
           contentContainerStyle={styles.datesContainer}
         />

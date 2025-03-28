@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { addUserToSupabase, setUserData } from '@/datafiles/userData';
 import { useUserAuth } from '@/context/UserAuthContext';
+import { supabase } from '@/lib/supabase';
 
 const Question10: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,8 +13,9 @@ const Question10: React.FC = () => {
   const [showEmailError, setShowEmailError] = useState(false);
   const [showPasswordError, setShowPasswordError] = useState(false);
   const [showUsernameError, setShowUsernameError] = useState(false);
+  const [loading, setLoading] = useState(false); // Add loading state
   const router = useRouter();
-  const { signUp } = useUserAuth();
+  const { signUp, updateUser } = useUserAuth();
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -38,31 +40,41 @@ const Question10: React.FC = () => {
   };
 
   const handleSignUp = async () => {
-    if (email === '' || password === '' || username === '') {
-      Alert.alert('Error', 'Please enter email, password, and username');
-    } else if (!isEmailValid) {
-      Alert.alert('Error', 'Please enter a valid email address');
-    } else if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
-    } else if (username.length < 3) {
-      Alert.alert('Error', 'Username must be at least 3 characters long');
-    } else {
-      try {
-        await signUp(email, password, username);
-        setUserData('email', email);
-        setUserData('password', password);
-        setUserData('username', username);
-        await addUserToSupabase();
-        console.log('Sign up successful, navigating to tabs');
-        router.push('/(tabs)/Home');
-      } catch (err: any) {
-        console.error('Sign up error:', err);
-        Alert.alert('Error', err.message || 'Failed to sign up. Please try again.');
-      }
+    try {
+      setLoading(true); // Show loading screen
+      setUserData('email', email.trim());
+      setUserData('password', password.trim());
+      setUserData('username', username.trim().toLowerCase());
+      await signUp(email, password, username);
+      await addUserToSupabase();
+      const { data, error } = await supabase
+        .from('User')
+        .select('id, username')
+        .eq('username', username.trim().toLowerCase())
+        .single();
+      if (error) throw error;
+      updateUser(data.username, data.id);
+      router.push('../(tabs)');
+    } catch (err: any) {
+      console.error('Signup error:', err);
+      Alert.alert('Error', err.message);
+      setLoading(false); // Hide loading screen on error
     }
   };
 
   let passwordInput: TextInput | null = null;
+
+  // If loading, show the loading screen instead of the form
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#d63384" />
+        <Text style={styles.loadingText}>
+          Please wait for a minute while we process your information
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -180,6 +192,20 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  // Styles for the loading screen
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: '#333',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
 

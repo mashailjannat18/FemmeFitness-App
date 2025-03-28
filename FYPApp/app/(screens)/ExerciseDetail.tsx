@@ -10,6 +10,8 @@ type ExerciseDetailType = {
   description: string;
   reps: string;
   calories_burned: number;
+  daily_workout_id: string;
+  daily_workout_date?: string;
 };
 
 export default function ExerciseDetail() {
@@ -25,14 +27,28 @@ export default function ExerciseDetail() {
     try {
       const { data, error } = await supabase
         .from('Workouts')
-        .select('id, exercise_name, description, reps, calories_burned')
+        .select('id, exercise_name, description, reps, calories_burned, daily_workout_id')
         .eq('id', exerciseId)
         .single();
 
       if (error) throw new Error('Error fetching exercise detail: ' + error.message);
-      setExerciseDetail(data);
+
+      // Fetch daily_workout_date from DailyWorkouts
+      const { data: dailyData, error: dailyError } = await supabase
+        .from('DailyWorkouts')
+        .select('daily_workout_date')
+        .eq('id', data.daily_workout_id)
+        .single();
+
+      if (dailyError) throw new Error('Error fetching daily workout date: ' + dailyError.message);
+
+      setExerciseDetail({
+        ...data,
+        daily_workout_date: dailyData.daily_workout_date,
+      });
     } catch (err) {
       console.error('Unexpected error:', err);
+      setExerciseDetail(null);
     }
   };
 
@@ -59,6 +75,9 @@ export default function ExerciseDetail() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>{exerciseDetail.exercise_name}</Text>
+        <Text style={styles.subHeaderText}>
+          Date: {exerciseDetail.daily_workout_date || 'Not available'}
+        </Text>
       </View>
 
       <Image source={{ uri: 'https://via.placeholder.com/230' }} style={styles.image} />
@@ -95,6 +114,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginTop: -25,
+  },
+  subHeaderText: {
+    fontSize: 16,
+    color: '#fff',
+    marginTop: 5,
   },
   image: {
     width: '100%',

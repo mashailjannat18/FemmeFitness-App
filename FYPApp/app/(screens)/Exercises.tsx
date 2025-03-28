@@ -13,8 +13,15 @@ type Exercise = {
   daily_workout_id: string;
 };
 
+type DailyWorkout = {
+  id: string;
+  day_name: string;
+  daily_workout_date: string;
+};
+
 export default function Exercises() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [dailyWorkout, setDailyWorkout] = useState<DailyWorkout | null>(null);
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
   const { day } = useLocalSearchParams<{ day: string }>();
   const router = useRouter();
@@ -51,27 +58,36 @@ export default function Exercises() {
         .eq('status', 'active')
         .single();
 
+      console.log('WorkoutPlans query result:', { planData, planError });
+
       if (planError || !planData) throw new Error('No active workout plan found');
 
       const { data: dailyData, error: dailyError } = await supabase
         .from('DailyWorkouts')
-        .select('id')
+        .select('id, day_name, daily_workout_date')
         .eq('workout_plan_id', planData.id)
         .eq('day_name', day)
         .single();
 
+      console.log('DailyWorkouts query result:', { dailyData, dailyError });
+
       if (dailyError || !dailyData) throw new Error('No daily workout found for this day');
+
+      setDailyWorkout(dailyData);
 
       const { data: exerciseData, error: exerciseError } = await supabase
         .from('Workouts')
         .select('id, exercise_name, reps, daily_workout_id')
         .eq('daily_workout_id', dailyData.id);
 
+      console.log('Workouts query result:', { exerciseData, exerciseError });
+
       if (exerciseError) throw exerciseError;
       setExercises(exerciseData || []);
     } catch (err) {
       console.error('Error fetching exercises:', err);
       setExercises([]);
+      setDailyWorkout(null);
     }
   };
 
@@ -88,32 +104,41 @@ export default function Exercises() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>Exercises for {day}</Text>
+      <Text style={styles.headerText}>
+        Exercises for {day} ({dailyWorkout?.daily_workout_date || 'Date not available'})
+      </Text>
 
-      <FlatList
-        data={exercises}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.listItem}
-            onPress={() => router.push(`/ExerciseDetail?id=${item.id}`)}
-          >
-            <Image source={{ uri: 'https://via.placeholder.com/80' }} style={styles.exerciseImage} />
-            <View style={styles.exerciseInfo}>
-              <Text style={styles.exerciseName}>{item.exercise_name}</Text>
-              <Text style={styles.repetitions}>{item.reps} reps</Text>
-            </View>
-            {completedExercises.includes(item.id) && (
-              <Ionicons name="checkmark-circle" style={styles.checkIcon} />
-            )}
-          </TouchableOpacity>
-        )}
-      />
+      {exercises.length === 0 ? (
+        <Text>No exercises found for this day.</Text>
+      ) : (
+        <FlatList
+          data={exercises}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.listItem}
+              onPress={() => router.push(`/ExerciseDetail?id=${item.id}`)}
+            >
+              <Image source={{ uri: 'https://via.placeholder.com/80' }} style={styles.exerciseImage} />
+              <View style={styles.exerciseInfo}>
+                <Text style={styles.exerciseName}>{item.exercise_name}</Text>
+                <Text style={styles.repetitions}>{item.reps} reps</Text>
+              </View>
+              {completedExercises.includes(item.id) && (
+                <Ionicons name="checkmark-circle" style={styles.checkIcon} />
+              )}
+            </TouchableOpacity>
+          )}
+        />
+      )}
 
       <TouchableOpacity
         style={[styles.doneButton, !allExercisesCompleted && styles.disabledButton]}
         disabled={!allExercisesCompleted}
-        onPress={() => console.log('All exercises completed!')}
+        onPress={() => {
+          console.log('All exercises completed!');
+          router.back();
+        }}
       >
         <Text style={styles.doneButtonText}>Finish</Text>
       </TouchableOpacity>

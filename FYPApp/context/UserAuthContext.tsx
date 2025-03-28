@@ -1,13 +1,13 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type UserAuthContextType = {
   isLoggedIn: boolean;
   user: { username: string; id: string } | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, username: string) => Promise<void>;
+  updateUser: (username: string, id: string) => void;
 };
 
 const UserAuthContext = createContext<UserAuthContextType | undefined>(undefined);
@@ -16,65 +16,52 @@ export const UserAuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<{ username: string; id: string } | null>(null);
 
-  useEffect(() => {
-    const checkPersistedLogin = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem('loggedInUser');
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-          setIsLoggedIn(true);
-        }
-      } catch (error) {
-        console.error('Error checking persisted login:', error);
-      }
-    };
-    checkPersistedLogin();
-  }, []);
-
-  const login = async (email: string, password: string) => {
+  const login = async (username: string, password: string) => {
     const { data, error } = await supabase
       .from('User')
-      .select('id, username')
-      .eq('email', email)
+      .select('id, username, password')
+      .eq('username', username)
       .eq('password', password)
       .single();
 
     if (error || !data) {
-      throw new Error('Login failed: Invalid email or password');
+      throw new Error('Invalid email or password.');
     }
 
-    const userData = { username: data.username, id: data.id };
-    setUser(userData);
+    setUser({ username: data.username, id: data.id });
     setIsLoggedIn(true);
-    await AsyncStorage.setItem('loggedInUser', JSON.stringify(userData));
   };
 
   const logout = async () => {
     setUser(null);
     setIsLoggedIn(false);
-    await AsyncStorage.removeItem('loggedInUser');
   };
 
   const signUp = async (email: string, password: string, username: string) => {
-    const { data, error } = await supabase
+    const { data: existingUser, error: checkError } = await supabase
       .from('User')
-      .insert([{ email, password, username }])
       .select('id, username')
+      .eq('username', username)
       .single();
 
-    if (error || !data) {
-      throw new Error('Sign-up failed: ' + (error?.message || 'Unknown error'));
+    if (checkError && checkError.code !== 'PGRST116') {
+      throw new Error('Sign-up check failed: ' + checkError.message);
     }
 
-    const userData = { username: data.username, id: data.id };
-    setUser(userData);
+    if (existingUser) {
+      throw new Error('Username already exists');
+    }
+
+    setUser({ username, id: '' });
     setIsLoggedIn(true);
-    await AsyncStorage.setItem('loggedInUser', JSON.stringify(userData));
+  };
+
+  const updateUser = (username: string, id: string) => {
+    setUser({ username, id });
   };
 
   return (
-    <UserAuthContext.Provider value={{ isLoggedIn, user, login, logout, signUp }}>
+    <UserAuthContext.Provider value={{ isLoggedIn, user, login, logout, signUp, updateUser }}>
       {children}
     </UserAuthContext.Provider>
   );
