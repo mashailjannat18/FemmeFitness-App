@@ -15,7 +15,8 @@ export type UserData = {
   password: string;
 };
 
-let userData: UserData = {
+// Default values for userData
+const defaultUserData: UserData = {
   username: '',
   age: 0,
   weight: 0,
@@ -30,6 +31,8 @@ let userData: UserData = {
   password: '',
 };
 
+export let userData: UserData = { ...defaultUserData };
+
 export const setUserData = (screenKey: keyof UserData, data: number | string | string[]): void => {
   userData = { ...userData, [screenKey]: data };
 };
@@ -38,7 +41,21 @@ export const getUserData = (): UserData => {
   return { ...userData };
 };
 
-export const addUserToSupabase = async (): Promise<void> => {
+// Reset userData to default values
+export const resetUserData = (): void => {
+  console.log('Resetting userData to default values');
+  userData = { ...defaultUserData };
+};
+
+// Reset userData when starting a new signup process
+export const initializeSignup = (): void => {
+  console.log('Initializing signup process, resetting userData');
+  resetUserData();
+};
+
+export const addUserToSupabase = async (): Promise<number | null> => {
+  let userId: number | null = null;
+
   try {
     console.log('Starting addUserToSupabase with userData:', userData);
 
@@ -64,7 +81,7 @@ export const addUserToSupabase = async (): Promise<void> => {
 
     // Step 2: Call the backend to generate the workout plan
     console.log('Making fetch request to backend...');
-    const response = await fetch('http://192.168.1.7:5000/api/generate-plan', {
+    const response = await fetch('http://192.168.1.10:5000/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -107,8 +124,21 @@ export const addUserToSupabase = async (): Promise<void> => {
     }
 
     console.log('User data and workout plan successfully saved!', data);
+    userId = data[0]?.user_id || null;
+
+    // Step 4: Reset userData to default values after saving
+    resetUserData();
+
+    return userId;
   } catch (err) {
     console.error('Error in addUserToSupabase:', err);
-    throw err; // Re-throw the error to be handled by the caller
+    if (userId) {
+      await supabase
+        .from('User')
+        .delete()
+        .eq('id', userId);
+      console.log(`Deleted user with id ${userId} due to signup error.`);
+    }
+    throw err;
   }
 };

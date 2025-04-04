@@ -1,8 +1,13 @@
 import React from 'react';
 import { StyleSheet, View, Image, Text } from 'react-native';
 import { Link } from 'expo-router';
+import { initializeSignup } from '@/datafiles/userData';
 
 const FullScreenImageWithButton: React.FC = () => {
+  const handleSignUpPress = () => {
+    initializeSignup(); // Reset userData before starting signup
+  };
+
   return (
     <View style={styles.container}>
       <Image source={require('../../assets/images/1.jpg')} style={styles.image} />
@@ -15,6 +20,7 @@ const FullScreenImageWithButton: React.FC = () => {
               pathname: `./Question1`,
             }}
             style={styles.button1}
+            onPress={handleSignUpPress}
           >
             <Text style={styles.buttonText}>Sign Up</Text>
           </Link>
@@ -27,7 +33,6 @@ const FullScreenImageWithButton: React.FC = () => {
             <Text style={styles.buttonText}>Login</Text>
           </Link>
         </View>
-        
       </View>
     </View>
   );

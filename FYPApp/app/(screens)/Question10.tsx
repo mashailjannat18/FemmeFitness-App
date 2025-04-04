@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { addUserToSupabase, setUserData } from '@/datafiles/userData';
+import { setUserData, addUserToSupabase } from '@/datafiles/userData'; // Import addUserToSupabase
 import { useUserAuth } from '@/context/UserAuthContext';
-import { supabase } from '@/lib/supabase';
 
 const Question10: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -13,64 +12,82 @@ const Question10: React.FC = () => {
   const [showEmailError, setShowEmailError] = useState(false);
   const [showPasswordError, setShowPasswordError] = useState(false);
   const [showUsernameError, setShowUsernameError] = useState(false);
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [showSignupError, setShowSignupError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { signUp, updateUser } = useUserAuth();
+  const { signUp } = useUserAuth(); // Keep this for context, but we won't use it directly
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const handleEmailChange = (text: string) => {
-    setEmail(text);
-    setIsEmailValid(emailRegex.test(text) || text === '');
-    setShowEmailError(text !== '' && !emailRegex.test(text));
+    const trimmedText = text.trim();
+    setEmail(trimmedText);
+    setIsEmailValid(emailRegex.test(trimmedText) || trimmedText === '');
+    setShowEmailError(trimmedText !== '' && !emailRegex.test(trimmedText));
+    setShowSignupError(null);
   };
 
   const handlePasswordChange = (text: string) => {
-    setPassword(text);
-    setShowPasswordError(text.length > 0 && text.length < 6);
+    const trimmedText = text.trim();
+    setPassword(trimmedText);
+    setShowPasswordError(trimmedText.length > 0 && trimmedText.length < 6);
+    setShowSignupError(null);
   };
 
   const handleUsernameChange = (text: string) => {
-    setUsername(text);
-    setShowUsernameError(text.length > 0 && text.length < 3);
+    const trimmedText = text.trim();
+    setUsername(trimmedText);
+    setShowUsernameError(trimmedText.length > 0 && trimmedText.length < 3);
+    setShowSignupError(null);
   };
 
   const handleBack = () => {
-    router.push('/(screens)/Question9');
+    router.push('/(screens)/Question8');
   };
 
   const handleSignUp = async () => {
     try {
-      setLoading(true); // Show loading screen
-      setUserData('email', email.trim());
-      setUserData('password', password.trim());
-      setUserData('username', username.trim().toLowerCase());
-      await signUp(email, password, username);
-      await addUserToSupabase();
-      const { data, error } = await supabase
-        .from('User')
-        .select('id, username')
-        .eq('username', username.trim().toLowerCase())
-        .single();
-      if (error) throw error;
-      updateUser(data.username, data.id);
+      setLoading(true);
+      setShowSignupError(null);
+
+      // Validate inputs
+      if (!email || !password || !username || !isEmailValid || password.length < 6 || username.length < 3) {
+        setShowEmailError(!isEmailValid && email !== '');
+        setShowPasswordError(password.length < 6 && password !== '');
+        setShowUsernameError(username.length < 3 && username !== '');
+        throw new Error('Please fill all fields with valid data.');
+      }
+
+      // Store user data
+      setUserData('email', email);
+      setUserData('password', password);
+      setUserData('username', username);
+
+      // Call addUserToSupabase to generate workout plan and save to Supabase
+      const userId = await addUserToSupabase();
+      if (!userId) {
+        throw new Error('Failed to create user.');
+      }
+
+      // Update user context (optional, depending on your auth flow)
+      // Here we assume addUserToSupabase handles everything, so we just redirect
       router.push('../(tabs)');
     } catch (err: any) {
       console.error('Signup error:', err);
-      Alert.alert('Error', err.message);
-      setLoading(false); // Hide loading screen on error
+      setShowSignupError(err.message || 'An error occurred during signup.');
+    } finally {
+      setLoading(false);
     }
   };
 
   let passwordInput: TextInput | null = null;
 
-  // If loading, show the loading screen instead of the form
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#d63384" />
         <Text style={styles.loadingText}>
-          Please wait for a minute while we process your information
+          Please wait while we process your information
         </Text>
       </View>
     );
@@ -79,6 +96,8 @@ const Question10: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Create an Account</Text>
+
+      {showSignupError && <Text style={styles.errorText}>{showSignupError}</Text>}
 
       <TextInput
         style={[styles.input, !isEmailValid && styles.invalidInput]}
@@ -130,6 +149,7 @@ const Question10: React.FC = () => {
   );
 };
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -193,7 +213,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
-  // Styles for the loading screen
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',

@@ -4,54 +4,46 @@ import { useRouter } from 'expo-router';
 import { useUserAuth } from '@/context/UserAuthContext';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isUsernameValid, setIsUsernameValid] = useState(true);
+  const [isEmailValid, setIsEmailValid] = useState(true);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
-  const [showUsernameError, setShowUsernameError] = useState(false);
+  const [showEmailError, setShowEmailError] = useState(false);
   const [showPasswordError, setShowPasswordError] = useState(false);
   const [showLoginError, setShowLoginError] = useState<string | null>(null);
   const router = useRouter();
   const { login } = useUserAuth();
 
-  const handleUsernameChange = (text: string) => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  const handleEmailChange = (text: string) => {
     const trimmedText = text.trim();
-    setUsername(trimmedText);
-    setIsUsernameValid(trimmedText.length >= 3 || trimmedText === '');
-    setShowUsernameError(trimmedText !== '' && trimmedText.length < 3);
+    setEmail(trimmedText);
+    setIsEmailValid(emailRegex.test(trimmedText) || trimmedText === '');
+    setShowEmailError(trimmedText !== '' && !emailRegex.test(trimmedText));
     setShowLoginError(null);
   };
 
   const handlePasswordChange = (text: string) => {
     const trimmedText = text.trim();
     setPassword(trimmedText);
+    setIsPasswordValid(trimmedText.length >= 6 || trimmedText === '');
     setShowPasswordError(trimmedText.length > 0 && trimmedText.length < 6);
     setShowLoginError(null);
   };
 
   const handleLogin = async () => {
-    if (username === '' || password === '') {
-      setIsUsernameValid(username !== '');
-      setIsPasswordValid(password !== '');
-      return;
-    }
-
-    if (username.length < 3) {
-      setShowUsernameError(true);
-      return;
-    }
-
-    if (password.length < 6) {
-      setShowPasswordError(true);
+    if (!email || !password || !isEmailValid || !isPasswordValid) {
+      setShowEmailError(!isEmailValid && email !== '');
+      setShowPasswordError(!isPasswordValid && password !== '');
       return;
     }
 
     try {
-      await login(username, password);
+      await login(email, password);
       router.push('../(tabs)');
     } catch (err: any) {
-      // Display a standardized error message instead of the error from the login function
-      setShowLoginError('Invalid email or password.');
+      setShowLoginError(err.message || 'Invalid email or password.');
     }
   };
 
@@ -68,13 +60,14 @@ const Login: React.FC = () => {
       {showLoginError && <Text style={styles.errorText}>{showLoginError}</Text>}
 
       <TextInput
-        style={[styles.input, (!isUsernameValid || showLoginError) && styles.invalidInput]}
-        placeholder="Enter your username"
-        value={username}
-        onChangeText={handleUsernameChange}
+        style={[styles.input, (!isEmailValid || showLoginError) && styles.invalidInput]}
+        placeholder="Enter your email"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={handleEmailChange}
         onSubmitEditing={() => passwordInput?.focus()}
       />
-      {showUsernameError && <Text style={styles.errorText}>Username must be at least 3 characters long.</Text>}
+      {showEmailError && <Text style={styles.errorText}>Please enter a valid email address.</Text>}
 
       <TextInput
         ref={(input) => (passwordInput = input)}
@@ -94,10 +87,10 @@ const Login: React.FC = () => {
         <TouchableOpacity
           style={[
             styles.button,
-            username && password && isUsernameValid && password.length >= 6 ? styles.activeButton : styles.disabledButton,
+            email && password && isEmailValid && isPasswordValid ? styles.activeButton : styles.disabledButton,
           ]}
           onPress={handleLogin}
-          disabled={!username || !password || !isUsernameValid || password.length < 6}
+          disabled={!email || !password || !isEmailValid || !isPasswordValid}
         >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>

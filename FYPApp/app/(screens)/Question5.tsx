@@ -6,7 +6,7 @@ import { setUserData } from '../../datafiles/userData';
 
 // Mapping between display text and backend-friendly values
 const goalMapping = {
-  "Lose weight": "lose_weight",
+  "Lose weight": "weight_loss",
   "Gain weight": "gain_weight",
   "Muscle build": "build_muscle",
   "Stay fit": "stay_fit",

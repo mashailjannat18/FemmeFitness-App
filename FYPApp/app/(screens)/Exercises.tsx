@@ -1,205 +1,154 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { useRouter, useNavigation, useLocalSearchParams } from 'expo-router';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { supabase } from '@/lib/supabase';
-import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUserAuth } from '@/context/UserAuthContext';
+import { useRouter } from 'expo-router';
 
 type Exercise = {
-  id: string;
-  exercise_name: string;
-  reps: string;
-  daily_workout_id: string;
+  id: number;
+  user_id: string;
+  name: string;
+  target_muscle: string;
+  type: string;
+  difficulty: string;
+  sets: number;
+  reps: number;
+  rest_time_sec: number;
+  duration_min: number;
+  calories_burned: number;
+  description: string;
 };
 
-type DailyWorkout = {
-  id: string;
-  day_name: string;
-  daily_workout_date: string;
-};
-
-export default function Exercises() {
+const Exercises: React.FC = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [dailyWorkout, setDailyWorkout] = useState<DailyWorkout | null>(null);
-  const [completedExercises, setCompletedExercises] = useState<string[]>([]);
-  const { day } = useLocalSearchParams<{ day: string }>();
+  const [loading, setLoading] = useState(true);
+  const { user } = useUserAuth(); // Get the current user from context
   const router = useRouter();
-  const navigation = useNavigation();
-  const { user } = useUserAuth();
 
   useEffect(() => {
-    if (!user) {
-      router.push('/Login');
-      return;
+    if (user?.id) {
+      fetchExercises();
     }
-
-    fetchExercises();
-    loadCompletedExercises();
-  }, [day, user, router]);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerLeft: () => (
-        <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 10 }}>
-          <Ionicons name="arrow-back" size={24} color="black" />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
+  }, [user?.id]);
 
   const fetchExercises = async () => {
-    if (!day || !user) return;
     try {
-      const { data: planData, error: planError } = await supabase
-        .from('WorkoutPlans')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .single();
+      if (!user?.id) {
+        throw new Error('No user logged in');
+      }
 
-      console.log('WorkoutPlans query result:', { planData, planError });
-
-      if (planError || !planData) throw new Error('No active workout plan found');
-
-      const { data: dailyData, error: dailyError } = await supabase
-        .from('DailyWorkouts')
-        .select('id, day_name, daily_workout_date')
-        .eq('workout_plan_id', planData.id)
-        .eq('day_name', day)
-        .single();
-
-      console.log('DailyWorkouts query result:', { dailyData, dailyError });
-
-      if (dailyError || !dailyData) throw new Error('No daily workout found for this day');
-
-      setDailyWorkout(dailyData);
-
-      const { data: exerciseData, error: exerciseError } = await supabase
+      const { data, error } = await supabase
         .from('Workouts')
-        .select('id, exercise_name, reps, daily_workout_id')
-        .eq('daily_workout_id', dailyData.id);
+        .select('*')
+        .eq('user_id', user.id); // Filter by the current user's ID
 
-      console.log('Workouts query result:', { exerciseData, exerciseError });
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error('You do not have permission to view these exercises');
+      }
 
-      if (exerciseError) throw exerciseError;
-      setExercises(exerciseData || []);
-    } catch (err) {
-      console.error('Error fetching exercises:', err);
-      setExercises([]);
-      setDailyWorkout(null);
+      if (!data || data.length === 0) {
+        console.log('No exercises found for user:', user.id);
+        setExercises([]);
+      } else {
+        console.log('Exercises fetched for user', user.id, ':', data);
+        setExercises(data as Exercise[]);
+      }
+    } catch (err: any) {
+      console.error('Error in fetchExercises:', err.message || err);
+      setExercises([]); // Clear exercises on error
+    } finally {
+      setLoading(false);
     }
   };
 
-  const loadCompletedExercises = async () => {
-    try {
-      const storedExercises = await AsyncStorage.getItem('completedExercises');
-      if (storedExercises) setCompletedExercises(JSON.parse(storedExercises));
-    } catch (error) {
-      console.error('Error loading completed exercises:', error);
-    }
+  const handleExercisePress = (exerciseId: number) => {
+    router.push({
+      pathname: '/(screens)/ExerciseDetail',
+      params: { exerciseId: exerciseId.toString() },
+    });
   };
 
-  const allExercisesCompleted = exercises.length > 0 && completedExercises.length === exercises.length;
+  const renderExercise = ({ item }: { item: Exercise }) => (
+    <TouchableOpacity
+      style={styles.exerciseCard}
+      onPress={() => handleExercisePress(item.id)}
+    >
+      <Text style={styles.exerciseName}>{item.name}</Text>
+      <Text style={styles.exerciseDetail}>Target: {item.target_muscle}</Text>
+      <Text style={styles.exerciseDetail}>Type: {item.type}</Text>
+      <Text style={styles.exerciseDetail}>Difficulty: {item.difficulty}</Text>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading exercises...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>
-        Exercises for {day} ({dailyWorkout?.daily_workout_date || 'Date not available'})
-      </Text>
-
+      <Text style={styles.header}>Your Exercises</Text>
       {exercises.length === 0 ? (
-        <Text>No exercises found for this day.</Text>
+        <Text style={styles.noExercisesText}>No exercises found.</Text>
       ) : (
         <FlatList
           data={exercises}
+          renderItem={renderExercise}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.listItem}
-              onPress={() => router.push(`/ExerciseDetail?id=${item.id}`)}
-            >
-              <Image source={{ uri: 'https://via.placeholder.com/80' }} style={styles.exerciseImage} />
-              <View style={styles.exerciseInfo}>
-                <Text style={styles.exerciseName}>{item.exercise_name}</Text>
-                <Text style={styles.repetitions}>{item.reps} reps</Text>
-              </View>
-              {completedExercises.includes(item.id) && (
-                <Ionicons name="checkmark-circle" style={styles.checkIcon} />
-              )}
-            </TouchableOpacity>
-          )}
+          contentContainerStyle={styles.listContainer}
         />
       )}
-
-      <TouchableOpacity
-        style={[styles.doneButton, !allExercisesCompleted && styles.disabledButton]}
-        disabled={!allExercisesCompleted}
-        onPress={() => {
-          console.log('All exercises completed!');
-          router.back();
-        }}
-      >
-        <Text style={styles.doneButtonText}>Finish</Text>
-      </TouchableOpacity>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
+    padding: 16,
+    backgroundColor: '#f8f8f8',
   },
-  headerText: {
+  header: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 20,
     textAlign: 'center',
-    marginVertical: 20,
+    color: '#333',
   },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  exerciseImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  exerciseInfo: {
-    flex: 1,
+  exerciseCard: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    elevation: 2,
   },
   exerciseName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#333',
   },
-  repetitions: {
+  exerciseDetail: {
     fontSize: 14,
-    color: '#555',
+    color: '#666',
   },
-  checkIcon: {
-    fontSize: 24,
-    color: 'green',
-    marginLeft: 10,
+  listContainer: {
+    paddingBottom: 20,
   },
-  doneButton: {
-    backgroundColor: '#ff69b4',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 20,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  disabledButton: {
-    backgroundColor: '#ccc',
-  },
-  doneButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  noExercisesText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
+
+export default Exercises;

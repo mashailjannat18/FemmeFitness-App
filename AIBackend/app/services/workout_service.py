@@ -1,12 +1,19 @@
 import pandas as pd
+import random
+import logging
 from app.config import Config
 from app.utils.helpers import calculate_calories_burned, map_age_to_group, convert_activity_level
 import math
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class WorkoutService:
     def __init__(self):
         self.workouts_df = pd.read_csv(Config.WORKOUTS_CSV_PATH)
         self.workouts_df['Difficulty'] = self.workouts_df['Difficulty'].str.strip().str.capitalize()
+        logger.info("Loaded workouts CSV with %d entries", len(self.workouts_df))
 
     # Constants
     DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -163,6 +170,7 @@ class WorkoutService:
                 met_recs.extend(['low', 'moderate'])
             diff_recs.extend(['Beginner'])
 
+        logger.info("Recommendations for age %d, activity %s: METs=%s, Difficulties=%s", age, activity, met_recs, diff_recs)
         return met_recs, diff_recs
 
     def filter_workouts(self, met_recs, diff_recs):
@@ -173,6 +181,7 @@ class WorkoutService:
                 met_mask |= self.workouts_df['MET Value'].between(min_val, max_val)
 
         filtered_df = self.workouts_df[met_mask & self.workouts_df['Difficulty'].isin(diff_recs)]
+        logger.info("Filtered workouts: %d entries", len(filtered_df))
         return filtered_df
 
     def get_weekday(self, day_index):
@@ -201,6 +210,7 @@ class WorkoutService:
                 workout_streak += 1
 
             plan.append({'Day': f'Day {i+1} ({weekday})', 'Focus': focus})
+        logger.info("Generated weekly plan with %d days", len(plan))
         return plan
 
     def smart_get_workouts_for_focus(self, focus_area, activity_level, filtered_df):
@@ -243,13 +253,19 @@ class WorkoutService:
 
         primary_workouts = filter_workouts(focus_area)
         if not primary_workouts.empty:
-            return primary_workouts.sort_values(by='MET Value').to_dict('records')
+            # Randomly sample workouts to ensure variety
+            if len(primary_workouts) > 0:
+                sampled = primary_workouts.sample(frac=1).sort_values(by='MET Value').to_dict('records')
+                logger.info("Selected %d primary workouts for focus %s", len(sampled), focus_area)
+                return sampled
 
         fallback_focuses = fallback_focus_map.get(focus_area, [])
         for alt_focus in fallback_focuses:
             fallback_workouts = filter_workouts(alt_focus)
             if not fallback_workouts.empty:
-                return fallback_workouts.sort_values(by='MET Value').to_dict('records')
+                sampled = fallback_workouts.sample(frac=1).sort_values(by='MET Value').to_dict('records')
+                logger.info("Selected %d fallback workouts for focus %s", len(sampled), alt_focus)
+                return sampled
 
         if activity_level.lower() == 'low':
             relaxed = filtered_df[
@@ -257,11 +273,16 @@ class WorkoutService:
                 (filtered_df['MET Value'] <= 6)
             ]
             if not relaxed.empty:
-                return relaxed.sort_values(by='MET Value').to_dict('records')
+                sampled = relaxed.sample(frac=1).sort_values(by='MET Value').to_dict('records')
+                logger.info("Selected %d relaxed workouts for low activity", len(sampled))
+                return sampled
 
         if not default_light_fallback.empty:
-            return default_light_fallback.sort_values(by='MET Value').to_dict('records')
+            sampled = default_light_fallback.sample(frac=1).sort_values(by='MET Value').to_dict('records')
+            logger.info("Selected %d default light fallback workouts", len(sampled))
+            return sampled
 
+        logger.warning("No workouts found for focus %s", focus_area)
         return []
 
     def clean_nan(self, data):
@@ -282,6 +303,9 @@ class WorkoutService:
         program_duration = user_data.get('challengeDays', 60)
         preferred_rest_day = user_data.get('preferredRestDay', 'Sunday')
 
+        logger.info("Generating workout plan for user: age=%d, activity=%s, goal=%s, weight=%d, duration=%d, rest_day=%s",
+                    age, activity_level, goal, weight, program_duration, preferred_rest_day)
+
         # Map user data
         age_group = map_age_to_group(age)
         
@@ -301,7 +325,6 @@ class WorkoutService:
         rest_time = self.rest_time_config[age_group][activity_level]
 
         # Generate final plan
-        focus_index_tracker = {}
         final_plan = []
 
         for day_plan in weekly_plan:
@@ -339,13 +362,18 @@ class WorkoutService:
                     day_data['Total Calories Burned'] = 0
             else:
                 pool = self.smart_get_workouts_for_focus(focus, activity_level, filtered_df)
-                start = focus_index_tracker.get(focus, 0)
-                end = start + num_exercises
-                selected = pool[start:end]
+                if not pool:
+                    logger.warning("No workouts available for focus %s on %s", focus, day_data['Day'])
+                    day_data['Total Duration (min)'] = 0
+                    day_data['Total Calories Burned'] = 0
+                    final_plan.append(day_data)
+                    continue
 
-                if len(selected) < num_exercises and pool:
-                    selected += pool[:num_exercises - len(selected)]
-                focus_index_tracker[focus] = end % len(pool) if pool else 0
+                # Randomly select workouts to ensure variety
+                if len(pool) >= num_exercises:
+                    selected = random.sample(pool, num_exercises)
+                else:
+                    selected = pool + random.sample(pool, num_exercises - len(pool))
 
                 for w in selected:
                     met = w.get('MET Value', 3)
@@ -369,5 +397,6 @@ class WorkoutService:
 
             final_plan.append(day_data)
 
+        logger.info("Generated final plan with %d days", len(final_plan))
         # Clean NaN values before returning
         return self.clean_nan(final_plan)
