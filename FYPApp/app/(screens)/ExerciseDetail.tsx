@@ -149,8 +149,8 @@ export default function ExerciseDetail() {
     console.log('Fetched exercise data:', data);
 
     // Access DailyWorkouts as a single object
-    const dailyWorkout = data.DailyWorkouts as DailyWorkout;
-    if (!dailyWorkout) {
+    const dailyWorkout = data.DailyWorkouts as unknown as DailyWorkout;
+    if (!dailyWorkout?.WorkoutPlans?.id) {
       console.error('No DailyWorkouts data found for exercise:', exerciseId);
       throw new Error('Unable to verify ownership of this exercise: No DailyWorkouts data');
     }

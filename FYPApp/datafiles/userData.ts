@@ -108,7 +108,7 @@ export const addUserToSupabase = async (
 
     // Step 3: Call the backend to generate the workout plan
     console.log('Making fetch request to backend...');
-    const response = await fetch('http://192.168.18.42:5000/api/generate-plan', {
+    const response = await fetch('http://192.168.1.10:5000/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
