@@ -1,0 +1,7 @@
+INSTRUCTIONS:
+
+There are problems with authentication. Don't sign up baar baar, it will keep creating users in supabase table with 15 workouts for each user at least (more according to the number of days you select as challange days). Use 'donnabluebell@gmail.com' and 'Donna123' and login everytime you want to get into the app instead of signing up eveytime. It will possibly have error as well but to see design changes, it will work. 
+
+To get the app to work, you have to get both backend and frontend running. Open 2 terminals to get into the app:
+1.  First terminal will be inside 'FYPApp' folder. It is the frontend folder. It will run with a simple 'npm start'
+2.  Second terminal will be inside 'AIBackend' folder. It is the backend folder with python model. To get backend started, first you have to activate 'venv' which will be activated through the command '.\venv\Scripts\activate'. Then to start the backend, the command 'python run.py' will need to be run. To start backend, you will have to download python from chrome and get its path saved in the environment variables of your pc. When you run the backend, it will give you two IP addresses, one starting with '127' and one with '192'. You have to keep track of the one starting with '192' everytime you restart backend. This address and the one mentioned in 'userData.ts' file of in 'FYPApp\datafiles\userData.ts' HAVE to be same to work properly otherwise, there will be a network error. This address can change everytime you rerun backend because backend API has not been deployed yet.
