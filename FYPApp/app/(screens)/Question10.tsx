@@ -1,7 +1,8 @@
+// Question10.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { setUserData, addUserToSupabase } from '@/datafiles/userData'; // Import addUserToSupabase
+import { getUserData, resetUserData } from '@/datafiles/userData'; // Import getUserData
 import { useUserAuth } from '@/context/UserAuthContext';
 
 const Question10: React.FC = () => {
@@ -15,7 +16,7 @@ const Question10: React.FC = () => {
   const [showSignupError, setShowSignupError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { signUp } = useUserAuth(); // Keep this for context, but we won't use it directly
+  const { signUp } = useUserAuth();
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -58,19 +59,21 @@ const Question10: React.FC = () => {
         throw new Error('Please fill all fields with valid data.');
       }
 
-      // Store user data
-      setUserData('email', email);
-      setUserData('password', password);
-      setUserData('username', username);
+      // Retrieve challengeDays from userData
+      const userData = getUserData();
+      const challengeDays = userData.challengeDays;
 
-      // Call addUserToSupabase to generate workout plan and save to Supabase
-      const userId = await addUserToSupabase();
-      if (!userId) {
-        throw new Error('Failed to create user.');
+      // Validate challengeDays
+      if (!challengeDays || challengeDays <= 0) {
+        throw new Error('Challenge days must be selected and greater than 0.');
       }
 
-      // Update user context (optional, depending on your auth flow)
-      // Here we assume addUserToSupabase handles everything, so we just redirect
+      // Call signUp with the user-selected challengeDays
+      await signUp(email, password, username, challengeDays);
+
+      // Reset userData after successful signup
+      resetUserData();
+
       router.push('../(tabs)');
     } catch (err: any) {
       console.error('Signup error:', err);
@@ -149,7 +152,6 @@ const Question10: React.FC = () => {
   );
 };
 
-// Styles remain unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,

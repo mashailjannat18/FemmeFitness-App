@@ -25,10 +25,9 @@ const Login: React.FC = () => {
   };
 
   const handlePasswordChange = (text: string) => {
-    const trimmedText = text.trim();
-    setPassword(trimmedText);
-    setIsPasswordValid(trimmedText.length >= 6 || trimmedText === '');
-    setShowPasswordError(trimmedText.length > 0 && trimmedText.length < 6);
+    setPassword(text);
+    setIsPasswordValid(text.length >= 6 || text === '');
+    setShowPasswordError(text.length > 0 && text.length < 6);
     setShowLoginError(null);
   };
 

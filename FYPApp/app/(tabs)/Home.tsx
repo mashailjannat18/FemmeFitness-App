@@ -43,8 +43,8 @@ function getWorkoutDays(challengeDays: number, startDate: string): WorkoutDay[] 
     const dayName = date.toLocaleString('default', { weekday: 'long' });
     days.push({
       day_number: i,
-      day_name: `Day ${i} (${dayName})`, // Match the format in the database: "Day 1 (Monday)"
-      date: date.toISOString().split('T')[0], // e.g., "2025-04-03"
+      day_name: `Day ${i} (${dayName})`,
+      date: date.toISOString().split('T')[0],
     });
   }
   return days;
@@ -103,7 +103,7 @@ export default function Home() {
       setWorkoutDays(days);
 
       // Step 3: Fetch today's workout
-      const today = new Date().toISOString().split('T')[0]; // e.g., "2025-04-03"
+      const today = new Date().toISOString().split('T')[0];
       console.log('Fetching workout for today:', today, 'for user', user.id);
       console.log('Workout plan ID:', planData.id);
 
@@ -117,7 +117,7 @@ export default function Home() {
       if (dailyError || !dailyData) {
         console.log('No workout found for today for user', user.id, ':', dailyError?.message || 'No data');
         setDailyWorkout(null);
-        return; // No workout for today
+        return;
       }
 
       console.log('DailyWorkouts query result for user', user.id, ':', { dailyData, dailyError });
