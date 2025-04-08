@@ -5,7 +5,6 @@ from app.config import Config
 from app.utils.helpers import calculate_calories_burned, map_age_to_group, convert_activity_level
 import math
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -15,7 +14,6 @@ class WorkoutService:
         self.workouts_df['Difficulty'] = self.workouts_df['Difficulty'].str.strip().str.capitalize()
         logger.info("Loaded workouts CSV with %d entries", len(self.workouts_df))
 
-    # Constants
     DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     GOAL_FOCUS_TEMPLATES = {
         'stay_fit': ['Upper Body Strength', 'Lower Body Strength', 'Core + Abs', 'Light Endurance', 'Light Endurance'],
@@ -24,14 +22,12 @@ class WorkoutService:
         'build_muscle': ['Upper Body Strength', 'Lower Body Strength', 'Upper Body Strength', 'Core + Abs', 'Cardio']
     }
 
-    # MET Ranges for filtering
     MET_RANGES = {
         'low': (1.5, 3.9),
         'moderate': (4.0, 6.9),
         'high': (7.0, 10.0)
     }
 
-    # Workout configurations
     workout_config = {
         'adult': {
             'low': {
@@ -95,7 +91,6 @@ class WorkoutService:
         }
     }
 
-    # Reps per goal
     goal_config = {
         'weight_loss': 15,
         'stay_fit': 15,
@@ -103,21 +98,18 @@ class WorkoutService:
         'gain_weight': 8
     }
 
-    # Seconds per rep based on age and activity
     rep_time_config = {
         'adult': {'low': 4, 'moderate': 4, 'high': 3},
         'middle_aged': {'low': 5, 'moderate': 5, 'high': 4},
         'older_adult': {'low': 6, 'moderate': 6, 'high': 5}
     }
 
-    # Rest time between sets (in seconds)
     rest_time_config = {
         'adult': {'low': 45, 'moderate': 30, 'high': 20},
         'middle_aged': {'low': 60, 'moderate': 45, 'high': 30},
         'older_adult': {'low': 75, 'moderate': 60, 'high': 45}
     }
 
-    # Focus area definitions
     focus_area_definitions = {
         'Upper Body Strength': {'target_muscles': ['Forearms', 'Shoulders', 'Biceps', 'Triceps', 'Chest'], 'Type': ['Strength']},
         'Lower Body Strength': {'target_muscles': ['Hamstrings', 'Glutes', 'Quadriceps', 'Calves', 'Abductors', 'Adductors'], 'Type': ['Strength']},
@@ -133,14 +125,12 @@ class WorkoutService:
     }
 
     def get_recommendations(self, age, activity):
-        # Age group ranges
         min_ranges = {'adult': 15, 'middle_aged': 35, 'older_adult': 50}
         max_ranges = {'adult': 34, 'middle_aged': 49, 'older_adult': 120}
 
         met_recs = []
         diff_recs = []
 
-        # Adults (15-34)
         if min_ranges['adult'] <= age <= max_ranges['adult']:
             if activity == 'low':
                 met_recs.extend(['low'])
@@ -152,7 +142,6 @@ class WorkoutService:
                 met_recs.extend(['low', 'moderate', 'high'])
                 diff_recs.extend(['Beginner', 'Intermediate'])
         
-        # Middle-aged (35-49)
         elif min_ranges['middle_aged'] <= age <= max_ranges['middle_aged']:
             if activity != 'high':
                 met_recs.extend(['low'])
@@ -162,7 +151,6 @@ class WorkoutService:
             if activity in ['moderate', 'high']:
                 diff_recs.extend(['Intermediate'])
         
-        # Older adults (50+)
         elif age >= min_ranges['older_adult']:
             if activity != 'high':
                 met_recs.extend(['low'])
@@ -253,7 +241,6 @@ class WorkoutService:
 
         primary_workouts = filter_workouts(focus_area)
         if not primary_workouts.empty:
-            # Randomly sample workouts to ensure variety
             if len(primary_workouts) > 0:
                 sampled = primary_workouts.sample(frac=1).sort_values(by='MET Value').to_dict('records')
                 logger.info("Selected %d primary workouts for focus %s", len(sampled), focus_area)
@@ -306,17 +293,13 @@ class WorkoutService:
         logger.info("Generating workout plan for user: age=%d, activity=%s, goal=%s, weight=%d, duration=%d, rest_day=%s",
                     age, activity_level, goal, weight, program_duration, preferred_rest_day)
 
-        # Map user data
         age_group = map_age_to_group(age)
         
-        # Get MET and difficulty recommendations
         met_recs, diff_recs = self.get_recommendations(age, activity_level)
         filtered_df = self.filter_workouts(met_recs, diff_recs)
 
-        # Generate weekly plan
         weekly_plan = self.generate_plan(goal, program_duration, preferred_rest_day)
 
-        # Get workout configuration
         config = self.workout_config[age_group][activity_level][goal]
         num_exercises = config['exercises']
         sets = config['sets']
@@ -324,7 +307,6 @@ class WorkoutService:
         rep_time = self.rep_time_config[age_group][activity_level]
         rest_time = self.rest_time_config[age_group][activity_level]
 
-        # Generate final plan
         final_plan = []
 
         for day_plan in weekly_plan:
@@ -341,7 +323,7 @@ class WorkoutService:
                     ].sample(n=3, replace=True).to_dict('records')
 
                     for w in rest_exercises:
-                        duration_min = 30 / 60  # 30 secs per stretch
+                        duration_min = 30 / 60
                         calories = calculate_calories_burned(w.get('MET Value', 2.5), duration_min, weight)
 
                         w['Sets'] = 1
@@ -349,7 +331,7 @@ class WorkoutService:
                         w['Rest Time (sec)'] = 30
                         w['Duration (min)'] = duration_min
                         w['Calories Burned'] = round(calories, 2)
-                        w['Description'] = w.get('Description', 'No description available')  # Include description
+                        w['Description'] = w.get('Description', 'No description available')
 
                         total_duration += duration_min
                         total_calories += calories
@@ -369,7 +351,6 @@ class WorkoutService:
                     final_plan.append(day_data)
                     continue
 
-                # Randomly select workouts to ensure variety
                 if len(pool) >= num_exercises:
                     selected = random.sample(pool, num_exercises)
                 else:
@@ -386,7 +367,7 @@ class WorkoutService:
                     w['Rest Time (sec)'] = rest_time
                     w['Duration (min)'] = round(duration_min, 2)
                     w['Calories Burned'] = round(calories, 2)
-                    w['Description'] = w.get('Description', 'No description available')  # Include description
+                    w['Description'] = w.get('Description', 'No description available')
 
                     total_duration += duration_min
                     total_calories += calories
@@ -398,5 +379,5 @@ class WorkoutService:
             final_plan.append(day_data)
 
         logger.info("Generated final plan with %d days", len(final_plan))
-        # Clean NaN values before returning
+        
         return self.clean_nan(final_plan)

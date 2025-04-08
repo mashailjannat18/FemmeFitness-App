@@ -72,7 +72,7 @@ export default function Workouts() {
               onPress={() => navigateToExercises(day.day_name)}
               style={styles.optionButton}
             >
-              <Text style={styles.optionText}>{day.day_name} ({day.daily_workout_date})</Text>
+              <Text style={styles.optionText}>{day.day_name}</Text>
             </TouchableOpacity>
           ))}
         </View>

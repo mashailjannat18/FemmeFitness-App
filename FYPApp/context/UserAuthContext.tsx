@@ -1,11 +1,10 @@
-// UserAuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addUserToSupabase } from '@/datafiles/userData';
 
 type User = {
-  id: string; // Keep as string for now, converted to number when needed
+  id: string;
   username: string;
   email: string;
 };
@@ -65,7 +64,6 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const signUp = async (email: string, password: string, username: string, challengeDays: number) => {
     try {
-      // Check for existing email
       const { data: existingEmail, error: emailCheckError } = await supabase
         .from('User')
         .select('id')
@@ -80,7 +78,6 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw new Error('Email already exists. Please use a different email.');
       }
 
-      // Check for existing username
       const { data: existingUser, error: usernameCheckError } = await supabase
         .from('User')
         .select('id')
@@ -95,7 +92,6 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw new Error('Username already exists');
       }
 
-      // Call addUserToSupabase to handle data insertion
       const userId = await addUserToSupabase(email, password, username, challengeDays);
       if (!userId) {
         throw new Error('Failed to sign up user.');

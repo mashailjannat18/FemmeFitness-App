@@ -1,4 +1,3 @@
-// ExerciseDetail.tsx
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Image, View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -6,25 +5,24 @@ import { supabase } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUserAuth } from '@/context/UserAuthContext';
 
-// Define types for the nested relational data
 type WorkoutPlan = {
-  id: number; // Match bigint type
-  user_id: number; // Match bigint type
+  id: number;
+  user_id: number;
 };
 
 type DailyWorkout = {
-  id: number; // Match bigint type
-  workout_plan_id: number; // Match bigint type
-  WorkoutPlans: WorkoutPlan; // Single object, as returned by Supabase
+  id: number;
+  workout_plan_id: number;
+  WorkoutPlans: WorkoutPlan;
 };
 
 type ExerciseDetailType = {
-  id: number; // Match bigint type
+  id: number;
   exercise_name: string;
   description: string;
   reps: string;
   calories_burned: number;
-  daily_workout_id: number; // Match bigint type
+  daily_workout_id: number;
   workout_date: string;
   duration_min: number;
   sets: number;
@@ -33,11 +31,12 @@ type ExerciseDetailType = {
   type: string;
   difficulty: string;
   caution: string | null;
-  DailyWorkouts: DailyWorkout; // Single object
+  DailyWorkouts: DailyWorkout;
 };
 
 export default function ExerciseDetail() {
-  const { id: idString } = useLocalSearchParams<{ id: string }>(); // Rename to idString to indicate it's a string
+  const { id: idString } = useLocalSearchParams<{ id: string }>();
+
   const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetailType | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,7 +57,6 @@ export default function ExerciseDetail() {
     }
 
     if (idString) {
-      // Convert the id from string to number
       const exerciseId = parseInt(idString, 10);
       if (isNaN(exerciseId)) {
         console.error('Invalid exercise ID:', idString);
@@ -79,14 +77,13 @@ export default function ExerciseDetail() {
         }
       };
 
-      // Set a timeout to prevent infinite loading
       const timeout = setTimeout(() => {
         if (isLoading) {
           console.error('Fetch exercise detail timed out after 10 seconds');
           setErrorMessage('Request timed out. Please check your internet connection and try again.');
           setIsLoading(false);
         }
-      }, 10000); // 10 seconds timeout
+      }, 10000);
 
       fetchData();
 
@@ -148,7 +145,6 @@ export default function ExerciseDetail() {
 
     console.log('Fetched exercise data:', data);
 
-    // Access DailyWorkouts as a single object
     const dailyWorkout = data.DailyWorkouts as unknown as DailyWorkout;
     if (!dailyWorkout?.WorkoutPlans?.id) {
       console.error('No DailyWorkouts data found for exercise:', exerciseId);
@@ -173,7 +169,6 @@ export default function ExerciseDetail() {
       throw new Error('Unable to verify ownership of this exercise');
     }
 
-    // Convert user.id to a number for comparison
     const userId = parseInt(user.id, 10);
     if (isNaN(userId)) {
       console.error('Invalid user ID:', user.id);
@@ -185,14 +180,13 @@ export default function ExerciseDetail() {
       throw new Error('You do not have permission to view this exercise');
     }
 
-    // Extract the exercise details, keeping IDs as numbers
     const exerciseData: ExerciseDetailType = {
-      id: data.id, // Keep as number
+      id: data.id,
       exercise_name: data.exercise_name,
       description: data.description || 'No description available',
       reps: data.reps,
       calories_burned: data.calories_burned,
-      daily_workout_id: data.daily_workout_id, // Keep as number
+      daily_workout_id: data.daily_workout_id,
       workout_date: data.workout_date,
       duration_min: data.duration_min,
       sets: data.sets,
@@ -201,7 +195,7 @@ export default function ExerciseDetail() {
       type: data.type,
       difficulty: data.difficulty,
       caution: data.caution,
-      DailyWorkouts: dailyWorkout, // Use the single DailyWorkout object
+      DailyWorkouts: dailyWorkout,
     };
 
     console.log('Exercise detail for user', user.id, ':', exerciseData);
@@ -212,7 +206,7 @@ export default function ExerciseDetail() {
   const handleDonePress = async () => {
     if (!idString) return;
     try {
-      const exerciseId = parseInt(idString, 10); // Convert to number for consistency
+      const exerciseId = parseInt(idString, 10);
       if (isNaN(exerciseId)) {
         throw new Error('Invalid exercise ID');
       }

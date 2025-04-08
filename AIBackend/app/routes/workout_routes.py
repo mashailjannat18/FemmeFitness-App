@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify
 from app.services.workout_service import WorkoutService
 import logging
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -13,7 +12,7 @@ workout_service = WorkoutService()
 def generate_workout_plan():
     try:
         user_data = request.get_json()
-        logger.info("Received user data: %s", user_data)  # Log the incoming payload
+        logger.info("Received user data: %s", user_data)
 
         if not user_data:
             logger.error("No user data provided")
@@ -26,7 +25,7 @@ def generate_workout_plan():
                 return jsonify({"error": f"Missing required field: {field}"}), 400
 
         plan = workout_service.generate_workout_plan(user_data)
-        logger.info("Generated workout plan: %s", plan)  # Log the generated plan
+        logger.info("Generated workout plan: %s", plan)
 
         return jsonify({"plan": plan}), 200
 

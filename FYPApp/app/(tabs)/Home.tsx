@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { BackHandler } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
@@ -20,6 +20,8 @@ type DailyWorkout = {
   day_name: string;
   daily_workout_date: string;
   focus: string;
+  total_duration_min: number;
+  total_calories_burned: number;
   exercises: Exercise[];
 };
 
@@ -55,7 +57,7 @@ export default function Home() {
   const [dailyWorkout, setDailyWorkout] = useState<DailyWorkout | null>(null);
   const [workoutDays, setWorkoutDays] = useState<WorkoutDay[]>([]);
   const router = useRouter();
-  const { user, logout } = useUserAuth();
+  const { user } = useUserAuth();
 
   useEffect(() => {
     if (!user || !user.id) {
@@ -83,7 +85,6 @@ export default function Home() {
     }
 
     try {
-      // Step 1: Fetch active workout plan for the logged-in user
       const { data: planData, error: planError } = await supabase
         .from('WorkoutPlans')
         .select('id, start_date, challenge_days')
@@ -98,18 +99,16 @@ export default function Home() {
 
       console.log('WorkoutPlans query result for user', user.id, ':', { planData, planError });
 
-      // Step 2: Set workout days based on the plan
       const days = getWorkoutDays(planData.challenge_days || 30, planData.start_date);
       setWorkoutDays(days);
 
-      // Step 3: Fetch today's workout
       const today = new Date().toISOString().split('T')[0];
       console.log('Fetching workout for today:', today, 'for user', user.id);
       console.log('Workout plan ID:', planData.id);
 
       const { data: dailyData, error: dailyError } = await supabase
         .from('DailyWorkouts')
-        .select('id, day_name, daily_workout_date, focus')
+        .select('id, day_name, daily_workout_date, focus, total_duration_min, total_calories_burned')
         .eq('workout_plan_id', planData.id)
         .eq('daily_workout_date', today)
         .single();
@@ -122,7 +121,6 @@ export default function Home() {
 
       console.log('DailyWorkouts query result for user', user.id, ':', { dailyData, dailyError });
 
-      // Step 4: Fetch exercises for today's workout
       const { data: exerciseData, error: exerciseError } = await supabase
         .from('Workouts')
         .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
@@ -140,6 +138,8 @@ export default function Home() {
         day_name: dailyData.day_name,
         daily_workout_date: dailyData.daily_workout_date,
         focus: dailyData.focus,
+        total_duration_min: dailyData.total_duration_min,
+        total_calories_burned: dailyData.total_calories_burned,
         exercises: exerciseData || [],
       });
     } catch (error: any) {
@@ -148,6 +148,10 @@ export default function Home() {
       setDailyWorkout(null);
       setWorkoutDays([]);
     }
+  };
+
+  const navigateToExercises = (dayName: string) => {
+    router.push(`/(screens)/Exercises?day=${dayName}`);
   };
 
   return (
@@ -166,7 +170,7 @@ export default function Home() {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.dateCircle}
-              onPress={() => router.push(`/Exercises?day=${item.day_name}`)}
+              onPress={() => navigateToExercises(item.day_name)}
             >
               <Text style={styles.dateText}>{item.day_number}</Text>
             </TouchableOpacity>
@@ -204,30 +208,23 @@ export default function Home() {
       <View style={styles.section3}>
         <Text style={styles.heading}>Today's Workout</Text>
         {dailyWorkout ? (
-          dailyWorkout.focus === 'Rest Day' ? (
+          dailyWorkout.focus.toLowerCase().includes('rest') ? (
             <Text style={styles.noWorkoutText}>Today is a Rest Day. No exercises scheduled.</Text>
-          ) : dailyWorkout.exercises.length > 0 ? (
-            dailyWorkout.exercises.map((exercise) => (
-              <TouchableOpacity
-                key={exercise.id}
-                style={styles.exerciseContainer}
-                onPress={() => router.push(`/ExerciseDetail?id=${exercise.id}`)}
-              >
-                <Image
-                  source={{ uri: 'https://via.placeholder.com/100' }}
-                  style={styles.exerciseImage}
-                />
-                <View style={styles.exerciseInfo}>
-                  <Text style={styles.exerciseName}>{exercise.exercise_name}</Text>
-                  <View style={styles.exerciseStats}>
-                    <Text style={styles.statsText}>🔥 {exercise.calories_burned} cal</Text>
-                    <Text style={styles.statsText}>🔁 {exercise.reps} reps</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))
           ) : (
-            <Text style={styles.noWorkoutText}>No exercises found for today.</Text>
+            <TouchableOpacity
+              style={styles.dayButton}
+              onPress={() => navigateToExercises(dailyWorkout.day_name)}
+            >
+              <Text style={styles.dayButtonText}>{dailyWorkout.day_name}</Text>
+              <View style={styles.buttonDetails}>
+                <Text style={styles.buttonDetailText}>
+                  Duration: {dailyWorkout.total_duration_min} min
+                </Text>
+                <Text style={styles.buttonDetailText}>
+                  Calories: {dailyWorkout.total_calories_burned} cal
+                </Text>
+              </View>
+            </TouchableOpacity>
           )
         ) : (
           <Text style={styles.noWorkoutText}>No workout scheduled for today.</Text>
@@ -236,11 +233,6 @@ export default function Home() {
 
       <View style={styles.section4}>
         <Text style={styles.heading}>Today's Meal</Text>
-        {user && (
-          <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-            <Text style={styles.buttonText}>Logout</Text>
-          </TouchableOpacity>
-        )}
       </View>
     </ScrollView>
   );
@@ -357,55 +349,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'black',
   },
-  exerciseContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    elevation: 3,
-    padding: 15,
-    marginTop: 10,
-    width: '100%',
-  },
-  exerciseImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    marginRight: 15,
-  },
-  exerciseInfo: {
-    flex: 1,
-  },
-  exerciseName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  exerciseStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  statsText: {
-    fontSize: 16,
-    marginLeft: 5,
-  },
   noWorkoutText: {
     fontSize: 16,
     color: '#555',
     marginTop: 10,
   },
-  logoutButton: {
+  dayButton: {
     backgroundColor: '#d63384',
-    paddingVertical: 8,
-    paddingHorizontal: 25,
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  buttonText: {
+  dayButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  buttonDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  buttonDetailText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+    opacity: 0.9,
   },
 });

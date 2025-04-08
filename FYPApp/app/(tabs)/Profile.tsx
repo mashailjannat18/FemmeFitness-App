@@ -1,15 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router'; // Using expo-router for navigation
+import { useRouter } from 'expo-router';
+import { useUserAuth } from '@/context/UserAuthContext'; // Import useUserAuth
 
 const Profile = () => {
-  const router = useRouter(); // Router hook for navigation
+  const router = useRouter();
+  const { logout } = useUserAuth(); // Access logout from context
 
-  const handleLogout = () => {
-    // You might want to add your logout logic here (clearing tokens, etc.)
-    console.log('User logged out');
-    // Then navigate to the login screen
-    // router.push('/Login');
+  const handleLogout = async () => {
+    try {
+      await logout(); // Call the logout function from context
+      router.push('/Login'); // Redirect to Login screen after logout
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Optionally display an error message to the user
+      // For now, we'll just log the error as in Home.tsx
+    }
   };
 
   return (
@@ -123,15 +129,17 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   logoutButton: {
-    backgroundColor: '#ff4444',
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 6,
+    backgroundColor: '#d63384', // Match Home.tsx logoutButton style
+    paddingVertical: 8, // Match Home.tsx
+    paddingHorizontal: 25, // Match Home.tsx
+    borderRadius: 8, // Match Home.tsx
+    alignItems: 'center', // Match Home.tsx
+    justifyContent: 'center', // Match Home.tsx
   },
   logoutText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
+    color: '#fff', // Match Home.tsx buttonText style
+    fontSize: 16, // Match Home.tsx
+    fontWeight: '600', // Match Profile.tsx existing logoutText
   },
 });
 

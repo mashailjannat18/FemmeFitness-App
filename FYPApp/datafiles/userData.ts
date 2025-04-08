@@ -1,20 +1,19 @@
-// userData.ts
 import { supabase } from '@/lib/supabase';
 
 export type UserData = {
-  username: string; // Allow null since it’s set during signup
-  age: number; // Allow null until set
-  weight: number; // Allow null until set
-  height: number; // Allow null until set
+  username: string;
+  age: number;
+  weight: number;
+  height: number;
   diseases: string[];
-  goal: string; // Allow null until set
+  goal: string;
   areasOfFocus: string[];
-  activityLevel: number; // Allow null until set
+  activityLevel: number;
   restDays: string[];
-  challengeDays: number; // Allow null until set
-  email: string; // Allow null until set
-  password: string; // Allow null until set
-  workoutPlan: any[]; // Specify as array, allow null until generated
+  challengeDays: number;
+  email: string;
+  password: string; 
+  workoutPlan: any[];
 };
 
 const defaultUserData: UserData = {
@@ -64,15 +63,13 @@ export const addUserToSupabase = async (
   try {
     console.log('Starting addUserToSupabase with inputs:', { email, password, username, challengeDays });
 
-    // Step 1: Update userData with provided values
     setUserData('email', email.trim().toLowerCase());
     setUserData('password', password);
     setUserData('username', username.trim().toLowerCase());
-    setUserData('challengeDays', challengeDays); // Use the provided challengeDays
+    setUserData('challengeDays', challengeDays);
 
     console.log('userData after setting provided values:', userData);
 
-    // Step 2: Prepare the payload for the backend to generate the workout plan
     if (userData.age === null) {
       throw new Error('Age is required for workout plan generation.');
     }
@@ -101,12 +98,11 @@ export const addUserToSupabase = async (
       activityLevel: Number(userData.activityLevel),
       goal: goalMap[userData.goal] || userData.goal,
       weight: Number(userData.weight),
-      challengeDays: Number(userData.challengeDays), // Use the value from userData
+      challengeDays: Number(userData.challengeDays),
       preferredRestDay: userData.restDays[0],
     };
     console.log('Sending payload to backend:', payload);
 
-    // Step 3: Call the backend to generate the workout plan
     console.log('Making fetch request to backend...');
     const response = await fetch('http://192.168.1.10:5000/api/generate-plan', {
       method: 'POST',
@@ -124,17 +120,14 @@ export const addUserToSupabase = async (
     const workoutPlan = await response.json();
     console.log('Workout plan generated:', workoutPlan);
 
-    // Validate the workout plan
     if (!workoutPlan || !workoutPlan.plan || !Array.isArray(workoutPlan.plan) || workoutPlan.plan.length === 0) {
       console.error('Invalid workout plan structure:', workoutPlan);
       throw new Error('Workout plan is not a non-empty array');
     }
 
-    // Store the workout plan in userData
     setUserData('workoutPlan', workoutPlan.plan);
     console.log('Stored workoutPlan in userData:', userData.workoutPlan);
 
-    // Step 4: Prepare the payload for the Supabase RPC call with exact data
     const rpcPayload = {
       p_username: userData.username,
       p_email: userData.email,
@@ -153,7 +146,6 @@ export const addUserToSupabase = async (
 
     console.log('RPC payload:', rpcPayload);
 
-    // Step 5: Call the PostgreSQL function to insert all data atomically
     const { data, error } = await supabase.rpc('insert_user_and_workout_plan', rpcPayload);
 
     if (error) {
@@ -175,7 +167,7 @@ export const addUserToSupabase = async (
       await supabase
         .from('User')
         .delete()
-        .eq('id', userId); // userId is a number, matches bigint
+        .eq('id', userId);
       console.log(`Deleted user with id ${userId} due to signup error.`);
     }
     throw err;

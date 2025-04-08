@@ -1,8 +1,7 @@
-// Question10.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getUserData, resetUserData } from '@/datafiles/userData'; // Import getUserData
+import { getUserData, resetUserData } from '@/datafiles/userData';
 import { useUserAuth } from '@/context/UserAuthContext';
 
 const Question10: React.FC = () => {
@@ -51,7 +50,6 @@ const Question10: React.FC = () => {
       setLoading(true);
       setShowSignupError(null);
 
-      // Validate inputs
       if (!email || !password || !username || !isEmailValid || password.length < 6 || username.length < 3) {
         setShowEmailError(!isEmailValid && email !== '');
         setShowPasswordError(password.length < 6 && password !== '');
@@ -59,19 +57,15 @@ const Question10: React.FC = () => {
         throw new Error('Please fill all fields with valid data.');
       }
 
-      // Retrieve challengeDays from userData
       const userData = getUserData();
       const challengeDays = userData.challengeDays;
 
-      // Validate challengeDays
       if (!challengeDays || challengeDays <= 0) {
         throw new Error('Challenge days must be selected and greater than 0.');
       }
 
-      // Call signUp with the user-selected challengeDays
       await signUp(email, password, username, challengeDays);
 
-      // Reset userData after successful signup
       resetUserData();
 
       router.push('../(tabs)');

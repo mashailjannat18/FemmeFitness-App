@@ -1,4 +1,3 @@
-// Exercises.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { supabase } from '@/lib/supabase';
@@ -6,7 +5,7 @@ import { useUserAuth } from '@/context/UserAuthContext';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 type Exercise = {
-  id: number; // Match bigint type
+  id: number;
   exercise_name: string;
   target_muscle: string;
   type: string;
@@ -43,7 +42,6 @@ const Exercises: React.FC = () => {
         throw new Error('No user logged in');
       }
 
-      // Convert user.id to a number since user_id in WorkoutPlans is a bigint
       const userId = parseInt(user.id, 10);
       if (isNaN(userId)) {
         throw new Error('Invalid user ID: ' + user.id);
@@ -51,7 +49,6 @@ const Exercises: React.FC = () => {
 
       console.log('Fetching exercises for user:', userId, 'on day:', day);
 
-      // Step 1: Fetch the active workout plan for the user
       const { data: planData, error: planError } = await supabase
         .from('WorkoutPlans')
         .select('id')
@@ -66,7 +63,6 @@ const Exercises: React.FC = () => {
 
       console.log('Workout plan found:', planData);
 
-      // Step 2: Fetch the daily workout for the specified day
       const { data: dailyData, error: dailyError } = await supabase
         .from('DailyWorkouts')
         .select('id')
@@ -81,7 +77,6 @@ const Exercises: React.FC = () => {
 
       console.log('Daily workout found:', dailyData);
 
-      // Step 3: Fetch exercises for the daily workout
       const { data, error } = await supabase
         .from('Workouts')
         .select(`
@@ -125,7 +120,14 @@ const Exercises: React.FC = () => {
     console.log('Navigating to ExerciseDetail with exerciseId:', exerciseId);
     router.push({
       pathname: '/(screens)/ExerciseDetail',
-      params: { id: exerciseId.toString() }, // Convert to string for navigation
+      params: { id: exerciseId.toString() },
+    });
+  };
+
+  const handlePlayAll = () => {
+    router.push({
+      pathname: '/(screens)/ExercisePlayback',
+      params: { exercises: JSON.stringify(exercises) },
     });
   };
 
@@ -155,12 +157,17 @@ const Exercises: React.FC = () => {
       {exercises.length === 0 ? (
         <Text style={styles.noExercisesText}>No exercises found for this day.</Text>
       ) : (
-        <FlatList
-          data={exercises}
-          renderItem={renderExercise}
-          keyExtractor={(item) => item.id.toString()} // Convert to string for FlatList key
-          contentContainerStyle={styles.listContainer}
-        />
+        <>
+          <TouchableOpacity style={styles.playButton} onPress={handlePlayAll}>
+            <Text style={styles.playButtonText}>Play All</Text>
+          </TouchableOpacity>
+          <FlatList
+            data={exercises}
+            renderItem={renderExercise}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContainer}
+          />
+        </>
       )}
     </View>
   );
@@ -178,6 +185,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     color: '#333',
+  },
+  playButton: {
+    backgroundColor: '#d63384',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  playButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   exerciseCard: {
     backgroundColor: '#fff',
