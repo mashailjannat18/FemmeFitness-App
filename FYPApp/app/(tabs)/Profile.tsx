@@ -1,10 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ImageBackground,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { useUserAuth } from '@/context/UserAuthContext'; // Import useUserAuth
+import { useUserAuth } from '@/context/UserAuthContext';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const Profile = () => {
   const router = useRouter();
+
   const { logout } = useUserAuth(); // Access logout from context
 
   const handleLogout = async () => {
@@ -18,128 +27,129 @@ const Profile = () => {
     }
   };
 
+  const routes = [
+    { label: 'Account Information', route: '/(screens)/AccountInformation', icon: 'person' },
+    { label: 'Personal Information', route: '/(screens)/PersonalInformation', icon: 'info' },
+    { label: 'Disease Information', route: '/(screens)/DiseaseInformation', icon: 'healing' },
+    { label: 'Goal Setting', route: '/(screens)/GoalSetting', icon: 'flag' },
+    { label: 'Intensity Setting', route: '/(screens)/IntensitySetting', icon: 'fitness-center' },
+    { label: 'Reminder', route: '/(screens)/Reminder', icon: 'notifications' },
+  ] as const;
+
+  // 👉 You can replace this link with any other image URL
+  const backgroundImage = {
+    uri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k=',
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Profile Settings</Text>
+    <ImageBackground source={backgroundImage} style={styles.backgroundImage} resizeMode="cover">
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Profile Settings</Text>
 
-        <View style={styles.optionsContainer}>
-          {/* Account Information */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => router.push('/AccountInformation')}
-          >
-            <Text style={styles.optionText}>Account Information</Text>
-          </TouchableOpacity>
-          <View style={styles.separator} />
+          <View style={styles.optionsContainer}>
+            {routes.map((item, index) => (
+              <View key={index}>
+                <TouchableOpacity
+                  style={styles.option}
+                  onPress={() => router.push(item.route)}
+                >
+                  <MaterialIcons name={item.icon} size={26} color="#9B2242" style={styles.icon} />
+                  <Text style={styles.optionText}>{item.label}</Text>
+                </TouchableOpacity>
+                {index < routes.length - 1 && <View style={styles.separator} />}
+              </View>
+            ))}
+          </View>
 
-          {/* Personal Information */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => router.push('/PersonalInformation')}
-          >
-            <Text style={styles.optionText}>Personal Information</Text>
-          </TouchableOpacity>
-          <View style={styles.separator} />
-
-          {/* Disease Information */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => router.push('/DiseaseInformation')}
-          >
-            <Text style={styles.optionText}>Disease Information</Text>
-          </TouchableOpacity>
-          <View style={styles.separator} />
-
-          {/* Goal Setting */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => router.push('/GoalSetting')}
-          >
-            <Text style={styles.optionText}>Goal Setting</Text>
-          </TouchableOpacity>
-          <View style={styles.separator} />
-
-          {/* Intensity Setting */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => router.push('/IntensitySetting')}
-          >
-            <Text style={styles.optionText}>Intensity Setting</Text>
-          </TouchableOpacity>
-          <View style={styles.separator} />
-
-          {/* Reminder */}
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => router.push('/Reminder')}
-          >
-            <Text style={styles.optionText}>Reminder</Text>
-          </TouchableOpacity>
+          <View style={styles.logoutContainer}>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <MaterialIcons name="logout" size={22} color="white" style={styles.logoutIcon} />
+              <Text style={styles.logoutText}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <View style={styles.logoutContainer}>
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Log Out</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+  },
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: '#f8f9fa',
+    paddingBottom: 20,
   },
   container: {
     flex: 1,
     padding: 24,
-    paddingBottom: 40,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginBottom: 32,
-    color: '#2c3e50',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#9B2242',
+    marginBottom: 24,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   optionsContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    marginBottom: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 14,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: '#f3c1c6',
+    shadowColor: '#9B2242',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 5,
+    elevation: 5,
   },
   option: {
-    padding: 18,
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+  },
+  icon: {
+    marginRight: 14,
   },
   optionText: {
-    fontSize: 16,
-    color: '#495057',
-    fontWeight: '500',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#822338',
   },
   separator: {
     height: 1,
-    backgroundColor: '#e9ecef',
+    backgroundColor: '#f3c1c6',
+    marginHorizontal: 24,
   },
   logoutContainer: {
-    alignItems: 'flex-end',
-    marginTop: 8,
+    alignItems: 'center',
+    marginTop: 20,
   },
   logoutButton: {
-    backgroundColor: '#d63384', // Match Home.tsx logoutButton style
-    paddingVertical: 8, // Match Home.tsx
-    paddingHorizontal: 25, // Match Home.tsx
-    borderRadius: 8, // Match Home.tsx
-    alignItems: 'center', // Match Home.tsx
-    justifyContent: 'center', // Match Home.tsx
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#C2185B',
+    paddingVertical: 14,
+    paddingHorizontal: 36,
+    borderRadius: 10,
+    shadowColor: '#C2185B',
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 5,
+    elevation: 4,
+  },
+  logoutIcon: {
+    marginRight: 10,
   },
   logoutText: {
-    color: '#fff', // Match Home.tsx buttonText style
-    fontSize: 16, // Match Home.tsx
-    fontWeight: '600', // Match Profile.tsx existing logoutText
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

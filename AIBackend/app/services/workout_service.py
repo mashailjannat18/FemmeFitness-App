@@ -1,8 +1,10 @@
+# app/services/workout_service.py
 import pandas as pd
 import random
 import logging
 from app.config import Config
 from app.utils.helpers import calculate_calories_burned, map_age_to_group, convert_activity_level
+from app.services.meal_service import MealService
 import math
 
 logging.basicConfig(level=logging.INFO)
@@ -10,277 +12,252 @@ logger = logging.getLogger(__name__)
 
 class WorkoutService:
     def __init__(self):
+        # Load the workouts CSV
         self.workouts_df = pd.read_csv(Config.WORKOUTS_CSV_PATH)
+        # Clean the Difficulty column
         self.workouts_df['Difficulty'] = self.workouts_df['Difficulty'].str.strip().str.capitalize()
+        # Ensure 'Name' column exists (changed from 'Exercise Name')
+        if 'Name' not in self.workouts_df.columns:
+            logger.error("Column 'Name' not found in workouts CSV. Available columns: %s", self.workouts_df.columns)
+            raise ValueError("Column 'Name' not found in workouts CSV")
+        self.meal_service = MealService()
         logger.info("Loaded workouts CSV with %d entries", len(self.workouts_df))
 
-    DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    GOAL_FOCUS_TEMPLATES = {
-        'stay_fit': ['Upper Body Strength', 'Lower Body Strength', 'Core + Abs', 'Light Endurance', 'Light Endurance'],
-        'gain_weight': ['Upper Body Strength', 'Core + Chest', 'Lower Body Strength', 'Light Endurance', 'Full Body Strength'],
-        'weight_loss': ['Cardio', 'Full Body HIIT', 'Core + Lower Body', 'Full Body HIIT', 'Abs + Upper Body'],
-        'build_muscle': ['Upper Body Strength', 'Lower Body Strength', 'Upper Body Strength', 'Core + Abs', 'Cardio']
-    }
-
-    MET_RANGES = {
-        'low': (1.5, 3.9),
-        'moderate': (4.0, 6.9),
-        'high': (7.0, 10.0)
-    }
-
-    workout_config = {
-        'adult': {
-            'low': {
-                'weight_loss': {'exercises': 3, 'sets': 2, 'duration_per_exercise': 4},
-                'stay_fit': {'exercises': 3, 'sets': 2, 'duration_per_exercise': 4},
-                'build_muscle': {'exercises': 4, 'sets': 3, 'duration_per_exercise': 5},
-                'gain_weight': {'exercises': 4, 'sets': 3, 'duration_per_exercise': 5}
+        # Configuration for workout plans
+        self.workout_config = {
+            'adult': {
+                'low': {
+                    'weight_loss': {'exercises': 3, 'sets': 2},
+                    'build_muscle': {'exercises': 4, 'sets': 3},
+                    'stay_fit': {'exercises': 3, 'sets': 2},
+                    'gain_weight': {'exercises': 4, 'sets': 3}
+                },
+                'moderate': {
+                    'weight_loss': {'exercises': 4, 'sets': 3},
+                    'build_muscle': {'exercises': 5, 'sets': 4},
+                    'stay_fit': {'exercises': 4, 'sets': 3},
+                    'gain_weight': {'exercises': 5, 'sets': 4}
+                },
+                'high': {
+                    'weight_loss': {'exercises': 5, 'sets': 3},
+                    'build_muscle': {'exercises': 6, 'sets': 4},
+                    'stay_fit': {'exercises': 5, 'sets': 3},
+                    'gain_weight': {'exercises': 6, 'sets': 4}
+                }
             },
-            'moderate': {
-                'weight_loss': {'exercises': 4, 'sets': 3, 'duration_per_exercise': 5},
-                'stay_fit': {'exercises': 4, 'sets': 3, 'duration_per_exercise': 5},
-                'build_muscle': {'exercises': 5, 'sets': 4, 'duration_per_exercise': 6},
-                'gain_weight': {'exercises': 5, 'sets': 4, 'duration_per_exercise': 6}
+            'middle_aged': {
+                'low': {
+                    'weight_loss': {'exercises': 3, 'sets': 2},
+                    'build_muscle': {'exercises': 3, 'sets': 3},
+                    'stay_fit': {'exercises': 3, 'sets': 2},
+                    'gain_weight': {'exercises': 3, 'sets': 3}
+                },
+                'moderate': {
+                    'weight_loss': {'exercises': 4, 'sets': 2},
+                    'build_muscle': {'exercises': 4, 'sets': 3},
+                    'stay_fit': {'exercises': 4, 'sets': 2},
+                    'gain_weight': {'exercises': 4, 'sets': 3}
+                },
+                'high': {
+                    'weight_loss': {'exercises': 4, 'sets': 3},
+                    'build_muscle': {'exercises': 5, 'sets': 3},
+                    'stay_fit': {'exercises': 4, 'sets': 3},
+                    'gain_weight': {'exercises': 5, 'sets': 3}
+                }
             },
-            'high': {
-                'weight_loss': {'exercises': 5, 'sets': 3, 'duration_per_exercise': 6},
-                'stay_fit': {'exercises': 5, 'sets': 3, 'duration_per_exercise': 6},
-                'build_muscle': {'exercises': 6, 'sets': 4, 'duration_per_exercise': 7},
-                'gain_weight': {'exercises': 6, 'sets': 4, 'duration_per_exercise': 7}
-            }
-        },
-        'middle_aged': {
-            'low': {
-                'weight_loss': {'exercises': 3, 'sets': 2, 'duration_per_exercise': 4},
-                'stay_fit': {'exercises': 3, 'sets': 2, 'duration_per_exercise': 4},
-                'build_muscle': {'exercises': 3, 'sets': 3, 'duration_per_exercise': 5},
-                'gain_weight': {'exercises': 3, 'sets': 3, 'duration_per_exercise': 5}
-            },
-            'moderate': {
-                'weight_loss': {'exercises': 4, 'sets': 2, 'duration_per_exercise': 5},
-                'stay_fit': {'exercises': 4, 'sets': 2, 'duration_per_exercise': 5},
-                'build_muscle': {'exercises': 4, 'sets': 3, 'duration_per_exercise': 6},
-                'gain_weight': {'exercises': 4, 'sets': 3, 'duration_per_exercise': 6}
-            },
-            'high': {
-                'weight_loss': {'exercises': 5, 'sets': 3, 'duration_per_exercise': 5},
-                'stay_fit': {'exercises': 5, 'sets': 3, 'duration_per_exercise': 5},
-                'build_muscle': {'exercises': 5, 'sets': 3, 'duration_per_exercise': 6},
-                'gain_weight': {'exercises': 5, 'sets': 3, 'duration_per_exercise': 6}
-            }
-        },
-        'older_adult': {
-            'low': {
-                'weight_loss': {'exercises': 2, 'sets': 2, 'duration_per_exercise': 3},
-                'stay_fit': {'exercises': 2, 'sets': 2, 'duration_per_exercise': 3},
-                'build_muscle': {'exercises': 2, 'sets': 2, 'duration_per_exercise': 4},
-                'gain_weight': {'exercises': 2, 'sets': 2, 'duration_per_exercise': 4}
-            },
-            'moderate': {
-                'weight_loss': {'exercises': 3, 'sets': 2, 'duration_per_exercise': 4},
-                'stay_fit': {'exercises': 3, 'sets': 2, 'duration_per_exercise': 4},
-                'build_muscle': {'exercises': 3, 'sets': 2, 'duration_per_exercise': 5},
-                'gain_weight': {'exercises': 3, 'sets': 2, 'duration_per_exercise': 5}
-            },
-            'high': {
-                'weight_loss': {'exercises': 4, 'sets': 2, 'duration_per_exercise': 4},
-                'stay_fit': {'exercises': 4, 'sets': 2, 'duration_per_exercise': 4},
-                'build_muscle': {'exercises': 4, 'sets': 3, 'duration_per_exercise': 5},
-                'gain_weight': {'exercises': 4, 'sets': 3, 'duration_per_exercise': 5}
+            'older_adult': {
+                'low': {
+                    'weight_loss': {'exercises': 2, 'sets': 2},
+                    'build_muscle': {'exercises': 3, 'sets': 2},
+                    'stay_fit': {'exercises': 2, 'sets': 2},
+                    'gain_weight': {'exercises': 3, 'sets': 2}
+                },
+                'moderate': {
+                    'weight_loss': {'exercises': 3, 'sets': 2},
+                    'build_muscle': {'exercises': 3, 'sets': 2},
+                    'stay_fit': {'exercises': 3, 'sets': 2},
+                    'gain_weight': {'exercises': 3, 'sets': 2}
+                },
+                'high': {
+                    'weight_loss': {'exercises': 3, 'sets': 2},
+                    'build_muscle': {'exercises': 4, 'sets': 3},
+                    'stay_fit': {'exercises': 3, 'sets': 2},
+                    'gain_weight': {'exercises': 4, 'sets': 3}
+                }
             }
         }
-    }
 
-    goal_config = {
-        'weight_loss': 15,
-        'stay_fit': 15,
-        'build_muscle': 10,
-        'gain_weight': 8
-    }
+        self.goal_config = {
+            'weight_loss': 12,
+            'build_muscle': 10,
+            'stay_fit': 12,
+            'gain_weight': 10
+        }
 
-    rep_time_config = {
-        'adult': {'low': 4, 'moderate': 4, 'high': 3},
-        'middle_aged': {'low': 5, 'moderate': 5, 'high': 4},
-        'older_adult': {'low': 6, 'moderate': 6, 'high': 5}
-    }
+        self.rep_time_config = {
+            'adult': {
+                'low': 2,
+                'moderate': 2,
+                'high': 2
+            },
+            'middle_aged': {
+                'low': 2.5,
+                'moderate': 2.5,
+                'high': 2.5
+            },
+            'older_adult': {
+                'low': 3,
+                'moderate': 3,
+                'high': 3
+            }
+        }
 
-    rest_time_config = {
-        'adult': {'low': 45, 'moderate': 30, 'high': 20},
-        'middle_aged': {'low': 60, 'moderate': 45, 'high': 30},
-        'older_adult': {'low': 75, 'moderate': 60, 'high': 45}
-    }
+        self.rest_time_config = {
+            'adult': {
+                'low': 60,
+                'moderate': 45,
+                'high': 30
+            },
+            'middle_aged': {
+                'low': 75,
+                'moderate': 60,
+                'high': 45
+            },
+            'older_adult': {
+                'low': 90,
+                'moderate': 75,
+                'high': 60
+            }
+        }
 
-    focus_area_definitions = {
-        'Upper Body Strength': {'target_muscles': ['Forearms', 'Shoulders', 'Biceps', 'Triceps', 'Chest'], 'Type': ['Strength']},
-        'Lower Body Strength': {'target_muscles': ['Hamstrings', 'Glutes', 'Quadriceps', 'Calves', 'Abductors', 'Adductors'], 'Type': ['Strength']},
-        'Core + Abs': {'target_muscles': ['Abdominals'], 'Type': ['Strength', 'Core']},
-        'Core + Chest': {'target_muscles': ['Abdominals', 'Chest'], 'Type': ['Strength', 'Core']},
-        'Light Endurance': {'target_muscles': ['Quadriceps', 'Calves', 'Glutes', 'Hamstrings'], 'Type': ['Cardio', 'Mobility']},
-        'Full Body Strength': {'target_muscles': ['Full Body', 'Biceps', 'Triceps', 'Shoulders', 'Glutes', 'Hamstrings'], 'Type': ['Strength']},
-        'Full Body HIIT': {'target_muscles': [], 'Type': [], 'Caution': ['HIIT', 'Plyometric HIIT', 'Isometric HIIT']},
-        'Core + Lower Body': {'target_muscles': ['Abdominals', 'Hamstrings', 'Glutes', 'Quadriceps', 'Calves', 'Abductors', 'Adductors'], 'Type': ['Strength', 'Core']},
-        'Abs + Upper Body': {'target_muscles': ['Abdominals', 'Shoulders', 'Biceps', 'Triceps', 'Middle Back', 'Lower Back'], 'Type': ['Strength']},
-        'Cardio': {'target_muscles': [], 'Type': ['Cardio']},
-        'Active Rest Day': {'target_muscles': [], 'Type': ['Mobility', 'Stretching']}
-    }
+    def get_recommendations(self, age, activity_level):
+        met_recommendations = {
+            'adult': {
+                'low': (2, 4),
+                'moderate': (4, 6),
+                'high': (6, 10)
+            },
+            'middle_aged': {
+                'low': (2, 3.5),
+                'moderate': (3.5, 5),
+                'high': (5, 8)
+            },
+            'older_adult': {
+                'low': (1.5, 3),
+                'moderate': (3, 4),
+                'high': (4, 6)
+            }
+        }
 
-    def get_recommendations(self, age, activity):
-        min_ranges = {'adult': 15, 'middle_aged': 35, 'older_adult': 50}
-        max_ranges = {'adult': 34, 'middle_aged': 49, 'older_adult': 120}
+        difficulty_recommendations = {
+            'adult': {
+                'low': ['Beginner'],
+                'moderate': ['Beginner', 'Intermediate'],
+                'high': ['Intermediate', 'Advanced']
+            },
+            'middle_aged': {
+                'low': ['Beginner'],
+                'moderate': ['Beginner', 'Intermediate'],
+                'high': ['Intermediate']
+            },
+            'older_adult': {
+                'low': ['Beginner'],
+                'moderate': ['Beginner'],
+                'high': ['Beginner', 'Intermediate']
+            }
+        }
 
-        met_recs = []
-        diff_recs = []
+        age_group = map_age_to_group(age)
+        met_range = met_recommendations[age_group][activity_level]
+        difficulty = difficulty_recommendations[age_group][activity_level]
+        return met_range, difficulty
 
-        if min_ranges['adult'] <= age <= max_ranges['adult']:
-            if activity == 'low':
-                met_recs.extend(['low'])
-                diff_recs.extend(['Beginner', 'Intermediate'])
-            elif activity == 'moderate':
-                met_recs.extend(['low', 'moderate'])
-                diff_recs.extend(['Beginner', 'Intermediate'])
-            elif activity == 'high':
-                met_recs.extend(['low', 'moderate', 'high'])
-                diff_recs.extend(['Beginner', 'Intermediate'])
-        
-        elif min_ranges['middle_aged'] <= age <= max_ranges['middle_aged']:
-            if activity != 'high':
-                met_recs.extend(['low'])
-            else:
-                met_recs.extend(['low', 'moderate'])
-            diff_recs.extend(['Beginner'])
-            if activity in ['moderate', 'high']:
-                diff_recs.extend(['Intermediate'])
-        
-        elif age >= min_ranges['older_adult']:
-            if activity != 'high':
-                met_recs.extend(['low'])
-            else:
-                met_recs.extend(['low', 'moderate'])
-            diff_recs.extend(['Beginner'])
-
-        logger.info("Recommendations for age %d, activity %s: METs=%s, Difficulties=%s", age, activity, met_recs, diff_recs)
-        return met_recs, diff_recs
-
-    def filter_workouts(self, met_recs, diff_recs):
-        met_mask = pd.Series([False] * len(self.workouts_df))
-        for met_level in met_recs:
-            if met_level in self.MET_RANGES:
-                min_val, max_val = self.MET_RANGES[met_level]
-                met_mask |= self.workouts_df['MET Value'].between(min_val, max_val)
-
-        filtered_df = self.workouts_df[met_mask & self.workouts_df['Difficulty'].isin(diff_recs)]
-        logger.info("Filtered workouts: %d entries", len(filtered_df))
+    def filter_workouts(self, met_range, difficulty):
+        filtered_df = self.workouts_df[
+            (self.workouts_df['MET Value'].between(met_range[0], met_range[1])) &
+            (self.workouts_df['Difficulty'].isin(difficulty))
+        ]
         return filtered_df
 
-    def get_weekday(self, day_index):
-        return self.DAYS_OF_WEEK[day_index % 7]
-
-    def get_next_focus(self, template_list, day_number):
-        return template_list[day_number % len(template_list)]
-
-    def generate_plan(self, goal, program_duration, preferred_rest_day):
-        plan = []
-        focus_template = self.GOAL_FOCUS_TEMPLATES[goal]
-        focus_day_counter = 0
-        workout_streak = 0
-
-        for i in range(program_duration):
-            weekday = self.get_weekday(i)
-            if weekday == preferred_rest_day:
-                focus = 'Complete Rest Day'
-                workout_streak = 0
-            elif workout_streak >= 3:
-                focus = 'Active Rest Day'
-                workout_streak = 0
-            else:
-                focus = self.get_next_focus(focus_template, focus_day_counter)
-                focus_day_counter += 1
-                workout_streak += 1
-
-            plan.append({'Day': f'Day {i+1} ({weekday})', 'Focus': focus})
-        logger.info("Generated weekly plan with %d days", len(plan))
-        return plan
-
-    def smart_get_workouts_for_focus(self, focus_area, activity_level, filtered_df):
-        fallback_focus_map = {
-            'Core + Lower Body Strength': ['Lower Body Strength', 'Core + Abs', 'Lower Body Strength'],
-            'Full Body HIIT': ['Light Endurance', 'Cardio'],
-            'Core + Chest': ['Core + Abs', 'Upper Body Strength'],
-            'Abs + Upper Body': ['Core + Abs', 'Upper Body Strength'],
+    def smart_get_workouts_for_focus(self, focus, activity_level, filtered_df):
+        focus_to_type = {
+            'Upper Body Strength': ['Strength'],
+            'Lower Body Strength': ['Strength'],
+            'Core Strength': ['Strength'],
+            'Full Body Strength': ['Strength'],
+            'Cardio': ['Cardio'],
+            'HIIT': ['HIIT'],
+            'Active Rest Day': ['Mobility', 'Stretching']
         }
 
-        default_light_fallback = filtered_df[
-            (filtered_df['Type'].isin(['Mobility', 'Stretching'])) &
-            (filtered_df['Difficulty'] == 'Beginner')
-        ]
+        types = focus_to_type.get(focus, ['Strength'])
+        pool = filtered_df[filtered_df['Type'].isin(types)].to_dict('records')
 
-        def filter_workouts(focus):
-            filters = self.focus_area_definitions.get(focus, {})
-            if not filters:
-                return []
+        if not pool:
+            logger.warning("No workouts found for focus %s and types %s", focus, types)
+            return []
 
-            muscle_filter = filtered_df['Target Muscle'].isin(filters.get('target_muscles', [])) if filters.get('target_muscles') else True
-            type_filter = filtered_df['Type'].isin(filters.get('Type', [])) if filters.get('Type') else True
-            caution_filter = filtered_df['Caution'].isin(filters.get('Caution', [])) if filters.get('Caution') else True
+        return pool
 
-            if isinstance(muscle_filter, bool):
-                filtered = filtered_df[type_filter & caution_filter]
-            elif isinstance(type_filter, bool):
-                filtered = filtered_df[muscle_filter & caution_filter]
-            elif isinstance(caution_filter, bool):
-                filtered = filtered_df[muscle_filter & type_filter]
-            else:
-                filtered = filtered_df[muscle_filter & type_filter & caution_filter]
-
-            if focus == 'Light Endurance':
-                filtered = filtered[
-                    (filtered['Difficulty'].isin(['Beginner', 'Intermediate'])) &
-                    (filtered['MET Value'] <= 6)
-                ]
-            return filtered
-
-        primary_workouts = filter_workouts(focus_area)
-        if not primary_workouts.empty:
-            if len(primary_workouts) > 0:
-                sampled = primary_workouts.sample(frac=1).sort_values(by='MET Value').to_dict('records')
-                logger.info("Selected %d primary workouts for focus %s", len(sampled), focus_area)
-                return sampled
-
-        fallback_focuses = fallback_focus_map.get(focus_area, [])
-        for alt_focus in fallback_focuses:
-            fallback_workouts = filter_workouts(alt_focus)
-            if not fallback_workouts.empty:
-                sampled = fallback_workouts.sample(frac=1).sort_values(by='MET Value').to_dict('records')
-                logger.info("Selected %d fallback workouts for focus %s", len(sampled), alt_focus)
-                return sampled
-
-        if activity_level.lower() == 'low':
-            relaxed = filtered_df[
-                (filtered_df['Difficulty'].isin(['Beginner', 'Intermediate'])) &
-                (filtered_df['MET Value'] <= 6)
+    def generate_plan(self, goal, program_duration, preferred_rest_day):
+        weekly_structure = {
+            'weight_loss': [
+                'Cardio', 'Upper Body Strength', 'Lower Body Strength',
+                'HIIT', 'Core Strength', 'Cardio', 'Rest Day'
+            ],
+            'build_muscle': [
+                'Upper Body Strength', 'Lower Body Strength', 'Rest Day',
+                'Core Strength', 'Full Body Strength', 'Upper Body Strength', 'Rest Day'
+            ],
+            'stay_fit': [
+                'Cardio', 'Upper Body Strength', 'Lower Body Strength',
+                'Core Strength', 'HIIT', 'Full Body Strength', 'Rest Day'
+            ],
+            'gain_weight': [
+                'Upper Body Strength', 'Lower Body Strength', 'Rest Day',
+                'Core Strength', 'Full Body Strength', 'Upper Body Strength', 'Rest Day'
             ]
-            if not relaxed.empty:
-                sampled = relaxed.sample(frac=1).sort_values(by='MET Value').to_dict('records')
-                logger.info("Selected %d relaxed workouts for low activity", len(sampled))
-                return sampled
+        }
 
-        if not default_light_fallback.empty:
-            sampled = default_light_fallback.sample(frac=1).sort_values(by='MET Value').to_dict('records')
-            logger.info("Selected %d default light fallback workouts", len(sampled))
-            return sampled
+        days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        weekly_plan = weekly_structure[goal]
+        total_weeks = math.ceil(program_duration / 7)
+        full_plan = []
 
-        logger.warning("No workouts found for focus %s", focus_area)
-        return []
+        rest_day_index = days_of_week.index(preferred_rest_day)
 
-    def clean_nan(self, data):
-        """Recursively replace NaN with null in a dictionary or list."""
-        if isinstance(data, dict):
-            return {k: self.clean_nan(v) for k, v in data.items()}
-        elif isinstance(data, list):
-            return [self.clean_nan(item) for item in data]
-        elif isinstance(data, float) and math.isnan(data):
-            return None
-        return data
+        for week in range(total_weeks):
+            for day in range(7):
+                if (week * 7 + day) >= program_duration:
+                    break
+
+                day_name = days_of_week[day]
+                plan_index = day % len(weekly_plan)
+                focus = weekly_plan[plan_index]
+
+                if day == rest_day_index and focus != 'Rest Day':
+                    focus = 'Rest Day'
+                elif day != rest_day_index and focus == 'Rest Day':
+                    focus = 'Active Rest Day'
+
+                full_plan.append({
+                    'Day': f"Day {week * 7 + day + 1} ({day_name})",
+                    'Focus': focus
+                })
+
+        return full_plan
+
+    def clean_nan(self, plan):
+        def clean_dict(d):
+            if isinstance(d, dict):
+                return {k: clean_dict(v) for k, v in d.items() if not (isinstance(v, float) and math.isnan(v))}
+            elif isinstance(d, list):
+                return [clean_dict(item) for item in d]
+            elif isinstance(d, float) and math.isnan(d):
+                return None
+            return d
+
+        return clean_dict(plan)
 
     def generate_workout_plan(self, user_data):
         age = user_data.get('age')
@@ -326,12 +303,17 @@ class WorkoutService:
                         duration_min = 30 / 60
                         calories = calculate_calories_burned(w.get('MET Value', 2.5), duration_min, weight)
 
+                        # Use 'Name' column from CSV (changed from 'Exercise Name')
+                        exercise_name = w.get('Name', 'Unknown Exercise')
+                        logger.debug("Rest exercise: %s", exercise_name)
+
                         w['Sets'] = 1
                         w['Reps'] = '30 sec hold'
                         w['Rest Time (sec)'] = 30
                         w['Duration (min)'] = duration_min
                         w['Calories Burned'] = round(calories, 2)
                         w['Description'] = w.get('Description', 'No description available')
+                        w['Name'] = exercise_name  # Set the Name field
 
                         total_duration += duration_min
                         total_calories += calories
@@ -362,12 +344,17 @@ class WorkoutService:
                     duration_min = total_seconds / 60
                     calories = calculate_calories_burned(met, duration_min, weight)
 
+                    # Use 'Name' column from CSV (changed from 'Exercise Name')
+                    exercise_name = w.get('Name', 'Unknown Exercise')
+                    logger.debug("Selected exercise: %s", exercise_name)
+
                     w['Sets'] = sets
                     w['Reps'] = reps
                     w['Rest Time (sec)'] = rest_time
                     w['Duration (min)'] = round(duration_min, 2)
                     w['Calories Burned'] = round(calories, 2)
                     w['Description'] = w.get('Description', 'No description available')
+                    w['Name'] = exercise_name  # Set the Name field
 
                     total_duration += duration_min
                     total_calories += calories
@@ -379,5 +366,11 @@ class WorkoutService:
             final_plan.append(day_data)
 
         logger.info("Generated final plan with %d days", len(final_plan))
+
+        # Generate meal plan using MealService
+        meal_plan = self.meal_service.generate_meal_plan(final_plan, user_data)
         
-        return self.clean_nan(final_plan)
+        return {
+            "workout_plan": self.clean_nan(final_plan),
+            "meal_plan": meal_plan
+        }

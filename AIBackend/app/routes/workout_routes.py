@@ -1,3 +1,4 @@
+# app/routes/workout_routes.py
 from flask import Blueprint, request, jsonify
 from app.services.workout_service import WorkoutService
 import logging
@@ -24,11 +25,15 @@ def generate_workout_plan():
                 logger.error("Missing required field: %s", field)
                 return jsonify({"error": f"Missing required field: {field}"}), 400
 
-        plan = workout_service.generate_workout_plan(user_data)
-        logger.info("Generated workout plan: %s", plan)
+        result = workout_service.generate_workout_plan(user_data)
+        logger.info("Generated plans: workout_plan with %d days, meal_plan with %d days",
+                    len(result['workout_plan']), len(result['meal_plan']))
 
-        return jsonify({"plan": plan}), 200
+        return jsonify({
+            "workout_plan": result['workout_plan'],
+            "meal_plan": result['meal_plan']
+        }), 200
 
     except Exception as e:
-        logger.error("Error generating workout plan: %s", str(e))
+        logger.error("Error generating plans: %s", str(e))
         return jsonify({"error": str(e)}), 500

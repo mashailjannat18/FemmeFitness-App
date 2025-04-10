@@ -1,125 +1,100 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ImageBackground,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
 
 const AccountInformation = () => {
-  // User data
   const user = {
-    username: "creative_coder_42",
-    email: "myemail@example.com",
-    passwordLastChanged: "2 weeks ago",
-    passwordStrength: "Strong"
+    username: 'creative_coder_42',
+    email: 'myemail@example.com',
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      {/* Username Card */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardIcon}>👤</Text>
-          <Text style={styles.cardTitle}>Username</Text>
+    <ImageBackground
+      source={{
+        uri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k=', // Replace with your actual Google Drive file ID
+      }}
+      style={styles.backgroundImage}
+      imageStyle={styles.backgroundImageStyle}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Username Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Icon name="user" size={22} color="#b03060" style={styles.cardIcon} />
+            <Text style={styles.cardTitle}>Username</Text>
+          </View>
+          <Text style={styles.cardValue}>{user.username}</Text>
         </View>
-        <Text style={styles.cardValue}>{user.username}</Text>
-        <Text style={styles.cardNote}>This is your public username</Text>
-      </View>
 
-      {/* Password Card */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardIcon}>🔒</Text>
-          <Text style={styles.cardTitle}>Password</Text>
+        {/* Password Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Icon name="lock" size={22} color="#b03060" style={styles.cardIcon} />
+            <Text style={styles.cardTitle}>Password</Text>
+          </View>
+          <Text style={styles.cardValue}>••••••••••</Text>
         </View>
-        <Text style={styles.cardValue}>••••••••••</Text>
-        <Text style={styles.cardNote}>Last changed: {user.passwordLastChanged}</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Strength:</Text>
-          <Text style={[styles.infoValue, styles.strong]}>{user.passwordStrength}</Text>
-        </View>
-        <TouchableOpacity style={styles.changeButton}>
-          <Text style={styles.changeButtonText}>Change Password</Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* Email Card */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardIcon}>📧</Text>
-          <Text style={styles.cardTitle}>Email Address</Text>
+        {/* Email Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Icon name="mail" size={22} color="#b03060" style={styles.cardIcon} />
+            <Text style={styles.cardTitle}>Email Address</Text>
+          </View>
+          <Text style={styles.cardValue}>{user.email}</Text>
         </View>
-        <Text style={styles.cardValue}>{user.email}</Text>
-        <Text style={styles.cardNote}>Used for account recovery</Text>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+  },
+  backgroundImageStyle: {
+    opacity: 1,
+  },
   scrollContainer: {
-    padding: 15,
-    paddingBottom: 30, // Add extra padding at the bottom
+    padding: 16,
+    paddingBottom: 30,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#ffffffee', // Slight transparency to show background
+    borderRadius: 16,
     padding: 20,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    marginBottom: 18,
+    shadowColor: '#d48fb0',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#ffe0ea',
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   cardIcon: {
-    fontSize: 24,
-    marginRight: 12,
+    marginRight: 10,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '600',
-    color: '#333',
+    color: '#b03060',
   },
   cardValue: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '500',
-    color: '#2c2c2c',
-    marginBottom: 5,
-  },
-  cardNote: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    marginTop: 5,
-    alignItems: 'center',
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: '#666',
-    marginRight: 8,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  strong: {
-    color: '#4CAF50',
-  },
-  changeButton: {
-    backgroundColor: '#f0f0f0',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 15,
-    alignItems: 'center',
-  },
-  changeButtonText: {
-    color: '#3a3a3a',
-    fontWeight: '500',
+    color: '#333',
   },
 });
 

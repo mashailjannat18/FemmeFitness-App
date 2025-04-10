@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, Easing } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+  Animated,
+  ImageBackground,
+} from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -8,15 +16,13 @@ const IntensitySetting = () => {
   const [animation] = useState(new Animated.Value(0));
 
   const intensities = [
-    { level: 'Beginner', emoji: '🌱', color: '#7FB77E' },
-    { level: 'Mediocre', emoji: '🔥', color: '#FFB562' },
-    { level: 'Intense', emoji: '💥', color: '#FF6B6B' }
+    { level: 'Beginner', emoji: '🌸', color: '#F8BBD0' },
+    { level: 'Mediocre', emoji: '🌷', color: '#F48FB1' },
+    { level: 'Intense', emoji: '🌺', color: '#EC407A' },
   ];
 
   const handlePress = (level: string) => {
     setSelectedIntensity(level);
-    
-    // Bounce animation
     animation.setValue(0);
     Animated.spring(animation, {
       toValue: 1,
@@ -28,69 +34,78 @@ const IntensitySetting = () => {
 
   const scaleInterpolate = animation.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: [1, 1.1, 1]
+    outputRange: [1, 1.1, 1],
   });
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>Workout Intensity</Text>
-        <View style={styles.currentIntensity}>
-          <Text style={styles.currentLabel}>Current:</Text>
-          <Text style={styles.selectedIntensity}>
-            {selectedIntensity || 'Not selected'}
-          </Text>
+    <ImageBackground
+      source={{ uri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k=' }} // Replace with your Google image URL
+      style={styles.backgroundImage}
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.heading}>Workout Intensity</Text>
+          <View style={styles.currentIntensity}>
+            <Text style={styles.currentLabel}>Current:</Text>
+            <Text style={styles.selectedIntensity}>
+              {selectedIntensity || 'Not selected'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.editSection}>
+          <Text style={styles.editHeading}>Edit Intensity</Text>
+          <View style={styles.divider} />
+        </View>
+
+        <View style={styles.cardsContainer}>
+          {intensities.map((item) => (
+            <Animated.View
+              key={item.level}
+              style={[
+                styles.card,
+                { backgroundColor: item.color },
+                selectedIntensity === item.level && styles.selectedCard,
+                selectedIntensity === item.level && {
+                  transform: [{ scale: scaleInterpolate }],
+                },
+              ]}
+            >
+              <TouchableOpacity
+                onPress={() => handlePress(item.level)}
+                activeOpacity={0.8}
+                style={styles.cardContent}
+              >
+                <Text style={[styles.emoji, { color: selectedIntensity === item.level ? '#FFF' : '#000' }]}>
+                  {item.emoji}
+                </Text>
+                <Text
+                  style={[
+                    styles.levelText,
+                    selectedIntensity === item.level && styles.selectedLevelText,
+                    { color: selectedIntensity === item.level ? '#FFF' : '#4A148C' }
+                  ]}
+                >
+                  {item.level}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          ))}
         </View>
       </View>
-
-      {/* Added Edit Intensity section */}
-      <View style={styles.editSection}>
-        <Text style={styles.editHeading}>Edit Intensity</Text>
-        <View style={styles.divider} />
-      </View>
-
-      <View style={styles.cardsContainer}>
-        {intensities.map((item) => (
-          <Animated.View
-            key={item.level}
-            style={[
-              styles.card,
-              { backgroundColor: item.color },
-              selectedIntensity === item.level && styles.selectedCard,
-              selectedIntensity === item.level && {
-                transform: [{ scale: scaleInterpolate }]
-              }
-            ]}
-          >
-            <TouchableOpacity
-              onPress={() => handlePress(item.level)}
-              activeOpacity={0.8}
-              style={styles.cardContent}
-            >
-              <Text style={styles.emoji}>{item.emoji}</Text>
-              <Text style={[
-                styles.levelText,
-                selectedIntensity === item.level && styles.selectedLevelText
-              ]}>
-                {item.level}
-              </Text>
-              <View style={[
-                styles.indicator,
-                selectedIntensity === item.level && styles.activeIndicator
-              ]} />
-            </TouchableOpacity>
-          </Animated.View>
-        ))}
-      </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
     padding: 20,
+    backgroundColor: 'transparent',
   },
   header: {
     alignItems: 'center',
@@ -99,9 +114,8 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#2D3748',
+    color: '#D81B60',
     marginBottom: 10,
-    fontFamily: 'Helvetica Neue',
     letterSpacing: 0.5,
   },
   currentIntensity: {
@@ -110,15 +124,14 @@ const styles = StyleSheet.create({
   },
   currentLabel: {
     fontSize: 16,
-    color: '#718096',
+    color: '#C2185B',
     marginRight: 5,
   },
   selectedIntensity: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2D3748',
+    color: '#880E4F',
   },
-  // New styles for Edit Intensity section
   editSection: {
     marginBottom: 25,
     marginTop: 10,
@@ -126,13 +139,13 @@ const styles = StyleSheet.create({
   editHeading: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#4A5568',
+    color: '#AD1457',
     textAlign: 'center',
     marginBottom: 8,
   },
   divider: {
     height: 2,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#F8BBD0',
     width: '40%',
     alignSelf: 'center',
     borderRadius: 2,
@@ -148,19 +161,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 15,
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-    transform: [{ scale: 1 }],
   },
   selectedCard: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 10,
+    borderWidth: 2,
+    borderColor: '#FFF',
   },
   cardContent: {
     alignItems: 'center',
@@ -174,7 +178,6 @@ const styles = StyleSheet.create({
   levelText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2D3748',
     textAlign: 'center',
   },
   selectedLevelText: {
@@ -182,18 +185,6 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.2)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
-  },
-  indicator: {
-    width: 20,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    marginTop: 15,
-  },
-  activeIndicator: {
-    backgroundColor: '#FFF',
-    width: 30,
-    height: 6,
   },
 });
 

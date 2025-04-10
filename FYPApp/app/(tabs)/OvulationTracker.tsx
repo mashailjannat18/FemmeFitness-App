@@ -1,20 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
-import { Calendar } from 'react-native-calendars';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ImageBackground,
+} from 'react-native';
 import { router } from 'expo-router';
-import XDate from 'xdate';
-import { MaterialCommunityIcons } from '@expo/vector-icons'; // Better icons
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function OvulationTracker() {
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]); // Track selected symptoms
-
-  const handleDayPress = (day: any) => {
-    setSelectedDate(day.dateString);
-  };
-
-  const currentDate = new Date();
-  const currentMonth = currentDate.toISOString().slice(0, 7);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
 
   const handleLogPeriodPress = () => {
     router.push('/(screens)/Periods');
@@ -25,26 +22,13 @@ export default function OvulationTracker() {
   };
 
   const toggleSymptom = (symptom: string) => {
-    if (selectedSymptoms.includes(symptom)) {
-      setSelectedSymptoms(selectedSymptoms.filter((item) => item !== symptom)); // Deselect
-    } else {
-      setSelectedSymptoms([...selectedSymptoms, symptom]); // Select
-    }
-  };
-
-  const renderHeader = (date?: XDate) => {
-    if (!date) return null;
-
-    const month = date.toString('MMMM');
-    const year = date.getFullYear();
-    return (
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>{`${month} ${year}`}</Text>
-      </View>
+    setSelectedSymptoms((prev) =>
+      prev.includes(symptom)
+        ? prev.filter((item) => item !== symptom)
+        : [...prev, symptom]
     );
   };
 
-  // Symptom icons and labels
   const symptoms = [
     { id: 'headache', icon: 'head-outline', label: 'Headache', color: '#FF6F61' },
     { id: 'stomachache', icon: 'stomach', label: 'Stomach Ache', color: '#6B5B95' },
@@ -53,58 +37,20 @@ export default function OvulationTracker() {
     { id: 'backache', icon: 'human-handsup', label: 'Backache', color: '#92A8D1' },
   ];
 
-  return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Calendar Section */}
-        <View style={[styles.calendarContainer, styles.shadow]}>
-          <Calendar
-            current={currentMonth}
-            onDayPress={handleDayPress}
-            monthFormat={'MMMM yyyy'}
-            markingType={'dot'}
-            markedDates={{
-              [selectedDate || '']: {
-                selected: true,
-                selectedColor: '#ff69b4',
-                selectedTextColor: 'white',
-              },
-            }}
-            style={styles.calendar}
-            horizontal={true}
-            pagingEnabled={true}
-            hideExtraDays={true}
-            firstDay={1}
-            enableSwipeMonths={false}
-            renderHeader={renderHeader}
-            theme={{
-              selectedDayBackgroundColor: '#ff69b4',
-              selectedDayTextColor: 'white',
-              todayTextColor: '#ff69b4',
-              arrowColor: '#ff69b4',
-              monthTextColor: '#ff69b4',
-              dayTextColor: '#333',
-              textDayFontWeight: 'bold',
-              textMonthFontWeight: 'bold',
-              textDayHeaderFontWeight: 'bold',
-              todayBackgroundColor: '#fff',
-              backgroundColor: '#fff',
-            }}
-          />
-        </View>
+  const base64Image = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k='; // truncated for brevity
 
-        {/* Cycle Day and Phase Section */}
+  return (
+    <ImageBackground source={{ uri: base64Image }} style={styles.backgroundImage}>
+      <ScrollView contentContainerStyle={styles.scrollContainer} style={{ flex: 1 }}>
         <View style={styles.infoContainer}>
           <Text style={styles.cycleDayText}>Cycle Day 5</Text>
           <Text style={styles.phaseText}>Follicular Phase</Text>
         </View>
 
-        {/* Log Period Button */}
-        <TouchableOpacity onPress={handleLogPeriodPress} style={[styles.logPeriodButton, styles.shadow]}>
-          <Text style={styles.logPeriodText}>Log Period</Text>
+        <TouchableOpacity onPress={handleLogPeriodPress} style={[styles.button, styles.shadow]}>
+          <Text style={styles.buttonText}>Log Period</Text>
         </TouchableOpacity>
 
-        {/* Symptom Icons Section */}
         <View style={styles.symptomsContainer}>
           {symptoms.map((symptom) => (
             <TouchableOpacity
@@ -112,20 +58,19 @@ export default function OvulationTracker() {
               style={styles.symptomItem}
               onPress={() => toggleSymptom(symptom.id)}
             >
-              {/* Icon */}
               <MaterialCommunityIcons
                 name={symptom.icon as keyof typeof MaterialCommunityIcons.glyphMap}
-                size={32}
-                color={symptom.color} // Use the color from the symptoms array
+                size={28}
+                color={selectedSymptoms.includes(symptom.id) ? symptom.color : '#333'}
               />
-              {/* Label */}
               <Text style={styles.symptomLabel}>{symptom.label}</Text>
-              {/* Selection Circle */}
               <View
                 style={[
                   styles.selectionCircle,
                   {
-                    backgroundColor: selectedSymptoms.includes(symptom.id) ? symptom.color : '#ccc',
+                    backgroundColor: selectedSymptoms.includes(symptom.id)
+                      ? symptom.color
+                      : '#ccc',
                   },
                 ]}
               />
@@ -133,22 +78,20 @@ export default function OvulationTracker() {
           ))}
         </View>
 
-        {/* My Cycles Section */}
         <Text style={styles.myCyclesText}>My Cycles</Text>
 
-        {/* History Button */}
-        <TouchableOpacity onPress={handleHistoryPress} style={[styles.historyButton, styles.shadow]}>
-          <Text style={styles.historyText}>History</Text>
+        <TouchableOpacity onPress={handleHistoryPress} style={[styles.button, styles.shadow]}>
+          <Text style={styles.buttonText}>History</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  backgroundImage: {
     flex: 1,
-    backgroundColor: '#f7f7f7',
+    resizeMode: 'cover',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -156,52 +99,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  calendarContainer: {
-    width: Dimensions.get('window').width * 0.9,
-    borderRadius: 15,
-    overflow: 'hidden',
-    marginBottom: 30,
-    backgroundColor: '#fff',
-  },
-  calendar: {
-    height: 350,
-    width: '100%',
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
-  },
-  headerText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#ff69b4',
-  },
   infoContainer: {
     marginBottom: 30,
     alignItems: 'center',
   },
   cycleDayText: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#B03060',
   },
   phaseText: {
     fontSize: 18,
-    color: '#555',
     marginTop: 5,
+    color: '#B03060',
+    fontWeight: 'bold',
   },
-  logPeriodButton: {
-    backgroundColor: '#ff69b4',
+  button: {
+    backgroundColor: '#8B004F', // Dark pink
     borderRadius: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 25,
   },
-  logPeriodText: {
-    fontSize: 18,
+  buttonText: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
   },
@@ -213,16 +135,17 @@ const styles = StyleSheet.create({
   },
   symptomItem: {
     alignItems: 'center',
+    marginHorizontal: 5,
   },
   symptomLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#333',
     marginTop: 5,
   },
   selectionCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: '#ccc',
     marginTop: 5,
@@ -230,20 +153,8 @@ const styles = StyleSheet.create({
   myCyclesText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 20,
-  },
-  historyButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    alignItems: 'center',
-  },
-  historyText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
+    color: '#B03060',
   },
   shadow: {
     shadowColor: '#000',

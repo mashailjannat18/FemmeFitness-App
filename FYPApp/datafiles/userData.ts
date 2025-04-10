@@ -1,3 +1,4 @@
+// datafiles/userData.ts
 import { supabase } from '@/lib/supabase';
 
 export type UserData = {
@@ -12,8 +13,9 @@ export type UserData = {
   restDays: string[];
   challengeDays: number;
   email: string;
-  password: string; 
+  password: string;
   workoutPlan: any[];
+  mealPlan?: any[];
 };
 
 const defaultUserData: UserData = {
@@ -30,6 +32,7 @@ const defaultUserData: UserData = {
   email: '',
   password: '',
   workoutPlan: [],
+  mealPlan: [],
 };
 
 export let userData: UserData = { ...defaultUserData };
@@ -100,6 +103,7 @@ export const addUserToSupabase = async (
       weight: Number(userData.weight),
       challengeDays: Number(userData.challengeDays),
       preferredRestDay: userData.restDays[0],
+      height: Number(userData.height),
     };
     console.log('Sending payload to backend:', payload);
 
@@ -114,19 +118,25 @@ export const addUserToSupabase = async (
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Backend response error:', errorText);
-      throw new Error(`Failed to generate workout plan: ${response.status} - ${errorText || 'No error message'}`);
+      throw new Error(`Failed to generate plans: ${response.status} - ${errorText || 'No error message'}`);
     }
 
-    const workoutPlan = await response.json();
-    console.log('Workout plan generated:', workoutPlan);
+    const result = await response.json();
+    console.log('Plans generated:', result);
 
-    if (!workoutPlan || !workoutPlan.plan || !Array.isArray(workoutPlan.plan) || workoutPlan.plan.length === 0) {
-      console.error('Invalid workout plan structure:', workoutPlan);
+    if (!result.workout_plan || !Array.isArray(result.workout_plan) || result.workout_plan.length === 0) {
+      console.error('Invalid workout plan structure:', result.workout_plan);
       throw new Error('Workout plan is not a non-empty array');
     }
 
-    setUserData('workoutPlan', workoutPlan.plan);
-    console.log('Stored workoutPlan in userData:', userData.workoutPlan);
+    if (!result.meal_plan || !Array.isArray(result.meal_plan) || result.meal_plan.length === 0) {
+      console.error('Invalid meal plan structure:', result.meal_plan);
+      throw new Error('Meal plan is not a non-empty array');
+    }
+
+    setUserData('workoutPlan', result.workout_plan);
+    setUserData('mealPlan', result.meal_plan);
+    console.log('Stored plans in userData:', { workoutPlan: userData.workoutPlan, mealPlan: userData.mealPlan });
 
     const rpcPayload = {
       p_username: userData.username,
@@ -142,6 +152,7 @@ export const addUserToSupabase = async (
       p_preferred_rest_days: userData.restDays.length > 0 ? userData.restDays.join(', ') : null,
       p_challenge_days: userData.challengeDays,
       p_workout_plan: userData.workoutPlan,
+      p_meal_plan: userData.mealPlan,
     };
 
     console.log('RPC payload:', rpcPayload);
@@ -153,7 +164,7 @@ export const addUserToSupabase = async (
       throw new Error(`Failed to insert data into Supabase: ${error.message}`);
     }
 
-    console.log('User data and workout plan successfully saved!', data);
+    console.log('User data, workout plan, and meal plan successfully saved!', data);
     userId = data[0]?.user_id || null;
 
     if (userId === null) {

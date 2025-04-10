@@ -25,6 +25,15 @@ type DailyWorkout = {
   exercises: Exercise[];
 };
 
+type DailyMeal = {
+  id: string;
+  day_number: number;
+  daily_calories: number;
+  carbs_grams: number;
+  protein_grams: number;
+  fat_grams: number;
+};
+
 type WorkoutDay = {
   day_number: number;
   day_name: string;
@@ -55,6 +64,7 @@ function getWorkoutDays(challengeDays: number, startDate: string): WorkoutDay[] 
 export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   const [dailyWorkout, setDailyWorkout] = useState<DailyWorkout | null>(null);
+  const [dailyMeal, setDailyMeal] = useState<DailyMeal | null>(null); // New state for meal data
   const [workoutDays, setWorkoutDays] = useState<WorkoutDay[]>([]);
   const router = useRouter();
   const { user } = useUserAuth();
@@ -85,6 +95,7 @@ export default function Home() {
     }
 
     try {
+      // Step 1: Fetch the user's active workout plan
       const { data: planData, error: planError } = await supabase
         .from('WorkoutPlans')
         .select('id, start_date, challenge_days')
@@ -103,9 +114,10 @@ export default function Home() {
       setWorkoutDays(days);
 
       const today = new Date().toISOString().split('T')[0];
-      console.log('Fetching workout for today:', today, 'for user', user.id);
+      console.log('Fetching workout and meal for today:', today, 'for user', user.id);
       console.log('Workout plan ID:', planData.id);
 
+      // Step 2: Fetch the daily workout for today
       const { data: dailyData, error: dailyError } = await supabase
         .from('DailyWorkouts')
         .select('id, day_name, daily_workout_date, focus, total_duration_min, total_calories_burned')
@@ -116,36 +128,59 @@ export default function Home() {
       if (dailyError || !dailyData) {
         console.log('No workout found for today for user', user.id, ':', dailyError?.message || 'No data');
         setDailyWorkout(null);
-        return;
+      } else {
+        console.log('DailyWorkouts query result for user', user.id, ':', { dailyData, dailyError });
+
+        const { data: exerciseData, error: exerciseError } = await supabase
+          .from('Workouts')
+          .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
+          .eq('daily_workout_id', dailyData.id);
+
+        if (exerciseError) {
+          console.error('Error fetching exercises for user', user.id, ':', exerciseError);
+          throw new Error('Error fetching exercises: ' + exerciseError.message);
+        }
+
+        console.log('Workouts query result for user', user.id, ':', { exerciseData, exerciseError });
+
+        setDailyWorkout({
+          id: dailyData.id,
+          day_name: dailyData.day_name,
+          daily_workout_date: dailyData.daily_workout_date,
+          focus: dailyData.focus,
+          total_duration_min: dailyData.total_duration_min,
+          total_calories_burned: dailyData.total_calories_burned,
+          exercises: exerciseData || [],
+        });
       }
 
-      console.log('DailyWorkouts query result for user', user.id, ':', { dailyData, dailyError });
+      // Step 3: Fetch the daily meal for today
+      const { data: mealData, error: mealError } = await supabase
+        .from('DailyMealPlans')
+        .select('id, day_number, daily_calories, carbs_grams, protein_grams, fat_grams')
+        .eq('workout_plan_id', planData.id)
+        .eq('day_number', days.find((day) => day.date === today)?.day_number || 0)
+        .single();
 
-      const { data: exerciseData, error: exerciseError } = await supabase
-        .from('Workouts')
-        .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
-        .eq('daily_workout_id', dailyData.id);
-
-      if (exerciseError) {
-        console.error('Error fetching exercises for user', user.id, ':', exerciseError);
-        throw new Error('Error fetching exercises: ' + exerciseError.message);
+      if (mealError || !mealData) {
+        console.log('No meal plan found for today for user', user.id, ':', mealError?.message || 'No data');
+        setDailyMeal(null);
+      } else {
+        console.log('DailyMealPlans query result for user', user.id, ':', { mealData, mealError });
+        setDailyMeal({
+          id: mealData.id,
+          day_number: mealData.day_number,
+          daily_calories: mealData.daily_calories,
+          carbs_grams: mealData.carbs_grams,
+          protein_grams: mealData.protein_grams,
+          fat_grams: mealData.fat_grams,
+        });
       }
-
-      console.log('Workouts query result for user', user.id, ':', { exerciseData, exerciseError });
-
-      setDailyWorkout({
-        id: dailyData.id,
-        day_name: dailyData.day_name,
-        daily_workout_date: dailyData.daily_workout_date,
-        focus: dailyData.focus,
-        total_duration_min: dailyData.total_duration_min,
-        total_calories_burned: dailyData.total_calories_burned,
-        exercises: exerciseData || [],
-      });
     } catch (error: any) {
-      console.error('Error fetching workout data for user', user?.id, ':', error);
-      Alert.alert('Error', error.message || 'An unexpected error occurred while fetching workout data.');
+      console.error('Error fetching workout or meal data for user', user?.id, ':', error);
+      Alert.alert('Error', error.message || 'An unexpected error occurred while fetching data.');
       setDailyWorkout(null);
+      setDailyMeal(null);
       setWorkoutDays([]);
     }
   };
@@ -233,6 +268,27 @@ export default function Home() {
 
       <View style={styles.section4}>
         <Text style={styles.heading}>Today's Meal</Text>
+        {dailyMeal ? (
+          <View style={styles.mealContainer}>
+            <Text style={styles.mealText}>Day {dailyMeal.day_number}</Text>
+            <View style={styles.mealDetails}>
+              <Text style={styles.mealDetailText}>
+                Calories: {dailyMeal.daily_calories.toFixed(1)} kcal
+              </Text>
+              <Text style={styles.mealDetailText}>
+                Carbs: {dailyMeal.carbs_grams.toFixed(1)}g
+              </Text>
+              <Text style={styles.mealDetailText}>
+                Protein: {dailyMeal.protein_grams.toFixed(1)}g
+              </Text>
+              <Text style={styles.mealDetailText}>
+                Fat: {dailyMeal.fat_grams.toFixed(1)}g
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <Text style={styles.noMealText}>No meal plan available for today.</Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -384,5 +440,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     opacity: 0.9,
+  },
+  // New styles for meal display
+  mealContainer: {
+    backgroundColor: '#f9f9f9',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  mealText: {
+    color: '#333',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  mealDetails: {
+    width: '100%',
+    alignItems: 'flex-start',
+  },
+  mealDetailText: {
+    color: '#555',
+    fontSize: 14,
+    fontWeight: '500',
+    marginVertical: 2,
+  },
+  noMealText: {
+    fontSize: 16,
+    color: '#555',
+    marginTop: 10,
   },
 });

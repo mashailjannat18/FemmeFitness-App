@@ -1,12 +1,69 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { supabase } from '@/lib/supabase'; // Import Supabase client
+import { useUserAuth } from '@/context/UserAuthContext'; // Import the auth context
 
-const { width } = Dimensions.get('window'); // Get screen width
+const { width } = Dimensions.get('window');
 
 export default function MealDetail() {
-  // Retrieve the passed parameters (meal and day)
-  const { meal, day } = useLocalSearchParams();
+  const { meal, day } = useLocalSearchParams(); // Retrieve the passed parameters
+  const { user } = useUserAuth(); // Get the logged-in user
+  const [mealDetails, setMealDetails] = useState({
+    daily_calories: 0,
+    carbs_grams: 0,
+    protein_grams: 0,
+    fat_grams: 0,
+  });
+
+  // Fetch the meal details for the specific day
+  useEffect(() => {
+    const fetchMealDetails = async () => {
+      if (!user || !day) {
+        console.error('No user logged in or day parameter missing');
+        return;
+      }
+
+      try {
+        // Fetch the user's active workout plan
+        const { data: workoutPlan, error: workoutPlanError } = await supabase
+          .from('WorkoutPlans')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single();
+
+        if (workoutPlanError || !workoutPlan) {
+          console.error('Error fetching workout plan:', workoutPlanError?.message || 'No active workout plan found');
+          return;
+        }
+
+        // Fetch the meal plan for the specific day
+        const { data: mealData, error: mealError } = await supabase
+          .from('DailyMealPlans')
+          .select('daily_calories, carbs_grams, protein_grams, fat_grams')
+          .eq('workout_plan_id', workoutPlan.id)
+          .eq('day_number', Number(day))
+          .single();
+
+        if (mealError || !mealData) {
+          console.error('Error fetching meal details:', mealError?.message || 'No meal data found for this day');
+          return;
+        }
+
+        setMealDetails({
+          daily_calories: mealData.daily_calories,
+          carbs_grams: mealData.carbs_grams,
+          protein_grams: mealData.protein_grams,
+          fat_grams: mealData.fat_grams,
+        });
+      } catch (error) {
+        console.error('Error fetching meal details:', error);
+      }
+    };
+
+    fetchMealDetails();
+  }, [user, day]);
 
   return (
     <View style={styles.container}>
@@ -20,7 +77,7 @@ export default function MealDetail() {
         {/* Meal Image */}
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: 'https://hips.hearstapps.com/hmg-prod/images/home-workout-lead-1584370797.jpg?crop=1xw:0.9997037914691943xh;center,top' }} // Replace with your image URL
+            source={{ uri: 'https://hips.hearstapps.com/hmg-prod/images/home-workout-lead-1584370797.jpg?crop=1xw:0.9997037914691943xh;center,top' }}
             style={styles.image}
           />
         </View>
@@ -29,11 +86,12 @@ export default function MealDetail() {
         <View style={styles.nutrientsContainer}>
           <Text style={styles.nutrientsText}>Nutrients of the Day</Text>
 
-          {/* Categories: Protein, Carbs, Fiber */}
+          {/* Categories: Calories, Protein, Carbs, Fat */}
           <View style={styles.categoriesContainer}>
-            <Text style={styles.categoryText}>Protein: 25g</Text>
-            <Text style={styles.categoryText}>Carbs: 40g</Text>
-            <Text style={styles.categoryText}>Fiber: 10g</Text>
+            <Text style={styles.categoryText}>Calories: {mealDetails.daily_calories.toFixed(1)} kcal</Text>
+            <Text style={styles.categoryText}>Protein: {mealDetails.protein_grams.toFixed(1)}g</Text>
+            <Text style={styles.categoryText}>Carbs: {mealDetails.carbs_grams.toFixed(1)}g</Text>
+            <Text style={styles.categoryText}>Fat: {mealDetails.fat_grams.toFixed(1)}g</Text>
           </View>
         </View>
       </View>
@@ -48,7 +106,7 @@ const styles = StyleSheet.create({
   },
   dayBar: {
     width: '100%',
-    backgroundColor: '#ff69b4', // Pink color
+    backgroundColor: '#ff69b4',
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -60,23 +118,23 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'flex-start', // Align to the top
+    justifyContent: 'flex-start',
     padding: 20,
     alignItems: 'center',
   },
   imageContainer: {
-    width: '100%', // Make image container take the full width
-    height: 200,  // Set image height
+    width: '100%',
+    height: 200,
   },
   image: {
-    width: width,  // Make image width the same as screen width
-    height: 200,   // Keep height fixed
+    width: width,
+    height: 200,
   },
   nutrientsContainer: {
-    marginTop: 20,       // Space between the image and text
-    alignItems: 'flex-start', // Align text to the left
-    width: '100%',       // Make the container take the full width
-    paddingRight: 20,    // Add some padding to the right
+    marginTop: 20,
+    alignItems: 'flex-start',
+    width: '100%',
+    paddingRight: 20,
   },
   nutrientsText: {
     fontSize: 18,
@@ -84,11 +142,11 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   categoriesContainer: {
-    marginTop: 10,  // Space between nutrients text and categories
+    marginTop: 10,
   },
   categoryText: {
     fontSize: 16,
-    color: '#555', // Slightly lighter color for the category text
-    marginBottom: 5, // Add space between categories
+    color: '#555',
+    marginBottom: 5,
   },
 });

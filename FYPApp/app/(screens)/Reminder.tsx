@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ImageBackground } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 const Reminder = () => {
@@ -9,6 +9,9 @@ const Reminder = () => {
   const [selectedMinute, setSelectedMinute] = useState('00');
   const [selectedAmPm, setSelectedAmPm] = useState('PM');
   const [currentTime, setCurrentTime] = useState('');
+
+  // Background image URL (replace this with your own Google image link)
+  const backgroundImageUrl = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k=';
 
   // Generate hours, minutes, and AM/PM options
   const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
@@ -21,10 +24,10 @@ const Reminder = () => {
       const now = new Date();
       setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
     };
-    
+
     updateTime();
     const interval = setInterval(updateTime, 60000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -40,14 +43,17 @@ const Reminder = () => {
   const formattedTime = `${selectedHour}:${selectedMinute} ${selectedAmPm}`;
 
   return (
-    <View style={styles.container}>
+    <ImageBackground
+      source={{ uri: backgroundImageUrl }}
+      style={styles.container}
+    >
       <Text style={styles.heading}>Daily Reminder</Text>
-      
+
       <View style={styles.timeContainer}>
         <Text style={styles.timeText}>{currentTime}</Text>
         <Text style={styles.timeLabel}>Current Time</Text>
       </View>
-      
+
       <View style={styles.switchContainer}>
         <TouchableOpacity 
           onPress={handleToggle}
@@ -58,13 +64,13 @@ const Reminder = () => {
             <Text style={[styles.label, !isReminderOn && styles.activeLabel]}>OFF</Text>
             <Text style={[styles.label, isReminderOn && styles.activeLabel]}>ON</Text>
           </View>
-          
+
           <View style={[styles.switchTrack, isReminderOn && styles.switchTrackActive]}>
             <View style={[styles.switchThumb, isReminderOn && styles.switchThumbActive]} />
           </View>
         </TouchableOpacity>
       </View>
-      
+
       {isReminderOn && (
         <View style={styles.notificationBox}>
           <Text style={styles.notificationText}>
@@ -88,7 +94,7 @@ const Reminder = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Set Reminder Time</Text>
-            
+
             <View style={styles.pickerContainer}>
               <View style={styles.pickerWrapper}>
                 <Picker
@@ -102,7 +108,7 @@ const Reminder = () => {
                 </Picker>
                 <Text style={styles.pickerLabel}>Hour</Text>
               </View>
-              
+
               <View style={styles.pickerWrapper}>
                 <Picker
                   selectedValue={selectedMinute}
@@ -115,7 +121,7 @@ const Reminder = () => {
                 </Picker>
                 <Text style={styles.pickerLabel}>Minute</Text>
               </View>
-              
+
               <View style={styles.pickerWrapper}>
                 <Picker
                   selectedValue={selectedAmPm}
@@ -129,7 +135,7 @@ const Reminder = () => {
                 <Text style={styles.pickerLabel}>AM/PM</Text>
               </View>
             </View>
-            
+
             <View style={styles.modalButtons}>
               <TouchableOpacity 
                 style={[styles.modalButton, styles.cancelButton]}
@@ -137,7 +143,7 @@ const Reminder = () => {
               >
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity 
                 style={[styles.modalButton, styles.saveButton]}
                 onPress={handleSaveTime}
@@ -148,7 +154,7 @@ const Reminder = () => {
           </View>
         </View>
       </Modal>
-    </View>
+    </ImageBackground>
   );
 };
 
@@ -157,169 +163,145 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
     padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Ensuring a background overlay for text contrast
   },
   heading: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#2c3e50',
+    color: '#b03060', // Darker pink for heading text
     marginBottom: 30,
     letterSpacing: 0.5,
   },
   timeContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   timeText: {
-    fontSize: 48,
-    fontWeight: '200',
-    color: '#2c3e50',
-    fontFamily: 'Helvetica Neue',
+    fontSize: 22,
+    color: '#b03060', // Darker pink for current time
   },
   timeLabel: {
     fontSize: 14,
-    color: '#7f8c8d',
-    marginTop: 5,
-    letterSpacing: 1,
+    color: '#b03060',
   },
   switchContainer: {
-    width: '80%',
-    maxWidth: 300,
+    alignItems: 'center',
+    marginBottom: 20,
   },
   toggleButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 5,
+    justifyContent: 'center',
   },
   labelContainer: {
     flexDirection: 'row',
-    width: 60,
-    justifyContent: 'space-between',
+    marginRight: 10,
   },
   label: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#bdc3c7',
+    color: '#aaa',
+    marginHorizontal: 5,
   },
   activeLabel: {
-    color: '#2c3e50',
+    color: '#b03060',
   },
   switchTrack: {
     width: 60,
     height: 30,
-    borderRadius: 15,
-    backgroundColor: '#e0e0e0',
+    borderRadius: 20,
+    backgroundColor: '#ddd',
+    padding: 5,
+    alignItems: 'center',
     justifyContent: 'center',
-    padding: 2,
   },
   switchTrackActive: {
-    backgroundColor: '#ff99aa',
+    backgroundColor: '#b03060',
   },
   switchThumb: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#f8f9fa',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#fff',
   },
   switchThumbActive: {
-    transform: [{ translateX: 30 }],
-    backgroundColor: '#d63384',
+    alignSelf: 'flex-end',
   },
   notificationBox: {
-    marginTop: 40,
-    backgroundColor: '#fff',
     padding: 20,
-    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
     alignItems: 'center',
-    width: '80%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    justifyContent: 'center',
   },
   notificationText: {
-    fontSize: 16,
-    color: '#2c3e50',
-    marginBottom: 15,
-    textAlign: 'center',
+    fontSize: 18,
+    color: '#b03060',
   },
   editButton: {
-    backgroundColor: '#ff99aa',
-    paddingVertical: 8,
+    marginTop: 10,
+    backgroundColor: '#b03060',
+    paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 20,
+    borderRadius: 5,
   },
   editButtonText: {
+    fontSize: 16,
     color: '#fff',
-    fontWeight: '600',
   },
-  // Modal styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 25,
-    width: '90%',
-    maxWidth: 350,
+    padding: 20,
+    borderRadius: 10,
+    width: 300,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '600',
-    color: '#2c3e50',
+    color: '#b03060',
     marginBottom: 20,
-    textAlign: 'center',
   },
   pickerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 25,
   },
   pickerWrapper: {
-    alignItems: 'center',
-    flex: 1,
+    width: '30%',
   },
   picker: {
+    height: 50,
     width: '100%',
-    height: 150,
   },
   pickerLabel: {
     fontSize: 14,
-    color: '#7f8c8d',
-    marginTop: 5,
+    color: '#b03060',
+    textAlign: 'center',
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 20,
   },
   modalButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 20,
-    flex: 1,
-    marginHorizontal: 5,
+    padding: 10,
+    width: 120,
+    borderRadius: 5,
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#ddd',
   },
   saveButton: {
-    backgroundColor: '#ff99aa',
+    backgroundColor: '#b03060',
   },
   modalButtonText: {
-    fontWeight: '600',
+    fontSize: 16,
     color: '#fff',
   },
 });
