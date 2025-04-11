@@ -9,14 +9,20 @@ const Question2: React.FC = () => {
   const router = useRouter();
 
   const handleWeightChange = (text: string) => {
-    // Allow only numeric input
-    if (/^\d*$/.test(text)) {
+    if (/^\d*\.?\d*$/.test(text)) {
       setSelectedWeight(text);
 
-      // Validate weight (must be 25 or above)
-      const weight = parseInt(text, 10);
-      if (weight < 25 && text !== '') {
-        setErrorMessage('Weight must be 25 kg or above.');
+      const weight = parseFloat(text);
+      if (text !== '' && !isNaN(weight)) {
+        if (weight < 25) {
+          setErrorMessage('Weight must be 25 kg or above.');
+        } else if (weight > 200) {
+          setErrorMessage('Weight must not exceed 200 kg.');
+        } else {
+          setErrorMessage('');
+        }
+      } else if (text !== '') {
+        setErrorMessage('Please enter a valid number.');
       } else {
         setErrorMessage('');
       }
@@ -28,21 +34,20 @@ const Question2: React.FC = () => {
 
     if (selectedWeight === '') {
       Alert.alert('Field Required', 'Please enter your weight before proceeding.', [
-        {
-          text: 'OK',
-        },
-      ]);
-    } else if (parseInt(selectedWeight, 10) < 25) {
-      Alert.alert('Invalid Weight', 'Weight must be 25 kg or above.', [
-        {
-          text: 'OK',
-        },
+        { text: 'OK' },
       ]);
     } else {
-      setUserData('weight', selectedWeight);
-      setTimeout(() => {
-        router.push('/(screens)/Question3');
-      }, 500);
+      const weight = parseFloat(selectedWeight);
+      if (isNaN(weight) || weight < 25 || weight > 200) {
+        Alert.alert('Invalid Weight', 'Weight must be between 25 kg and 200 kg.', [
+          { text: 'OK' },
+        ]);
+      } else {
+        setUserData('weight', weight);
+        setTimeout(() => {
+          router.push('/(screens)/Question3');
+        }, 500);
+      }
     }
   };
 
@@ -51,8 +56,8 @@ const Question2: React.FC = () => {
       <Text style={styles.text}>What Is Your Weight (kg)?</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter your weight in kg"
-        keyboardType="numeric"
+        placeholder="Enter your weight (kg)"
+        keyboardType="decimal-pad"
         value={selectedWeight}
         onChangeText={handleWeightChange}
       />
@@ -65,9 +70,13 @@ const Question2: React.FC = () => {
           <Text style={styles.buttonText}>Back</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, (selectedWeight === '' || parseInt(selectedWeight, 10) < 25) && styles.disabledButton]}
+          style={[
+            styles.button,
+            (selectedWeight === '' || parseFloat(selectedWeight) < 25 || parseFloat(selectedWeight) > 200) &&
+              styles.disabledButton,
+          ]}
           onPress={handleNext}
-          disabled={selectedWeight === '' || parseInt(selectedWeight, 10) < 25}
+          disabled={selectedWeight === '' || parseFloat(selectedWeight) < 25 || parseFloat(selectedWeight) > 200}
         >
           <Text style={styles.buttonText}>Next</Text>
         </TouchableOpacity>
@@ -79,8 +88,8 @@ const Question2: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center', // Center vertically
-    alignItems: 'center', // Center horizontally
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#fff',
   },
   text: {

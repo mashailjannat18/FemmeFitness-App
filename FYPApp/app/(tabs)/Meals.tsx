@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/supabase'; // Import Supabase client
-import { useUserAuth } from '@/context/UserAuthContext'; // Import the auth context
+import { supabase } from '@/lib/supabase';
+import { useUserAuth } from '@/context/UserAuthContext';
 
 export default function Meals() {
   const [imageUrl] = useState('https://hips.hearstapps.com/hmg-prod/images/home-workout-lead-1584370797.jpg?crop=1xw:0.9997037914691943xh;center,top');
-  const [meals, setMeals] = useState<string[]>([]); // State to store meal plan days
+  const [meals, setMeals] = useState<string[]>([]);
   const router = useRouter();
-  const { user } = useUserAuth(); // Get the logged-in user
+  const { user } = useUserAuth();
 
-  // Fetch the meal plan for the logged-in user
   useEffect(() => {
     const fetchMealPlan = async () => {
       if (!user) {
@@ -19,7 +18,6 @@ export default function Meals() {
       }
 
       try {
-        // Fetch the user's active workout plan
         const { data: workoutPlan, error: workoutPlanError } = await supabase
           .from('WorkoutPlans')
           .select('id')
@@ -32,7 +30,6 @@ export default function Meals() {
           return;
         }
 
-        // Fetch the meal plan associated with the workout plan
         const { data: mealPlan, error: mealPlanError } = await supabase
           .from('DailyMealPlans')
           .select('day_number')
@@ -44,7 +41,6 @@ export default function Meals() {
           return;
         }
 
-        // Map the meal plan days to the format "Day X"
         const mealDays = mealPlan.map((meal) => `Day ${meal.day_number}`);
         setMeals(mealDays);
       } catch (error) {
@@ -55,11 +51,10 @@ export default function Meals() {
     fetchMealPlan();
   }, [user]);
 
-  // Function to navigate to MealDetail screen and pass the day number as 'day'
   const navigateToMealDetail = (meal: string, dayNumber: number) => {
     router.push({
       pathname: '../(screens)/MealDetail',
-      params: { meal, day: dayNumber }, // Pass meal name and day number
+      params: { meal, day: dayNumber },
     });
   };
 
@@ -72,20 +67,18 @@ export default function Meals() {
       <View style={styles.content}>
         <Text style={styles.title}>Meals</Text>
 
-        {/* Description placed under the heading, aligned to the left */}
         <View style={styles.descriptionContainer}>
           <Text style={styles.description}>
             Select a meal to view its details.
           </Text>
         </View>
 
-        {/* List of meal options */}
         <View style={styles.options}>
           {meals.length > 0 ? (
             meals.map((meal, index) => (
               <TouchableOpacity
                 key={index}
-                onPress={() => navigateToMealDetail(meal, index + 1)} // Pass the index + 1 as the day number
+                onPress={() => navigateToMealDetail(meal, index + 1)}
                 style={styles.optionButton}
               >
                 <Text style={styles.optionText}>{meal}</Text>

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { supabase } from '@/lib/supabase'; // Import Supabase client
-import { useUserAuth } from '@/context/UserAuthContext'; // Import the auth context
+import { supabase } from '@/lib/supabase';
+import { useUserAuth } from '@/context/UserAuthContext';
 
 const { width } = Dimensions.get('window');
 
 export default function MealDetail() {
-  const { meal, day } = useLocalSearchParams(); // Retrieve the passed parameters
-  const { user } = useUserAuth(); // Get the logged-in user
+  const { meal, day } = useLocalSearchParams();
+  const { user } = useUserAuth();
   const [mealDetails, setMealDetails] = useState({
     daily_calories: 0,
     carbs_grams: 0,
@@ -16,7 +16,6 @@ export default function MealDetail() {
     fat_grams: 0,
   });
 
-  // Fetch the meal details for the specific day
   useEffect(() => {
     const fetchMealDetails = async () => {
       if (!user || !day) {
@@ -25,7 +24,6 @@ export default function MealDetail() {
       }
 
       try {
-        // Fetch the user's active workout plan
         const { data: workoutPlan, error: workoutPlanError } = await supabase
           .from('WorkoutPlans')
           .select('id')
@@ -38,7 +36,6 @@ export default function MealDetail() {
           return;
         }
 
-        // Fetch the meal plan for the specific day
         const { data: mealData, error: mealError } = await supabase
           .from('DailyMealPlans')
           .select('daily_calories, carbs_grams, protein_grams, fat_grams')
@@ -67,14 +64,11 @@ export default function MealDetail() {
 
   return (
     <View style={styles.container}>
-      {/* Pink bar with the dynamic day number */}
       <View style={styles.dayBar}>
         <Text style={styles.dayText}>{meal}</Text>
       </View>
 
-      {/* Content for the image and the nutrients */}
       <View style={styles.contentContainer}>
-        {/* Meal Image */}
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: 'https://hips.hearstapps.com/hmg-prod/images/home-workout-lead-1584370797.jpg?crop=1xw:0.9997037914691943xh;center,top' }}
@@ -82,11 +76,9 @@ export default function MealDetail() {
           />
         </View>
 
-        {/* Nutrients of the Day Text and Categories */}
         <View style={styles.nutrientsContainer}>
           <Text style={styles.nutrientsText}>Nutrients of the Day</Text>
 
-          {/* Categories: Calories, Protein, Carbs, Fat */}
           <View style={styles.categoriesContainer}>
             <Text style={styles.categoryText}>Calories: {mealDetails.daily_calories.toFixed(1)} kcal</Text>
             <Text style={styles.categoryText}>Protein: {mealDetails.protein_grams.toFixed(1)}g</Text>

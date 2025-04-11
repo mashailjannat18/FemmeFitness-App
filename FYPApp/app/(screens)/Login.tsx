@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserAuth } from '@/context/UserAuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ const Login: React.FC = () => {
   const [showEmailError, setShowEmailError] = useState(false);
   const [showPasswordError, setShowPasswordError] = useState(false);
   const [showLoginError, setShowLoginError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { login } = useUserAuth();
 
@@ -58,24 +60,38 @@ const Login: React.FC = () => {
 
       {showLoginError && <Text style={styles.errorText}>{showLoginError}</Text>}
 
-      <TextInput
-        style={[styles.input, (!isEmailValid || showLoginError) && styles.invalidInput]}
-        placeholder="Enter your email"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={handleEmailChange}
-        onSubmitEditing={() => passwordInput?.focus()}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.input, (!isEmailValid || showLoginError) && styles.invalidInput]}
+          placeholder="Enter your email"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={handleEmailChange}
+          onSubmitEditing={() => passwordInput?.focus()}
+        />
+      </View>
       {showEmailError && <Text style={styles.errorText}>Please enter a valid email address.</Text>}
 
-      <TextInput
-        ref={(input) => (passwordInput = input)}
-        style={[styles.input, (!isPasswordValid || showLoginError) && styles.invalidInput]}
-        placeholder="Enter your password"
-        secureTextEntry
-        value={password}
-        onChangeText={handlePasswordChange}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          ref={(input) => (passwordInput = input)}
+          style={[styles.input, styles.passwordInput, (!isPasswordValid || showLoginError) && styles.invalidInput]}
+          placeholder="Enter your password"
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={handlePasswordChange}
+        />
+        <TouchableOpacity
+          style={styles.eyeIcon}
+          onPress={() => setShowPassword(!showPassword)}
+        >
+          <Ionicons
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={24}
+            color="#666"
+          />
+        </TouchableOpacity>
+      </View>
       {showPasswordError && <Text style={styles.errorText}>Password must be at least 6 characters long.</Text>}
 
       <View style={styles.buttonContainer}>
@@ -112,15 +128,28 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     textAlign: 'center',
   },
-  input: {
+  inputContainer: {
     width: '80%',
-    padding: 12,
+    position: 'relative',
     marginVertical: 10,
+  },
+  input: {
+    width: '100%',
+    padding: 12,
     borderRadius: 8,
     backgroundColor: '#fff',
     borderColor: '#ccc',
     borderWidth: 1,
     fontSize: 16,
+  },
+  passwordInput: {
+    paddingRight: 40,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -12 }],
   },
   invalidInput: {
     borderColor: '#e74c3c',

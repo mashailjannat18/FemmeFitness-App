@@ -1,4 +1,3 @@
-// datafiles/userData.ts
 import { supabase } from '@/lib/supabase';
 
 export type UserData = {
@@ -10,7 +9,7 @@ export type UserData = {
   goal: string;
   areasOfFocus: string[];
   activityLevel: number;
-  restDays: string[];
+  restDay: string;
   challengeDays: number;
   email: string;
   password: string;
@@ -27,7 +26,7 @@ const defaultUserData: UserData = {
   goal: '',
   areasOfFocus: [],
   activityLevel: 0,
-  restDays: [],
+  restDay: '',
   challengeDays: 0,
   email: '',
   password: '',
@@ -73,20 +72,20 @@ export const addUserToSupabase = async (
 
     console.log('userData after setting provided values:', userData);
 
-    if (userData.age === null) {
+    if (userData.age === null || userData.age === 0) {
       throw new Error('Age is required for workout plan generation.');
     }
-    if (userData.weight === null) {
-      throw new Error('Weight is required for workout plan generation.');
+    if (userData.weight === null || userData.weight === 0 || userData.weight > 200) {
+      throw new Error('Weight must be between 0 and 200 kg for workout plan generation.');
     }
-    if (userData.goal === null) {
+    if (!userData.goal) {
       throw new Error('Goal is required for workout plan generation.');
     }
-    if (userData.activityLevel === null) {
+    if (userData.activityLevel === null || userData.activityLevel === 0) {
       throw new Error('Activity level is required for workout plan generation.');
     }
-    if (!userData.restDays || userData.restDays.length === 0) {
-      throw new Error('At least one rest day is required for workout plan generation.');
+    if (!userData.restDay) {
+      throw new Error('Rest day is required for workout plan generation.');
     }
 
     const goalMap: { [key: string]: string } = {
@@ -102,19 +101,17 @@ export const addUserToSupabase = async (
       goal: goalMap[userData.goal] || userData.goal,
       weight: Number(userData.weight),
       challengeDays: Number(userData.challengeDays),
-      preferredRestDay: userData.restDays[0],
+      preferredRestDay: userData.restDay,
       height: Number(userData.height),
     };
     console.log('Sending payload to backend:', payload);
 
-    console.log('Making fetch request to backend...');
-    const response = await fetch('http://192.168.1.10:5000/api/generate-plan', {
+    const response = await fetch('http://10.135.55.170:5000/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
-    console.log('Fetch response status:', response.status);
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Backend response error:', errorText);
@@ -149,7 +146,7 @@ export const addUserToSupabase = async (
       p_goal: userData.goal,
       p_areas_of_focus: userData.areasOfFocus.length > 0 ? userData.areasOfFocus.join(', ') : null,
       p_activity_level: userData.activityLevel,
-      p_preferred_rest_days: userData.restDays.length > 0 ? userData.restDays.join(', ') : null,
+      p_preferred_rest_day: userData.restDay,
       p_challenge_days: userData.challengeDays,
       p_workout_plan: userData.workoutPlan,
       p_meal_plan: userData.mealPlan,

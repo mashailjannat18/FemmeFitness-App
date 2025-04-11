@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator 
 import { useRouter } from 'expo-router';
 import { getUserData, resetUserData } from '@/datafiles/userData';
 import { useUserAuth } from '@/context/UserAuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const Question10: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ const Question10: React.FC = () => {
   const [showUsernameError, setShowUsernameError] = useState(false);
   const [showSignupError, setShowSignupError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { signUp } = useUserAuth();
 
@@ -96,32 +98,48 @@ const Question10: React.FC = () => {
 
       {showSignupError && <Text style={styles.errorText}>{showSignupError}</Text>}
 
-      <TextInput
-        style={[styles.input, !isEmailValid && styles.invalidInput]}
-        placeholder="Enter your email"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={handleEmailChange}
-        onSubmitEditing={() => passwordInput?.focus()}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.input, !isEmailValid && styles.invalidInput]}
+          placeholder="Enter your email"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={handleEmailChange}
+          onSubmitEditing={() => passwordInput?.focus()}
+        />
+      </View>
       {showEmailError && <Text style={styles.errorText}>Please enter a valid email address.</Text>}
 
-      <TextInput
-        style={[styles.input, showUsernameError && styles.invalidInput]}
-        placeholder="Enter your username"
-        value={username}
-        onChangeText={handleUsernameChange}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.input, showUsernameError && styles.invalidInput]}
+          placeholder="Enter your username"
+          value={username}
+          onChangeText={handleUsernameChange}
+        />
+      </View>
       {showUsernameError && <Text style={styles.errorText}>Username must be at least 3 characters long.</Text>}
 
-      <TextInput
-        ref={(input) => (passwordInput = input)}
-        style={[styles.input, showPasswordError && styles.invalidInput]}
-        placeholder="Enter your password"
-        secureTextEntry
-        value={password}
-        onChangeText={handlePasswordChange}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          ref={(input) => (passwordInput = input)}
+          style={[styles.input, styles.passwordInput, showPasswordError && styles.invalidInput]}
+          placeholder="Enter your password"
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={handlePasswordChange}
+        />
+        <TouchableOpacity
+          style={styles.eyeIcon}
+          onPress={() => setShowPassword(!showPassword)}
+        >
+          <Ionicons
+            name={showPassword ? 'eye-off' : 'eye'}
+            size={24}
+            color="#666"
+          />
+        </TouchableOpacity>
+      </View>
       {showPasswordError && <Text style={styles.errorText}>Password must be at least 6 characters long.</Text>}
 
       <View style={styles.buttonContainer}>
@@ -161,15 +179,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
-  input: {
+  inputContainer: {
     width: '80%',
-    padding: 12,
+    position: 'relative',
     marginVertical: 10,
+  },
+  input: {
+    width: '100%',
+    padding: 12,
     borderRadius: 8,
     backgroundColor: '#fff',
     borderColor: '#ccc',
     borderWidth: 1,
     fontSize: 16,
+  },
+  passwordInput: {
+    paddingRight: 40,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -12 }],
   },
   invalidInput: {
     borderColor: '#e74c3c',

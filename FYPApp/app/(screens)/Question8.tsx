@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { setUserData } from '@/datafiles/userData';
 
 type RestDay = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
 
 const Question8: React.FC = () => {
-  const [selectedRestDays, setSelectedRestDays] = useState<RestDay[]>([]);
+  const [selectedRestDay, setSelectedRestDay] = useState<RestDay | null>(null);
   const router = useRouter();
 
   const handleNext = () => {
-    if (selectedRestDays.length === 0) {
-      Alert.alert('Error', 'Please select at least one rest day');
+    if (!selectedRestDay) {
+      Alert.alert('Error', 'Please select a rest day');
     } else {
-      setUserData('restDays', selectedRestDays);
+      setUserData('restDay', selectedRestDay);
       router.push('/(screens)/Question10');
     }
   };
@@ -23,18 +23,14 @@ const Question8: React.FC = () => {
   };
 
   const toggleRestDay = (day: RestDay) => {
-    if (selectedRestDays.includes(day)) {
-      setSelectedRestDays(selectedRestDays.filter((d) => d !== day));
-    } else {
-      setSelectedRestDays([...selectedRestDays, day]);
-    }
+    setSelectedRestDay(day === selectedRestDay ? null : day);
   };
 
   const daysOfWeek: RestDay[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Select Your Preferred Rest Days</Text>
+      <Text style={styles.header}>Select Your Preferred Rest Day</Text>
 
       {/* Grid Layout for Days */}
       <View style={styles.gridContainer}>
@@ -43,14 +39,14 @@ const Question8: React.FC = () => {
             key={day}
             style={[
               styles.option,
-              selectedRestDays.includes(day) ? styles.selectedOption : styles.unselectedOption,
+              selectedRestDay === day ? styles.selectedOption : styles.unselectedOption,
             ]}
             onPress={() => toggleRestDay(day)}
           >
             <Text
               style={[
                 styles.optionText,
-                selectedRestDays.includes(day) && styles.selectedOptionText,
+                selectedRestDay === day && styles.selectedOptionText,
               ]}
             >
               {day}
@@ -68,10 +64,10 @@ const Question8: React.FC = () => {
         <TouchableOpacity
           style={[
             styles.button,
-            selectedRestDays.length === 0 ? styles.disabledButton : styles.activeButton,
+            !selectedRestDay ? styles.disabledButton : styles.activeButton,
           ]}
           onPress={handleNext}
-          disabled={selectedRestDays.length === 0}
+          disabled={!selectedRestDay}
         >
           <Text style={styles.buttonText}>Next</Text>
         </TouchableOpacity>
@@ -103,7 +99,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   option: {
-    width: '48%', // 2 items per row with a small gap
+    width: '48%',
     paddingVertical: 18,
     marginVertical: 8,
     borderRadius: 12,
