@@ -7,7 +7,9 @@
     "strict": true,
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "types": ["react-native-dotenv"],
+    "typeRoots": ["./types"]
   },
   "include": [
     "**/*.ts",

@@ -18,11 +18,14 @@ type Exercise = {
   calories_burned: number;
   description: string;
   workout_date: string;
+  daily_workout_id: number;
 };
 
 const Exercises: React.FC = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dailyWorkoutId, setDailyWorkoutId] = useState<number | null>(null);
+  const [completedExerciseIds, setCompletedExerciseIds] = useState<number[]>([]);
   const { user } = useUserAuth();
   const router = useRouter();
   const { day } = useLocalSearchParams<{ day?: string }>();
@@ -42,11 +45,7 @@ const Exercises: React.FC = () => {
         throw new Error('No user logged in');
       }
 
-      const userId = parseInt(user.id, 10);
-      if (isNaN(userId)) {
-        throw new Error('Invalid user ID: ' + user.id);
-      }
-
+      const userId = user.id;
       console.log('Fetching exercises for user:', userId, 'on day:', day);
 
       const { data: planData, error: planError } = await supabase
@@ -76,6 +75,7 @@ const Exercises: React.FC = () => {
       }
 
       console.log('Daily workout found:', dailyData);
+      setDailyWorkoutId(dailyData.id);
 
       const { data, error } = await supabase
         .from('Workouts')
@@ -106,7 +106,25 @@ const Exercises: React.FC = () => {
         setExercises([]);
       } else {
         console.log('Exercises fetched for user', userId, ':', data);
-        setExercises(data as Exercise[]);
+        const exercisesWithDailyWorkoutId = data.map((exercise) => ({
+          ...exercise,
+          daily_workout_id: dailyData.id,
+        }));
+        setExercises(exercisesWithDailyWorkoutId as Exercise[]);
+      }
+
+      // Fetch completed exercises for this daily_workout_id
+      const { data: completions, error: completionError } = await supabase
+        .from('ExerciseCompletions')
+        .select('workout_id')
+        .eq('daily_workout_id', dailyData.id)
+        .eq('user_id', userId)
+        .gte('completion_date', new Date().toISOString().split('T')[0]);
+
+      if (completionError) {
+        console.error('Error fetching completions:', completionError);
+      } else {
+        setCompletedExerciseIds(completions?.map((c) => c.workout_id) || []);
       }
     } catch (err: any) {
       console.error('Error in fetchExercises:', err.message || err);
@@ -124,22 +142,111 @@ const Exercises: React.FC = () => {
     });
   };
 
+  const structureExerciseWithRestTimers = (exercise: Exercise) => {
+    const sets = exercise.sets;
+    const structuredSets = [];
+    for (let i = 0; i < sets; i++) {
+      structuredSets.push({
+        set: i + 1,
+        reps: exercise.reps,
+        rest_time_sec: exercise.rest_time_sec,
+      });
+    }
+    return {
+      ...exercise,
+      structuredSets,
+    };
+  };
+
   const handlePlayAll = () => {
+    console.log('handlePlayAll called with dailyWorkoutId:', dailyWorkoutId);
+    if (!dailyWorkoutId) {
+      console.error('Cannot navigate to ExercisePlayback: dailyWorkoutId is null');
+      return;
+    }
+    const structuredExercises = exercises.map(structureExerciseWithRestTimers);
     router.push({
       pathname: '/(screens)/ExercisePlayback',
-      params: { exercises: JSON.stringify(exercises) },
+      params: {
+        exercises: JSON.stringify(structuredExercises),
+        day: day || '',
+        daily_workout_id: dailyWorkoutId.toString(),
+        startIndex: '0',
+      },
     });
+  };
+
+  const handleResume = () => {
+    if (!dailyWorkoutId) {
+      console.error('Cannot resume: dailyWorkoutId is null');
+      return;
+    }
+    const startIndex = exercises.findIndex((ex) => !completedExerciseIds.includes(ex.id));
+    const structuredExercises = exercises.map(structureExerciseWithRestTimers);
+    router.push({
+      pathname: '/(screens)/ExercisePlayback',
+      params: {
+        exercises: JSON.stringify(structuredExercises),
+        day: day || '',
+        daily_workout_id: dailyWorkoutId.toString(),
+        startIndex: startIndex >= 0 ? startIndex.toString() : '0',
+      },
+    });
+  };
+
+  const handleRestart = async () => {
+    if (!dailyWorkoutId || !user?.id) {
+      console.error('Cannot restart: missing dailyWorkoutId or user.id', { dailyWorkoutId, userId: user?.id });
+      return;
+    }
+    try {
+      console.log('Restarting workout for dailyWorkoutId:', dailyWorkoutId, 'user:', user.id);
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data, error } = await supabase
+        .rpc('delete_exercise_completions', {
+          daily_workout_id_input: dailyWorkoutId,
+          user_id_input: user.id,
+          completion_date_input: today,
+        });
+  
+      if (error) {
+        console.error('Error calling delete_exercise_completions:', error.message, error);
+        return;
+      }
+  
+      console.log('delete_exercise_completions response:', data);
+      if (!data.success) {
+        console.error('Failed to delete completions:', data.message);
+        return;
+      }
+  
+      console.log(`Deleted ${data.deleted_count} ExerciseCompletions records`);
+      if (data.remaining_count > 0) {
+        console.warn(`Some completions remain after deletion: ${data.remaining_count}`);
+      } else {
+        console.log('All completions successfully deleted');
+      }
+  
+      setCompletedExerciseIds([]); // Reset UI state
+      handlePlayAll(); // Start fresh
+    } catch (err) {
+      console.error('Unexpected error in handleRestart:', err);
+    }
   };
 
   const renderExercise = ({ item }: { item: Exercise }) => (
     <TouchableOpacity
-      style={styles.exerciseCard}
+      style={[styles.exerciseCard, completedExerciseIds.includes(item.id) && styles.completedExercise]}
       onPress={() => handleExercisePress(item.id)}
     >
       <Text style={styles.exerciseName}>{item.exercise_name}</Text>
       <Text style={styles.exerciseDetail}>Target: {item.target_muscle}</Text>
       <Text style={styles.exerciseDetail}>Type: {item.type}</Text>
       <Text style={styles.exerciseDetail}>Difficulty: {item.difficulty}</Text>
+      {completedExerciseIds.includes(item.id) && (
+        <Text style={styles.completedText}>Completed</Text>
+      )}
     </TouchableOpacity>
   );
 
@@ -158,9 +265,32 @@ const Exercises: React.FC = () => {
         <Text style={styles.noExercisesText}>No exercises found for this day.</Text>
       ) : (
         <>
-          <TouchableOpacity style={styles.playButton} onPress={handlePlayAll}>
-            <Text style={styles.playButtonText}>Play All</Text>
-          </TouchableOpacity>
+          {completedExerciseIds.length > 0 ? (
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.playButton, !dailyWorkoutId && styles.playButtonDisabled]}
+                onPress={handleResume}
+                disabled={!dailyWorkoutId}
+              >
+                <Text style={styles.playButtonText}>Resume</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.restartButton, !dailyWorkoutId && styles.playButtonDisabled]}
+                onPress={handleRestart}
+                disabled={!dailyWorkoutId}
+              >
+                <Text style={styles.playButtonText}>Restart Workouts</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.playButton, (loading || !dailyWorkoutId) && styles.playButtonDisabled]}
+              onPress={handlePlayAll}
+              disabled={loading || !dailyWorkoutId}
+            >
+              <Text style={styles.playButtonText}>Play All</Text>
+            </TouchableOpacity>
+          )}
           <FlatList
             data={exercises}
             renderItem={renderExercise}
@@ -186,13 +316,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
   playButton: {
     backgroundColor: '#d63384',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
-    alignSelf: 'center',
-    marginBottom: 20,
+    marginHorizontal: 10,
+  },
+  restartButton: {
+    backgroundColor: '#ff4444',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginHorizontal: 10,
+  },
+  playButtonDisabled: {
+    backgroundColor: '#cccccc',
   },
   playButtonText: {
     color: '#fff',
@@ -207,6 +351,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     elevation: 2,
   },
+  completedExercise: {
+    backgroundColor: '#e0f7e0',
+  },
   exerciseName: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -215,6 +362,12 @@ const styles = StyleSheet.create({
   exerciseDetail: {
     fontSize: 14,
     color: '#666',
+  },
+  completedText: {
+    fontSize: 14,
+    color: '#28a745',
+    fontWeight: 'bold',
+    marginTop: 5,
   },
   listContainer: {
     paddingBottom: 20,

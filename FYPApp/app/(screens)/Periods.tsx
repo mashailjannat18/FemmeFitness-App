@@ -25,13 +25,16 @@ export default function Periods() {
             theme={{
               backgroundColor: '#ffffff',
               calendarBackground: '#ffffff',
-              textSectionTitleColor: '#ff69b4',
+              textSectionTitleColor: '#ff69b4',  // Color for the section title (month)
               selectedDayBackgroundColor: '#ff69b4',
               selectedDayTextColor: '#ffffff',
               todayTextColor: '#ff69b4',
               dayTextColor: '#333333',
               textDisabledColor: '#d9d9d9',
               arrowColor: '#ff69b4',
+              textMonthFontWeight: 'bold', // Make the month header bold
+              textDayFontWeight: 'normal', // Changed to 'normal' to remove bold from dates
+              monthTextColor: '#ff69b4',  // Set the same color as days for the month name
             }}
           />
         </View>
@@ -88,7 +91,7 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ff69b4', // Pink color
+    color: '#FF1493', // Pink color
     marginBottom: 20,
   },
   calendarContainer: {

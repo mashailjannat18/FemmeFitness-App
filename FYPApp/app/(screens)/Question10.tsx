@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getUserData, resetUserData } from '@/datafiles/userData';
+import { getUserData } from '@/datafiles/userData';
 import { useUserAuth } from '@/context/UserAuthContext';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -66,14 +66,24 @@ const Question10: React.FC = () => {
         throw new Error('Challenge days must be selected and greater than 0.');
       }
 
+      // Initiate signup and send confirmation code
       await signUp(email, password, username, challengeDays);
 
-      resetUserData();
-
-      router.push('../(tabs)');
+      // Navigate to confirmation screen
+      router.push({
+        pathname: './ConfirmCode',
+        params: { email: email.trim() },
+      });
     } catch (err: any) {
-      console.error('Signup error:', err);
-      setShowSignupError(err.message || 'An error occurred during signup.');
+      console.error('Signup error:', err.message);
+      if (
+        err.message === 'This email has already been signed up with' ||
+        err.message === 'This username is taken'
+      ) {
+        setShowSignupError(err.message);
+      } else {
+        setShowSignupError('Failed to send confirmation code.');
+      }
     } finally {
       setLoading(false);
     }

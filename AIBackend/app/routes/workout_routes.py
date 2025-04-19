@@ -1,39 +1,46 @@
-# app/routes/workout_routes.py
 from flask import Blueprint, request, jsonify
-from app.services.workout_service import WorkoutService
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from app.models.workout_plan import generate_workout_plan
+from app.models.meal_plan import generate_meal_plan
+import numpy as np
 
 workout_bp = Blueprint('workout', __name__)
-workout_service = WorkoutService()
+
+def clean_json_data(data):
+    """Recursively clean NaN values from a dictionary or list, converting them to None."""
+    if isinstance(data, dict):
+        return {k: clean_json_data(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [clean_json_data(item) for item in data]
+    elif isinstance(data, float) and np.isnan(data):
+        return None
+    return data
 
 @workout_bp.route('/generate-plan', methods=['POST'])
-def generate_workout_plan():
+def generate_plan():
     try:
-        user_data = request.get_json()
-        logger.info("Received user data: %s", user_data)
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No input data provided"}), 400
 
-        if not user_data:
-            logger.error("No user data provided")
-            return jsonify({"error": "No user data provided"}), 400
-
-        required_fields = ['age', 'activityLevel', 'goal', 'weight', 'challengeDays']
+        required_fields = ['age', 'activityLevel', 'goal', 'weight', 'challengeDays', 'preferredRestDay', 'height']
         for field in required_fields:
-            if field not in user_data:
-                logger.error("Missing required field: %s", field)
+            if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
 
-        result = workout_service.generate_workout_plan(user_data)
-        logger.info("Generated plans: workout_plan with %d days, meal_plan with %d days",
-                    len(result['workout_plan']), len(result['meal_plan']))
+        # Generate workout plan
+        workout_plan = generate_workout_plan(data)
+
+        # Generate meal plan based on workout plan
+        meal_plan = generate_meal_plan(workout_plan, data)
+
+        # Clean the plans to ensure no NaN values
+        cleaned_workout_plan = clean_json_data(workout_plan)
+        cleaned_meal_plan = clean_json_data(meal_plan)
 
         return jsonify({
-            "workout_plan": result['workout_plan'],
-            "meal_plan": result['meal_plan']
+            "workout_plan": cleaned_workout_plan,
+            "meal_plan": cleaned_meal_plan
         }), 200
 
     except Exception as e:
-        logger.error("Error generating plans: %s", str(e))
         return jsonify({"error": str(e)}), 500

@@ -1,133 +1,177 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  ImageBackground,
-} from 'react-native';
-import { Calendar } from 'react-native-calendars';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { router } from 'expo-router'; // Import Expo Router's router
+import { Calendar } from 'react-native-calendars'; // Import a calendar component
 
-function PeriodsHistory() {
-  const navigation = useNavigation();
-
-  const getPastMonths = () => {
-    const months = [];
-    const currentDate = new Date();
-    for (let i = 0; i < 5; i++) {
-      const pastDate = new Date(currentDate);
-      pastDate.setMonth(currentDate.getMonth() - i);
-      const year = pastDate.getFullYear();
-      const month = String(pastDate.getMonth() + 1).padStart(2, '0');
-      months.push(`${year}-${month}`);  // Fixed: Use template literals with backticks
-    }
-    return months;
+export default function Periods() {
+  // Function to go back to the previous screen
+  const handleGoBack = () => {
+    router.back(); // Navigate back to the previous screen
   };
 
-  const pastMonths = getPastMonths();
-
-  const base64Image =
-    'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k=';
-
   return (
-    <ImageBackground source={{ uri: base64Image }} style={styles.backgroundImage}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.heading}>📅 Periods History</Text>
-          <Text style={styles.subHeading}>Track your cycle with ease</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        {/* Display a simple message */}
+        <Text style={styles.message}>Hi, Hello!</Text>
+
+        {/* Calendar for the current month */}
+        <View style={styles.calendarContainer}>
+          <Calendar
+            style={styles.calendar}
+            current={new Date().toISOString().split('T')[0]} // Set current date
+            hideExtraDays={true}
+            enableSwipeMonths={true}
+            theme={{
+              backgroundColor: '#ffffff',
+              calendarBackground: '#ffffff',
+              textSectionTitleColor: '#ff69b4',  // Color for the section title (month)
+              selectedDayBackgroundColor: '#ff69b4',
+              selectedDayTextColor: '#ffffff',
+              todayTextColor: '#ff69b4',
+              dayTextColor: '#333333',
+              textDisabledColor: '#d9d9d9',
+              arrowColor: '#ff69b4',
+              textMonthFontWeight: 'bold', // Make the month header bold
+              textDayFontWeight: 'normal', // Changed to 'normal' to remove bold from dates
+              monthTextColor: '#ff69b4',  // Set the same color as days for the month name
+            }}
+          />
         </View>
 
-        {pastMonths.map((month, index) => (
-          <View key={index} style={styles.calendarContainer}>
-            <Text style={styles.monthHeader}>
-              {new Date(month).toLocaleString('default', { month: 'long', year: 'numeric' })}
-            </Text>
-            <Calendar
-              current={month}
-              hideExtraDays={true}
-              firstDay={1}
-              disableMonthChange={true}
-              enableSwipeMonths={false}
-              hideArrows={true}
-              theme={{
-                backgroundColor: '#ffffff',
-                calendarBackground: '#ffffff',
-                monthTextColor: '#8B004F',
-                dayTextColor: '#333',
-                textDayFontWeight: 'bold',
-                textMonthFontWeight: 'bold',
-                textDayHeaderFontWeight: 'bold',
-                selectedDayBackgroundColor: '#8B004F',
-                selectedDayTextColor: '#fff',
-                todayTextColor: '#8B004F',
-                arrowColor: '#8B004F',
-                textSectionTitleColor: '#8B004F',
-                textDisabledColor: '#d3d3d3',
-                dotColor: '#8B004F',
-                selectedDotColor: '#fff',
-              }}
-              style={styles.calendar}
-            />
+        {/* Symbols Section with Light Background */}
+        <View style={styles.symbolsContainer}>
+          <Text style={styles.symbolsHeading}>Symbols</Text>
+
+          {/* Circle 1: Ovulation Window */}
+          <View style={styles.symbolContainer}>
+            <View style={[styles.circle, styles.ovulationCircle]} />
+            <Text style={styles.symbolText}>Ovulation Window</Text>
           </View>
-        ))}
-      </ScrollView>
-    </ImageBackground>
+
+          {/* Circle 2: Luteal Phase (Dotted Circle) */}
+          <View style={styles.symbolContainer}>
+            <View style={[styles.circle, styles.lutealCircle]} />
+            <Text style={styles.symbolText}>Luteal Phase</Text>
+          </View>
+
+          {/* Circle 3: Menstrual Phase */}
+          <View style={styles.symbolContainer}>
+            <View style={[styles.circle, styles.menstrualCircle]} />
+            <Text style={styles.symbolText}>Menstrual Phase</Text>
+          </View>
+
+          {/* Circle 4: Follicular Phase */}
+          <View style={styles.symbolContainer}>
+            <View style={[styles.circle, styles.follicularCircle]} />
+            <Text style={styles.symbolText}>Follicular Phase</Text>
+          </View>
+        </View>
+
+        {/* Button to go back */}
+        <TouchableOpacity onPress={handleGoBack} style={styles.button}>
+          <Text style={styles.buttonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
+  scrollContainer: {
+    flexGrow: 1,
+    backgroundColor: '#fff', // White background for the entire screen
   },
   container: {
-    flexGrow: 1,
-    paddingBottom: 40,
-    paddingTop: 20,
-  },
-  header: {
+    flex: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: 20,
+    padding: 20,
   },
-  heading: {
+  message: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#8B004F',
-  },
-  subHeading: {
-    fontSize: 14,
-    color: '#555',
-    marginTop: 4,
+    color: '#FF1493', // Pink color
+    marginBottom: 20,
   },
   calendarContainer: {
-    width: '90%',
-    alignSelf: 'center',
+    width: '100%',
     marginBottom: 30,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 15,
-    shadowColor: '#8B004F',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#d28ca4',
-  },
-  monthHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#8B004F',
-    marginBottom: 10,
-    textAlign: 'center',
+    borderRadius: 10,
+    overflow: 'hidden',
+    elevation: 3, // Add shadow for Android
+    shadowColor: '#000', // Add shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   calendar: {
-    borderWidth: 1,
-    borderColor: '#d28ca4',
-    borderRadius: 12,
+    borderRadius: 10,
+  },
+  symbolsContainer: {
+    width: '100%',
+    backgroundColor: '#f8e3f5', // Light pastel pink background for symbols section
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 30,
+    elevation: 3, // Add shadow for Android
+    shadowColor: '#000', // Add shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  symbolsHeading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+  },
+  symbolContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
     width: '100%',
   },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: 15,
+  },
+  ovulationCircle: {
+    backgroundColor: '#ff69b4', // Pink
+  },
+  lutealCircle: {
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: '#ff69b4', // Pink dashed border
+    backgroundColor: 'transparent',
+  },
+  menstrualCircle: {
+    backgroundColor: 'red', // Red
+  },
+  follicularCircle: {
+    backgroundColor: 'magenta', // Magenta
+  },
+  symbolText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#ff69b4', // Pink color for the button
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    marginTop: 20,
+    elevation: 3, // Add shadow for Android
+    shadowColor: '#000', // Add shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: 'white', // White text color
+    fontWeight: 'bold',
+  },
 });
-
-export default PeriodsHistory;

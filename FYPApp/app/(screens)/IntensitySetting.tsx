@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated,
-  ImageBackground,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -38,74 +37,70 @@ const IntensitySetting = () => {
   });
 
   return (
-    <ImageBackground
-      source={{ uri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k=' }} // Replace with your Google image URL
-      style={styles.backgroundImage}
-    >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.heading}>Workout Intensity</Text>
-          <View style={styles.currentIntensity}>
-            <Text style={styles.currentLabel}>Current:</Text>
-            <Text style={styles.selectedIntensity}>
-              {selectedIntensity || 'Not selected'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.editSection}>
-          <Text style={styles.editHeading}>Edit Intensity</Text>
-          <View style={styles.divider} />
-        </View>
-
-        <View style={styles.cardsContainer}>
-          {intensities.map((item) => (
-            <Animated.View
-              key={item.level}
-              style={[
-                styles.card,
-                { backgroundColor: item.color },
-                selectedIntensity === item.level && styles.selectedCard,
-                selectedIntensity === item.level && {
-                  transform: [{ scale: scaleInterpolate }],
-                },
-              ]}
-            >
-              <TouchableOpacity
-                onPress={() => handlePress(item.level)}
-                activeOpacity={0.8}
-                style={styles.cardContent}
-              >
-                <Text style={[styles.emoji, { color: selectedIntensity === item.level ? '#FFF' : '#000' }]}>
-                  {item.emoji}
-                </Text>
-                <Text
-                  style={[
-                    styles.levelText,
-                    selectedIntensity === item.level && styles.selectedLevelText,
-                    { color: selectedIntensity === item.level ? '#FFF' : '#4A148C' }
-                  ]}
-                >
-                  {item.level}
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
-          ))}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.heading}>Workout Intensity</Text>
+        <View style={styles.currentIntensity}>
+          <Text style={styles.currentLabel}>Current:</Text>
+          <Text style={styles.selectedIntensity}>
+            {selectedIntensity || 'Not selected'}
+          </Text>
         </View>
       </View>
-    </ImageBackground>
+
+      <View style={styles.editSection}>
+        <Text style={styles.editHeading}>Edit Intensity</Text>
+        <View style={styles.divider} />
+      </View>
+
+      <View style={styles.cardsContainer}>
+        {intensities.map((item) => (
+          <Animated.View
+            key={item.level}
+            style={[
+              styles.card,
+              { backgroundColor: item.color },
+              selectedIntensity === item.level && styles.selectedCard,
+              selectedIntensity === item.level && {
+                transform: [{ scale: scaleInterpolate }],
+              },
+            ]}
+          >
+            <TouchableOpacity
+              onPress={() => handlePress(item.level)}
+              activeOpacity={0.8}
+              style={styles.cardContent}
+            >
+              <Text
+                style={[
+                  styles.emoji,
+                  { color: selectedIntensity === item.level ? '#FFF' : '#000' },
+                ]}
+              >
+                {item.emoji}
+              </Text>
+              <Text
+                style={[
+                  styles.levelText,
+                  selectedIntensity === item.level && styles.selectedLevelText,
+                  { color: selectedIntensity === item.level ? '#FFF' : '#4A148C' },
+                ]}
+              >
+                {item.level}
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        ))}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    justifyContent: 'center',
-  },
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF', // White background for the entire screen
     padding: 20,
-    backgroundColor: 'transparent',
   },
   header: {
     alignItems: 'center',
@@ -114,7 +109,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#D81B60',
+    color: '#FF1493',
     marginBottom: 10,
     letterSpacing: 0.5,
   },
@@ -124,13 +119,13 @@ const styles = StyleSheet.create({
   },
   currentLabel: {
     fontSize: 16,
-    color: '#C2185B',
+    color: 'black',
     marginRight: 5,
   },
   selectedIntensity: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#880E4F',
+    color: '#b03060',
   },
   editSection: {
     marginBottom: 25,
@@ -139,7 +134,7 @@ const styles = StyleSheet.create({
   editHeading: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#AD1457',
+    color: 'black',
     textAlign: 'center',
     marginBottom: 8,
   },

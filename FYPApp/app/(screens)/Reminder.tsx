@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 const Reminder = () => {
@@ -10,15 +10,10 @@ const Reminder = () => {
   const [selectedAmPm, setSelectedAmPm] = useState('PM');
   const [currentTime, setCurrentTime] = useState('');
 
-  // Background image URL (replace this with your own Google image link)
-  const backgroundImageUrl = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k=';
-
-  // Generate hours, minutes, and AM/PM options
   const hours = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
   const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
   const amPmOptions = ['AM', 'PM'];
 
-  // Update current time every minute
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -27,7 +22,6 @@ const Reminder = () => {
 
     updateTime();
     const interval = setInterval(updateTime, 60000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -37,16 +31,12 @@ const Reminder = () => {
 
   const handleSaveTime = () => {
     setShowTimePicker(false);
-    // Here you would typically save the time to your state/backend
   };
 
   const formattedTime = `${selectedHour}:${selectedMinute} ${selectedAmPm}`;
 
   return (
-    <ImageBackground
-      source={{ uri: backgroundImageUrl }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <Text style={styles.heading}>Daily Reminder</Text>
 
       <View style={styles.timeContainer}>
@@ -66,7 +56,10 @@ const Reminder = () => {
           </View>
 
           <View style={[styles.switchTrack, isReminderOn && styles.switchTrackActive]}>
-            <View style={[styles.switchThumb, isReminderOn && styles.switchThumbActive]} />
+            <View style={[
+              styles.switchThumb,
+              isReminderOn && styles.switchThumbActive
+            ]} />
           </View>
         </TouchableOpacity>
       </View>
@@ -85,12 +78,7 @@ const Reminder = () => {
         </View>
       )}
 
-      {/* Time Picker Modal */}
-      <Modal
-        visible={showTimePicker}
-        transparent={true}
-        animationType="slide"
-      >
+      <Modal visible={showTimePicker} transparent={true} animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Set Reminder Time</Text>
@@ -154,22 +142,22 @@ const Reminder = () => {
           </View>
         </View>
       </Modal>
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Ensuring a background overlay for text contrast
   },
   heading: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#b03060', // Darker pink for heading text
+    color: '#FF1493',
     marginBottom: 30,
     letterSpacing: 0.5,
   },
@@ -179,11 +167,11 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 22,
-    color: '#b03060', // Darker pink for current time
+    color: 'brown',
   },
   timeLabel: {
     fontSize: 14,
-    color: '#b03060',
+    color: 'black',
   },
   switchContainer: {
     alignItems: 'center',
@@ -204,31 +192,31 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeLabel: {
-    color: '#b03060',
+    color: '#FF69B4',
   },
   switchTrack: {
     width: 60,
     height: 30,
-    borderRadius: 20,
+    borderRadius: 30,
     backgroundColor: '#ddd',
-    padding: 5,
+    padding: 2,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
   },
   switchTrackActive: {
-    backgroundColor: '#b03060',
+    backgroundColor: '#FF69B4',
   },
   switchThumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: '#fff',
   },
   switchThumbActive: {
-    alignSelf: 'flex-end',
+    transform: [{ translateX: 30 }],
   },
   notificationBox: {
-    padding: 20,
+    padding: 60,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 10,
     alignItems: 'center',
@@ -236,19 +224,23 @@ const styles = StyleSheet.create({
   },
   notificationText: {
     fontSize: 18,
-    color: '#b03060',
+    color: 'black',
   },
   editButton: {
+    width: 100,
+    height: 50,
+    borderRadius: 30,
+    backgroundColor: '#FF69B4',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 10,
-    backgroundColor: '#b03060',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
   },
   editButtonText: {
     fontSize: 16,
     color: '#fff',
+    textAlign: 'center',
   },
+  
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -264,7 +256,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#b03060',
+    color: '#FF69B4',
     marginBottom: 20,
   },
   pickerContainer: {
@@ -280,7 +272,7 @@ const styles = StyleSheet.create({
   },
   pickerLabel: {
     fontSize: 14,
-    color: '#b03060',
+    color: '#FF69B4',
     textAlign: 'center',
   },
   modalButtons: {
@@ -298,7 +290,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ddd',
   },
   saveButton: {
-    backgroundColor: '#b03060',
+    backgroundColor: '#FF69B4',
   },
   modalButtonText: {
     fontSize: 16,

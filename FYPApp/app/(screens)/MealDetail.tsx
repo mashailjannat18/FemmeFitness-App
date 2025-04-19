@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, Dimensions, ScrollView } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
 import { useUserAuth } from '@/context/UserAuthContext';
 
 const { width } = Dimensions.get('window');
 
+// TypeScript interface for nutrients
+interface Nutrient {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface DonutChartProps {
+  value: number;
+  color: string;
+  name: string;
+}
+
 export default function MealDetail() {
   const { meal, day } = useLocalSearchParams();
   const { user } = useUserAuth();
-  const [mealDetails, setMealDetails] = useState({
-    daily_calories: 0,
-    carbs_grams: 0,
-    protein_grams: 0,
-    fat_grams: 0,
-  });
+  const [nutrients, setNutrients] = useState<Nutrient[]>([]);
 
   useEffect(() => {
     const fetchMealDetails = async () => {
@@ -48,12 +57,12 @@ export default function MealDetail() {
           return;
         }
 
-        setMealDetails({
-          daily_calories: mealData.daily_calories,
-          carbs_grams: mealData.carbs_grams,
-          protein_grams: mealData.protein_grams,
-          fat_grams: mealData.fat_grams,
-        });
+        // Map fetched data to nutrients array
+        setNutrients([
+          { name: 'Protein', value: mealData.protein_grams, color: '#8e44ad' },
+          { name: 'Carbs', value: mealData.carbs_grams, color: '#e67e22' },
+          { name: 'Fat', value: mealData.fat_grams, color: '#16a085' },
+        ]);
       } catch (error) {
         console.error('Error fetching meal details:', error);
       }
@@ -62,83 +71,141 @@ export default function MealDetail() {
     fetchMealDetails();
   }, [user, day]);
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.dayBar}>
-        <Text style={styles.dayText}>{meal}</Text>
-      </View>
+  const DonutChart: React.FC<DonutChartProps> = ({ value, color, name }) => {
+    const radius = 60;
+    const strokeWidth = 12;
+    const circumference = 2 * Math.PI * radius;
+    const percentage = value / (value + 100); // Normalize for display
+    const strokeDashoffset = circumference * (1 - percentage);
+    const svgSize = 140;
 
-      <View style={styles.contentContainer}>
+    return (
+      <View style={styles.chartContainer}>
+        <Text style={[styles.categoryText, { color }]}>{name}</Text>
+        <Svg width={svgSize} height={svgSize} style={styles.chartSvg}>
+          <Circle
+            cx={svgSize / 2}
+            cy={svgSize / 2}
+            r={radius}
+            stroke="#e0e0e0"
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+          <Circle
+            cx={svgSize / 2}
+            cy={svgSize / 2}
+            r={radius}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            rotation={-90}
+            originX={svgSize / 2}
+            originY={svgSize / 2}
+          />
+          <SvgText
+            x={svgSize / 2}
+            y={svgSize / 2}
+            textAnchor="middle"
+            alignmentBaseline="middle"
+            fontSize="18"
+            fill="#333"
+          >
+            {`${value.toFixed(1)}g`}
+          </SvgText>
+        </Svg>
+      </View>
+    );
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <View style={styles.dayBar}>
+          <Text style={styles.dayText}>{meal}</Text>
+        </View>
+
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: 'https://hips.hearstapps.com/hmg-prod/images/home-workout-lead-1584370797.jpg?crop=1xw:0.9997037914691943xh;center,top' }}
+            source={{
+              uri:
+                'https://hips.hearstapps.com/hmg-prod/images/home-workout-lead-1584370797.jpg?crop=1xw:0.9997037914691943xh;center,top',
+            }}
             style={styles.image}
+            resizeMode="cover"
           />
         </View>
 
-        <View style={styles.nutrientsContainer}>
-          <Text style={styles.nutrientsText}>Nutrients of the Day</Text>
-
-          <View style={styles.categoriesContainer}>
-            <Text style={styles.categoryText}>Calories: {mealDetails.daily_calories.toFixed(1)} kcal</Text>
-            <Text style={styles.categoryText}>Protein: {mealDetails.protein_grams.toFixed(1)}g</Text>
-            <Text style={styles.categoryText}>Carbs: {mealDetails.carbs_grams.toFixed(1)}g</Text>
-            <Text style={styles.categoryText}>Fat: {mealDetails.fat_grams.toFixed(1)}g</Text>
-          </View>
+        <Text style={styles.nutrientsTitle}>Nutrient Breakdown</Text>
+        <View style={styles.chartRow}>
+          {nutrients.map((nutrient) => (
+            <DonutChart
+              key={nutrient.name}
+              value={nutrient.value}
+              color={nutrient.color}
+              name={nutrient.name}
+            />
+          ))}
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingBottom: 10,
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    alignItems: 'center',
+    paddingBottom: 10,
   },
   dayBar: {
-    width: '100%',
-    backgroundColor: '#ff69b4',
-    paddingVertical: 10,
+    backgroundColor: '#f06292',
+    width: width,
+    paddingVertical: 20,
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 20,
   },
   dayText: {
-    color: 'white',
-    fontSize: 18,
+    color: '#fff',
+    fontSize: 22,
     fontWeight: 'bold',
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    padding: 20,
-    alignItems: 'center',
   },
   imageContainer: {
-    width: '100%',
-    height: 200,
+    marginVertical: 10,
+    width: width * 0.9,
+    height: width * 0.6,
+    borderRadius: 10,
+    overflow: 'hidden',
   },
   image: {
-    width: width,
-    height: 200,
-  },
-  nutrientsContainer: {
-    marginTop: 20,
-    alignItems: 'flex-start',
     width: '100%',
-    paddingRight: 20,
+    height: '100%',
   },
-  nutrientsText: {
-    fontSize: 18,
+  nutrientsTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    marginVertical: 10,
+    color: '#444',
   },
-  categoriesContainer: {
+  chartRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  chartContainer: {
+    alignItems: 'center',
+    margin: 10,
+  },
+  chartSvg: {
     marginTop: 10,
   },
   categoryText: {
     fontSize: 16,
-    color: '#555',
-    marginBottom: 5,
+    fontWeight: '600',
   },
 });

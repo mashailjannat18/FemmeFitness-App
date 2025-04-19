@@ -8,7 +8,6 @@ import {
   Easing,
   ScrollView,
   Dimensions,
-  ImageBackground,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -63,16 +62,10 @@ const GoalSetting = () => {
   };
 
   return (
-    <ImageBackground
-      source={{
-        uri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8PDw8PDw8PDw8PDw8PDQ8PDw8PDw8PFRUWFhUVFRUYHSggGBolGxUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDQ0NDw0PDy0ZFRkrKzc3LSstLSsrNzc3Kys3LTc3LTcrKystLS0rLSsrKy0rKysrKy0rKysrKysrKysrK//AABEIALcBEwMBIgACEQEDEQH/xAAZAAEBAQEBAQAAAAAAAAAAAAABAAIDBAf/xAAXEAEBAQEAAAAAAAAAAAAAAAAAAREC/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAREC/9oADAMBAAIRAxEAPwD7LEkj0JJCJJAkkKkkCSQJkigzRSzajcZrFatYtGoK51qsVHSCiGqDRhRwRRoQjKiSwEYDFDGmWoJWlihwYZxNYgd0krmkkCSQJLUCSQJIUAyaBqCs2m1i1GoLWLTaxaNyCsVrqs1G4G4y0FKgIhIwiJJAjAVC1BGoM0xqMxqDNKWIR1QSsEJAQkCSQGIIEKqzRYhaqzUagtYtNYtG5Fa52m1m1G5BQjBo6QhCdGoRqIERKrVAMagMVDGoCMtGAwQpIZdEErJQ1CnUEBSQiFOs2grQhUagrFNYtG5F1XO02ufVRuRWsWmsjcMIQrRCEJjLQhLMOiHSIRDDBGoqGNQQwZMMCEaQQjZGrRkoalCgQUSQK1lUCxWsWmsVGpBax1TaxaOkgtZtVrN6RuQWqDVBppMnRG4mSIWozCBUEakErUIKsqNQNQQkSGDK1JAkgDqkhhJIEYEBoQoFm1Ws2jUgtYtNrHVG5GbWbV1WLUdJBaxarWUbkahjMMFMIKoTKydGWjrMIN8tRmNQYpjUBismGCEQwhCEVCgtQIrsghgpIRJIEzaazaLBWabWLRuRm1i09Vjqo6SDqufVPVY1HSQWjVaoNNRLVBCkQKgjSpTGpBG4MUxqCNSEYqjQaiojEhlA0Wiq1lUUU6mdQr06hFo5FJARUzoK1m1Ws2jUitc+qbXPqjpIuq59U2ufVR0kFrFp6rGo3IYRqlFah1kiGNMwiNNMxqQStSOkjPMaVzpxqBqKyo1ARlELQFCotFVotVrIq1IIuPUklcjFQtBUK1m0WQWsWm1i0bkHVY6q7rFqOkg6rn1TaxajpIumYLVo1jUMY0wG9QlOiFuMRqCNR05YjpFYrUawNDnTCIVZaWqAQs02s0WK0LRRUEEaIOgHpSSuSFqtFoSK1i1WsWjcitY6q6rn1UbkXVcuq11XO1HWQdVi1WsaNyNatYlalRWtMZMqo01GZTKJW2uWI68wZrfMbjMbiuVMajMagzTGoIVZSTNoG1m1WiiqgCo1ip1lCtwDSGPRKmVquWKs2q1m0akFrHVNrnekbkXVcuqeunLqo6yK1jqrqufVG5FaLWdVRvGmtc2hG4YzKYI3IYzG5FSt8x15jHMdORz6bjUZjSudahEMIzTpAVDoWs6EiFotGo1hoC0aKCAli1A9OjSlc2KxaUjUcuq52pI6Ry6rHVSHWOd6c+qUjcZ1aUKtagQNNRIZbjpwkrNdeXSJDlWo3AlYrUKSxharQkBWShqM2s2pDQhSFStSAJIH/9k=',
-      }}
-      style={styles.container}
-      imageStyle={styles.backgroundImage}
-    >
+    <View style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false} // Hides the scroll indicator
+        showsVerticalScrollIndicator={false}
       >
         <Text style={styles.heading}>Current Goal</Text>
         <View style={styles.currentGoalContainer}>
@@ -103,19 +96,15 @@ const GoalSetting = () => {
           ))}
         </View>
       </ScrollView>
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff', // White background for the entire screen
     alignItems: 'center',
-  },
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-    justifyContent: 'center',
   },
   scrollContainer: {
     padding: 20,
@@ -124,16 +113,16 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   heading: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '700',
-    color: '#b03060',
+    color: '#FF1493', 
     marginBottom: 12,
     textAlign: 'center',
   },
   subHeading: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#a83260',
+    color: 'black', // Matching subheading color to fit theme
     marginVertical: 20,
     textAlign: 'center',
   },
@@ -144,17 +133,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '80%',
     alignItems: 'center',
-    shadowColor: '#d48fb0',
+    shadowColor: '#d48fb0', // Soft shadow
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#ffe0ea',
+    borderColor: '#ffe0ea', // Subtle border to match the theme
   },
   selectedGoal: {
     fontSize: 18,
-    color: '#b03060',
+    color: '#b03060', // Deep color for selected goal
     fontWeight: '500',
   },
   cardsContainer: {
@@ -174,18 +163,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 18,
     elevation: 4,
-    shadowColor: '#f3c0d6',
+    shadowColor: '#f3c0d6', // Soft shadow color to match disease info style
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
     borderWidth: 1,
-    borderColor: '#ffe0ea',
-    transform: [{ rotate: '0deg' }],
+    borderColor: '#ffe0ea', // Subtle border
   },
   selectedCard: {
-    borderColor: '#b03060',
+    borderColor: '#b03060', // Deep border color for selected goal
     borderWidth: 2,
-    shadowColor: '#b03060',
+    shadowColor: '#b03060', // Shadow color for selected goal
     shadowOpacity: 0.4,
     elevation: 8,
   },
@@ -193,7 +181,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#ffe4ec',
+    backgroundColor: '#ffe4ec', // Soft background color for icons
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 18,
@@ -203,13 +191,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#b03060',
+    color: '#FF69B4', // Matching deep color for the title
     fontWeight: '700',
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 14,
-    color: '#555',
+    color: '#555', // Lighter color for the description
   },
 });
 

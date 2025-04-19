@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Image, View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUserAuth } from '@/context/UserAuthContext';
 
 type WorkoutPlan = {
@@ -36,7 +35,6 @@ type ExerciseDetailType = {
 
 export default function ExerciseDetail() {
   const { id: idString } = useLocalSearchParams<{ id: string }>();
-
   const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetailType | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,14 +42,10 @@ export default function ExerciseDetail() {
   const { user } = useUserAuth();
 
   useEffect(() => {
-    console.log('ExerciseDetail useEffect triggered with idString:', idString, 'user:', user);
-
+    // Null check for user
     if (!user || !user.id) {
-      console.log('No user logged in, redirecting to Login');
       setErrorMessage('No user logged in. Redirecting to Login...');
-      setTimeout(() => {
-        router.push('/Login');
-      }, 2000);
+      setTimeout(() => router.push('/Login'), 2000);
       setIsLoading(false);
       return;
     }
@@ -59,51 +53,29 @@ export default function ExerciseDetail() {
     if (idString) {
       const exerciseId = parseInt(idString, 10);
       if (isNaN(exerciseId)) {
-        console.error('Invalid exercise ID:', idString);
-        setErrorMessage('Invalid exercise ID. Please go back and select a valid exercise.');
+        setErrorMessage('Invalid exercise ID.');
         setIsLoading(false);
         return;
       }
 
-      console.log('Fetching exercise detail for exerciseId:', exerciseId);
       const fetchData = async () => {
         try {
           await fetchExerciseDetail(exerciseId);
         } catch (err: any) {
-          console.error('Error in fetchExerciseDetail:', err);
-          setErrorMessage(err.message || 'Failed to load exercise details. Please try again.');
+          setErrorMessage(err.message || 'Failed to load exercise details.');
         } finally {
           setIsLoading(false);
         }
       };
 
-      const timeout = setTimeout(() => {
-        if (isLoading) {
-          console.error('Fetch exercise detail timed out after 10 seconds');
-          setErrorMessage('Request timed out. Please check your internet connection and try again.');
-          setIsLoading(false);
-        }
-      }, 10000);
-
       fetchData();
-
-      return () => clearTimeout(timeout);
     } else {
-      console.error('No exerciseId provided');
-      setErrorMessage('No exercise selected. Please go back and select an exercise.');
+      setErrorMessage('No exercise selected.');
       setIsLoading(false);
     }
   }, [idString, user, router]);
 
   const fetchExerciseDetail = async (exerciseId: number) => {
-    console.log('Starting fetchExerciseDetail for exerciseId:', exerciseId);
-
-    if (!user || !user.id) {
-      console.error('User not logged in');
-      throw new Error('User not logged in');
-    }
-
-    console.log('Fetching exercise details from Workouts table...');
     const { data, error } = await supabase
       .from('Workouts')
       .select(`
@@ -133,54 +105,14 @@ export default function ExerciseDetail() {
       .eq('id', exerciseId)
       .single();
 
-    if (error) {
-      console.error('Supabase error fetching exercise detail:', error);
-      throw new Error('Error fetching exercise detail: ' + error.message);
-    }
-
-    if (!data) {
-      console.log('No exercise found with ID:', exerciseId);
-      throw new Error('Exercise not found');
-    }
-
-    console.log('Fetched exercise data:', data);
+    if (error || !data) throw new Error('Error fetching exercise detail.');
 
     const dailyWorkout = data.DailyWorkouts as unknown as DailyWorkout;
-    if (!dailyWorkout?.WorkoutPlans?.id) {
-      console.error('No DailyWorkouts data found for exercise:', exerciseId);
-      throw new Error('Unable to verify ownership of this exercise: No DailyWorkouts data');
+    if (!dailyWorkout?.WorkoutPlans?.user_id || dailyWorkout.WorkoutPlans.user_id !== parseInt(user!.id)) {
+      throw new Error('You do not have permission to view this exercise.');
     }
 
-    const workoutPlan = dailyWorkout.WorkoutPlans;
-    if (!workoutPlan) {
-      console.error('No WorkoutPlans data found for daily workout:', dailyWorkout.id);
-      throw new Error('Unable to verify ownership of this exercise: No WorkoutPlans data');
-    }
-
-    const userIdFromWorkout = workoutPlan.user_id;
-
-    console.log('DailyWorkout:', dailyWorkout);
-    console.log('WorkoutPlan:', workoutPlan);
-    console.log('UserIdFromWorkout:', userIdFromWorkout);
-    console.log('Logged-in user.id:', user.id);
-
-    if (!dailyWorkout || !workoutPlan || !userIdFromWorkout) {
-      console.error('Missing relational data for exercise:', exerciseId);
-      throw new Error('Unable to verify ownership of this exercise');
-    }
-
-    const userId = parseInt(user.id, 10);
-    if (isNaN(userId)) {
-      console.error('Invalid user ID:', user.id);
-      throw new Error('Invalid user ID');
-    }
-
-    if (userIdFromWorkout !== userId) {
-      console.error('Exercise does not belong to user:', userId, 'UserIdFromWorkout:', userIdFromWorkout);
-      throw new Error('You do not have permission to view this exercise');
-    }
-
-    const exerciseData: ExerciseDetailType = {
+    setExerciseDetail({
       id: data.id,
       exercise_name: data.exercise_name,
       description: data.description || 'No description available',
@@ -196,34 +128,59 @@ export default function ExerciseDetail() {
       difficulty: data.difficulty,
       caution: data.caution,
       DailyWorkouts: dailyWorkout,
-    };
-
-    console.log('Exercise detail for user', user.id, ':', exerciseData);
-
-    setExerciseDetail(exerciseData);
+    });
   };
 
   const handleDonePress = async () => {
-    if (!idString) return;
+    // Null check for user
+    if (!user || !user.id) {
+      Alert.alert('Error', 'Please log in to mark exercises as done.');
+      router.push('/Login');
+      return;
+    }
+
+    if (!idString || !exerciseDetail) return;
     try {
       const exerciseId = parseInt(idString, 10);
-      if (isNaN(exerciseId)) {
-        throw new Error('Invalid exercise ID');
+      if (isNaN(exerciseId)) throw new Error('Invalid exercise ID');
+
+      // Calculate time spent (duration_min * sets * 60 seconds)
+      const timeSpentSeconds = exerciseDetail.duration_min * exerciseDetail.sets * 60;
+
+      // Check if already completed today
+      const today = new Date().toISOString().split('T')[0];
+      const { data: existingCompletion } = await supabase
+        .from('ExerciseCompletions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('workout_id', exerciseId)
+        .eq('completion_date::date', today)
+        .single();
+
+      if (existingCompletion) {
+        Alert.alert('Info', 'This exercise has already been completed today.');
+        router.push('/(screens)/Exercises');
+        return;
       }
 
-      const storedExercises = await AsyncStorage.getItem('completedExercises');
-      const completedExercises: number[] = storedExercises ? JSON.parse(storedExercises) : [];
+      // Insert completion
+      const { error } = await supabase
+        .from('ExerciseCompletions')
+        .insert({
+          user_id: parseInt(user.id),
+          workout_id: exerciseId,
+          daily_workout_id: exerciseDetail.daily_workout_id,
+          time_spent_seconds: timeSpentSeconds,
+          calories_burned: exerciseDetail.calories_burned,
+          completion_date: new Date().toISOString(),
+        });
 
-      if (!completedExercises.includes(exerciseId)) {
-        const updatedExercises = [...completedExercises, exerciseId];
-        await AsyncStorage.setItem('completedExercises', JSON.stringify(updatedExercises));
-        console.log('Marked exercise as completed:', exerciseId);
-      }
+      if (error) throw new Error('Error saving completion: ' + error.message);
 
       router.push('/(screens)/Exercises');
-    } catch (error) {
-      console.error('Error saving completed exercise:', error);
-      Alert.alert('Error', 'Failed to save completed exercise.');
+    } catch (error: any) {
+      Alert.alert('Error', 'Failed to save exercise completion.');
+      console.error('Error:', error);
     }
   };
 

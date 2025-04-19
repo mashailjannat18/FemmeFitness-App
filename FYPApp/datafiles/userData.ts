@@ -106,7 +106,7 @@ export const addUserToSupabase = async (
     };
     console.log('Sending payload to backend:', payload);
 
-    const response = await fetch('http://10.135.55.170:5000/api/generate-plan', {
+    const response = await fetch('http://192.168.1.9:5000/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

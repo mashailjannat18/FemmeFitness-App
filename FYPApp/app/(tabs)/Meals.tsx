@@ -5,7 +5,9 @@ import { supabase } from '@/lib/supabase';
 import { useUserAuth } from '@/context/UserAuthContext';
 
 export default function Meals() {
-  const [imageUrl] = useState('https://hips.hearstapps.com/hmg-prod/images/home-workout-lead-1584370797.jpg?crop=1xw:0.9997037914691943xh;center,top');
+  const [imageUrl] = useState(
+    'https://hips.hearstapps.com/hmg-prod/images/home-workout-lead-1584370797.jpg?crop=1xw:0.9997037914691943xh;center,top'
+  );
   const [meals, setMeals] = useState<string[]>([]);
   const router = useRouter();
   const { user } = useUserAuth();
@@ -68,9 +70,7 @@ export default function Meals() {
         <Text style={styles.title}>Meals</Text>
 
         <View style={styles.descriptionContainer}>
-          <Text style={styles.description}>
-            Select a meal to view its details.
-          </Text>
+          <Text style={styles.description}>Select a meal to view its details.</Text>
         </View>
 
         <View style={styles.options}>
@@ -117,6 +117,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 8,
+    color: '#FF1493', // Pink color from the first file
   },
   descriptionContainer: {
     marginBottom: 16,
@@ -139,8 +140,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: 'black',
-    fontSize: 16,
-    fontWeight: '500',
+    fontWeight: 'bold',
     textAlign: 'center',
   },
   noMealsText: {
