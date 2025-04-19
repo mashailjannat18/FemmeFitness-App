@@ -2031,3 +2031,7 @@
 2025-04-19 18:44:20,429 - INFO -  * Restarting with stat
 2025-04-19 18:44:38,446 - WARNING -  * Debugger is active!
 2025-04-19 18:44:38,470 - INFO -  * Debugger PIN: 104-939-288
+2025-04-19 19:30:13,081 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\__init__.py', reloading
+2025-04-19 19:30:13,975 - INFO -  * Restarting with stat
+2025-04-19 19:30:30,433 - WARNING -  * Debugger is active!
+2025-04-19 19:30:30,450 - INFO -  * Debugger PIN: 104-939-288
