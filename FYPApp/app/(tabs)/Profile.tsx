@@ -5,21 +5,23 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserAuth } from '@/context/UserAuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
+import Logo from '@/assets/images/Logo.png';
 
 const Profile = () => {
   const router = useRouter();
-  const { logout } = useUserAuth();
+  const { user, logout } = useUserAuth();
 
   const handleLogout = async () => {
     try {
       await logout();
       router.push('/Login');
     } catch (error) {
-      console.error('Logout error:', error);
+      
     }
   };
 
@@ -42,10 +44,18 @@ const Profile = () => {
   ] as const;
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Profile Settings</Text>
+    <View style={styles.container}>
+      {/* Custom Header */}
+      <View style={styles.headerContainer}>
+        <Image
+          source={Logo}
+          style={styles.logo}
+        />
+        <Text style={styles.headerText}>Profile</Text>
+        <Text style={styles.usernameText}>{user?.username || 'User'}</Text>
+      </View>
 
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.optionsContainer}>
           {routes.map((item, index) => (
             <View key={index}>
@@ -72,29 +82,51 @@ const Profile = () => {
             <Text style={styles.logoutButtonText}>Log Out</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
-  },
   container: {
     flex: 1,
-    padding: 24,
     backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 28,
+  // Header Styles
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#ff1297',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  headerText: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#FF1493',
-    marginBottom: 24,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: '#fff',
+    flex: 1,
+  },
+  usernameText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  // Content Styles
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 24,
+    paddingBottom: 20,
   },
   optionsContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',

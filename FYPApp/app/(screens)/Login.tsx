@@ -40,16 +40,16 @@ const Login: React.FC = () => {
       return;
     }
 
-    try {
-      await login(email, password);
+    const result = await login(email, password);
+    if (result.success) {
       router.push('../(tabs)');
-    } catch (err: any) {
-      setShowLoginError(err.message || 'Invalid email or password.');
+    } else {
+      setShowLoginError(result.error || 'Invalid email or password.');
     }
   };
 
   const handleBack = () => {
-    router.push('/');
+    router.push('./EntryScreen');
   };
 
   let passwordInput: TextInput | null = null;

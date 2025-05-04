@@ -1,18 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Dimensions,
   Animated,
+  TouchableOpacity
 } from 'react-native';
+import { supabase } from '@/lib/supabase';
+import { useUserAuth } from '@/context/UserAuthContext';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
-const IntensitySetting = () => {
-  const [selectedIntensity, setSelectedIntensity] = useState<string | null>(null);
+const IntensitySetting: React.FC = () => {
+  const { user } = useUserAuth();
+  const [intensity, setIntensity] = useState<string | null>(null);
   const [animation] = useState(new Animated.Value(0));
+  const router = useRouter();
+
+  // Mapping from model intensity to UI display
+  const intensityMap: { [key: string]: string } = {
+    low: 'Beginner',
+    moderate: 'Mediocre',
+    high: 'Intense',
+  };
 
   const intensities = [
     { level: 'Beginner', emoji: '🌸', color: '#F8BBD0' },
@@ -20,16 +33,53 @@ const IntensitySetting = () => {
     { level: 'Intense', emoji: '🌺', color: '#EC407A' },
   ];
 
-  const handlePress = (level: string) => {
-    setSelectedIntensity(level);
-    animation.setValue(0);
-    Animated.spring(animation, {
-      toValue: 1,
-      friction: 3,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
-  };
+  useEffect(() => {
+    const fetchIntensity = async () => {
+      if (!user?.id) {
+        console.error('No user ID available to fetch intensity');
+        setIntensity(null);
+        return;
+      }
+
+      try {
+        console.log('Fetching intensity for user:', user.id);
+        const { data, error } = await supabase
+          .from('User')
+          .select('intensity')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching intensity:', error.message);
+          setIntensity(null);
+          return;
+        }
+
+        if (data && data.intensity) {
+          const mappedIntensity = intensityMap[data.intensity.toLowerCase()] || 'Not selected';
+          console.log('Fetched intensity:', data.intensity, 'Mapped to:', mappedIntensity);
+          setIntensity(mappedIntensity);
+
+          // Trigger animation when intensity is fetched
+          animation.setValue(0);
+          Animated.spring(animation, {
+            toValue: 1,
+            friction: 3,
+            tension: 40,
+            useNativeDriver: true,
+          }).start();
+        } else {
+          console.log('No intensity found for user:', user.id);
+          setIntensity('Not selected');
+        }
+      } catch (err: any) {
+        console.error('Unexpected error fetching intensity:', err.message);
+        setIntensity('Not selected');
+      }
+    };
+
+    fetchIntensity();
+  }, [user?.id]);
 
   const scaleInterpolate = animation.interpolate({
     inputRange: [0, 0.5, 1],
@@ -38,18 +88,24 @@ const IntensitySetting = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>Workout Intensity</Text>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => router.push('../(tabs)/Profile')}>
+          <MaterialIcons name="arrow-back" size={24} color="#FF69B4" />
+        </TouchableOpacity>
+        <Text style={styles.header}>Intensity Setting</Text>
+      </View>
+
+      <View style={styles.headerContent}>
+        <Text style={styles.heading}>Current Intensity</Text>
         <View style={styles.currentIntensity}>
-          <Text style={styles.currentLabel}>Current:</Text>
           <Text style={styles.selectedIntensity}>
-            {selectedIntensity || 'Not selected'}
+            {intensity || 'Not selected'}
           </Text>
         </View>
       </View>
 
       <View style={styles.editSection}>
-        <Text style={styles.editHeading}>Edit Intensity</Text>
+        <Text style={styles.editHeading}>Edit your workout intensity</Text>
         <View style={styles.divider} />
       </View>
 
@@ -60,21 +116,17 @@ const IntensitySetting = () => {
             style={[
               styles.card,
               { backgroundColor: item.color },
-              selectedIntensity === item.level && styles.selectedCard,
-              selectedIntensity === item.level && {
+              intensity === item.level && styles.selectedCard,
+              intensity === item.level && {
                 transform: [{ scale: scaleInterpolate }],
               },
             ]}
           >
-            <TouchableOpacity
-              onPress={() => handlePress(item.level)}
-              activeOpacity={0.8}
-              style={styles.cardContent}
-            >
+            <View style={styles.cardContent}>
               <Text
                 style={[
                   styles.emoji,
-                  { color: selectedIntensity === item.level ? '#FFF' : '#000' },
+                  { color: intensity === item.level ? '#FFF' : '#000' },
                 ]}
               >
                 {item.emoji}
@@ -82,13 +134,13 @@ const IntensitySetting = () => {
               <Text
                 style={[
                   styles.levelText,
-                  selectedIntensity === item.level && styles.selectedLevelText,
-                  { color: selectedIntensity === item.level ? '#FFF' : '#4A148C' },
+                  intensity === item.level && styles.selectedLevelText,
+                  { color: intensity === item.level ? '#FFF' : '#4A148C' },
                 ]}
               >
                 {item.level}
               </Text>
-            </TouchableOpacity>
+            </View>
           </Animated.View>
         ))}
       </View>
@@ -99,10 +151,22 @@ const IntensitySetting = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // White background for the entire screen
+    backgroundColor: '#FFFFFF',
     padding: 20,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
+  },
   header: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#FF1493',
+    textAlign: 'center',
+    flex: 1,
+  },
+  headerContent: {
     alignItems: 'center',
     marginBottom: 20,
   },
@@ -116,11 +180,6 @@ const styles = StyleSheet.create({
   currentIntensity: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  currentLabel: {
-    fontSize: 16,
-    color: 'black',
-    marginRight: 5,
   },
   selectedIntensity: {
     fontSize: 20,
@@ -151,8 +210,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   card: {
-    width: width / 3.5,
-    height: 180,
+    width: width / 4,
+    height: 160,
     borderRadius: 20,
     padding: 15,
     justifyContent: 'center',
@@ -171,7 +230,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   levelText: {
-    fontSize: 18,
+    fontSize: 10,
     fontWeight: '700',
     textAlign: 'center',
   },

@@ -109,6 +109,38 @@ def convert_macros_to_grams(total_calories: float, macro_distribution: Dict[str,
     logger.debug(f"Converted macros to grams: TotalCalories={total_calories}, Macros={macro_grams}")
     return macro_grams
 
+# New functions for sleep and water calculations
+def baseline_sleep(age: int) -> float:
+    if age < 26:
+        return 8.0
+    elif age < 65:
+        return 7.5
+    else:
+        return 7.0
+
+def baseline_water(age: int, weight_kg: float) -> float:
+    if age < 26:
+        ml_per_kg = 40
+    elif age < 65:
+        ml_per_kg = 35
+    else:
+        ml_per_kg = 30
+    return round((ml_per_kg * weight_kg) / 1000, 2)
+
+def adjust_sleep_by_calories(base_sleep: float, calories_burned: float) -> float:
+    if calories_burned >= 500:
+        return base_sleep + 0.5
+    elif calories_burned >= 300:
+        return base_sleep + 0.25
+    return base_sleep
+
+def adjust_water_by_calories(base_water: float, calories_burned: float) -> float:
+    if calories_burned >= 500:
+        return round(base_water + 0.75, 2)
+    elif calories_burned >= 300:
+        return round(base_water + 0.5, 2)
+    return base_water
+
 def clean_meal_data(meal: Dict) -> Dict:
     logger.debug("Cleaning meal data")
     cleaned_meal = {}
@@ -119,11 +151,17 @@ def clean_meal_data(meal: Dict) -> Dict:
             cleaned_meal[key] = value
     return cleaned_meal
 
-def generate_meal_plan(workout_plan: List[Dict], data: Dict[str, Any]) -> List[Dict]:
+def generate_meal_plan(workout_plan_data: List[Dict], data: Dict[str, Any]) -> List[Dict]:
     try:
         logger.info("Starting meal plan generation")
         load_user_profile(data)
         meal_plan = []
+
+        # Unpack the workout plan data if it's a tuple (contains intensity)
+        if isinstance(workout_plan_data, tuple):
+            workout_plan, _ = workout_plan_data
+        else:
+            workout_plan = workout_plan_data
 
         for day_data in workout_plan:
             day = day_data['Day']
@@ -148,18 +186,26 @@ def generate_meal_plan(workout_plan: List[Dict], data: Dict[str, Any]) -> List[D
             macro_distribution = get_macronutrient_distribution(dominant_type)
             macro_grams = convert_macros_to_grams(daily_calories, macro_distribution)
 
+            # Calculate sleep and water recommendations
+            base_sleep = baseline_sleep(USER_AGE)
+            base_water = baseline_water(USER_AGE, USER_WEIGHT)
+            sleep_hours = adjust_sleep_by_calories(base_sleep, total_calories)
+            water_litres = adjust_water_by_calories(base_water, total_calories)
+
             meal = {
                 'Day': day,
                 'Date': date_str,
                 'daily_calories': round(daily_calories, 2),
                 'carbs_grams': macro_grams['carbs'],
                 'protein_grams': macro_grams['protein'],
-                'fat_grams': macro_grams['fat']
+                'fat_grams': macro_grams['fat'],
+                'sleep_hours': round(sleep_hours, 2),  # Add sleep hours
+                'water_litres': round(water_litres, 2)  # Add water liters
             }
 
             cleaned_meal = clean_meal_data(meal)
             meal_plan.append(cleaned_meal)
-            logger.info(f"Generated meal for {day}: Calories={daily_calories}, Carbs={macro_grams['carbs']}g, Protein={macro_grams['protein']}g, Fat={macro_grams['fat']}g")
+            logger.info(f"Generated meal for {day}: Calories={daily_calories}, Carbs={macro_grams['carbs']}g, Protein={macro_grams['protein']}g, Fat={macro_grams['fat']}g, Sleep={sleep_hours}h, Water={water_litres}L")
 
         logger.info("Meal plan generation completed")
         return meal_plan

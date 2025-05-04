@@ -5,12 +5,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useUserAuth } from '@/context/UserAuthContext';
+import Logo from '@/assets/images/Logo.png';
 
 export default function OvulationTracker() {
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+  const { user } = useUserAuth();
 
   const handleLogPeriodPress = () => {
     router.push('/(screens)/Periods');
@@ -37,55 +41,102 @@ export default function OvulationTracker() {
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer} style={{ flex: 1 }}>
-      <View style={styles.infoContainer}>
-        <Text style={[styles.cycleDayText, { color: '#FF1493' }]}>Cycle Day 5</Text>
-        <Text style={[styles.phaseText, styles.textColor]}>Follicular Phase</Text>
+    <View style={styles.container}>
+      {/* Custom Header */}
+      <View style={styles.headerContainer}>
+        <Image
+          source={Logo}
+          style={styles.logo}
+        />
+        <Text style={styles.headerText}>Ovulation Tracker</Text>
+        <Text style={styles.usernameText}>{user?.username || 'User'}</Text>
       </View>
 
-      <TouchableOpacity onPress={handleLogPeriodPress} style={[styles.button, styles.shadow]}>
-        <Text style={styles.buttonText}>Log Period</Text>
-      </TouchableOpacity>
-
-      <View style={styles.symptomsWrapper}>
-        <View style={styles.symptomsContainer}>
-          {symptoms.map((symptom) => (
-            <TouchableOpacity
-              key={symptom.id}
-              style={styles.symptomItem}
-              onPress={() => toggleSymptom(symptom.id)}
-            >
-              <MaterialCommunityIcons
-                name={symptom.icon as keyof typeof MaterialCommunityIcons.glyphMap}
-                size={28}
-                color={selectedSymptoms.includes(symptom.id) ? symptom.color : '#333'}
-              />
-              <Text style={[styles.symptomLabel, styles.textColor]}>{symptom.label}</Text>
-              <View
-                style={[
-                  styles.selectionCircle,
-                  {
-                    backgroundColor: selectedSymptoms.includes(symptom.id)
-                      ? symptom.color
-                      : '#ccc',
-                  },
-                ]}
-              />
-            </TouchableOpacity>
-          ))}
+      <ScrollView contentContainerStyle={styles.scrollContainer} style={{ flex: 1 }}>
+        <View style={styles.infoContainer}>
+          <Text style={[styles.cycleDayText, { color: '#FF1493' }]}>Cycle Day 5</Text>
+          <Text style={[styles.phaseText, styles.textColor]}>Follicular Phase</Text>
         </View>
-      </View>
 
-      <Text style={[styles.myCyclesText, styles.textColor]}>My Cycles</Text>
+        <TouchableOpacity onPress={handleLogPeriodPress} style={[styles.button, styles.shadow]}>
+          <Text style={styles.buttonText}>Log Period</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={handleHistoryPress} style={[styles.button, styles.shadow]}>
-        <Text style={styles.buttonText}>History</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.symptomsWrapper}>
+          <View style={styles.symptomsContainer}>
+            {symptoms.map((symptom) => (
+              <TouchableOpacity
+                key={symptom.id}
+                style={styles.symptomItem}
+                onPress={() => toggleSymptom(symptom.id)}
+              >
+                <MaterialCommunityIcons
+                  name={symptom.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                  size={28}
+                  color={selectedSymptoms.includes(symptom.id) ? symptom.color : '#333'}
+                />
+                <Text style={[styles.symptomLabel, styles.textColor]}>{symptom.label}</Text>
+                <View
+                  style={[
+                    styles.selectionCircle,
+                    {
+                      backgroundColor: selectedSymptoms.includes(symptom.id)
+                        ? symptom.color
+                        : '#ccc',
+                    },
+                  ]}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <Text style={[styles.myCyclesText, styles.textColor]}>My Cycles</Text>
+
+        <TouchableOpacity onPress={handleHistoryPress} style={[styles.button, styles.shadow]}>
+          <Text style={styles.buttonText}>History</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  // Header Styles
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#ff1297',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    flex: 1,
+  },
+  usernameText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  // Content Styles
   scrollContainer: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -141,7 +192,7 @@ const styles = StyleSheet.create({
     width: '20%',
   },
   symptomLabel: {
-    fontSize: 13,
+    fontSize: 10,
     marginTop: 5,
     textAlign: 'center',
   },

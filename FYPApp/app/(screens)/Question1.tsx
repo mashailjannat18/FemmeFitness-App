@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+  Image,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { setUserData } from '../../datafiles/userData';
 
@@ -7,8 +15,7 @@ const Question1: React.FC = () => {
   const [selectedAge, setSelectedAge] = useState<number | null>(null);
   const router = useRouter();
 
-  // Adjusted age range from 14 to 90
-  const ageRange = Array.from({ length: 90 - 12 + 1 }, (_, i) => i + 14);
+  const ageRange = Array.from({ length: 90 - 14 + 1 }, (_, i) => i + 14);
 
   const handleAgeSelect = (age: number) => {
     setSelectedAge(age);
@@ -45,12 +52,15 @@ const Question1: React.FC = () => {
         item === selectedAge && styles.selectedAge,
       ]}
       onPress={() => handleAgeSelect(item)}
+      activeOpacity={0.7}
     >
       <Text
         style={[
           styles.ageText,
           item === selectedAge && styles.selectedAgeText,
-          (selectedAge !== null && (item === selectedAge - 1 || item === selectedAge + 1)) && styles.boldAgeText,
+          (selectedAge !== null &&
+            (item === selectedAge - 1 || item === selectedAge + 1)) &&
+            styles.nearbyAgeText,
         ]}
       >
         {item}
@@ -60,14 +70,19 @@ const Question1: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>What Is Your Age?</Text>
+      <Image
+        source={require('../../assets/images/age.jpeg')}
+        style={styles.headerImage}
+        resizeMode="contain"
+      />
       <View style={styles.ageListContainer}>
         <FlatList
           data={ageRange}
           keyExtractor={(item) => item.toString()}
           renderItem={renderAgeItem}
           contentContainerStyle={styles.ageList}
-          showsVerticalScrollIndicator={false}
+          style={styles.flatList}
+          showsVerticalScrollIndicator={false} // SCROLLBAR HIDDEN ✅
         />
       </View>
       <View style={styles.buttonContainer}>
@@ -92,48 +107,75 @@ const Question1: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingTop: 150,
+    backgroundColor: 'white',
+    paddingTop: 45,
   },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
+  headerImage: {
+    width: '85%',
+    height: 200,
+    marginBottom: 20,
+    borderRadius: 10,
   },
   ageListContainer: {
-    height: 300,
-    justifyContent: 'center',
+    width: '30%', // Smaller container
+    height: 320, // Height for 4 items (4 * (60 + 8 + 8) + padding)
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    borderWidth: 1, // Thinner border
+    borderColor: '#ffb6c1', // Light pink border
+    padding: 10,
+    marginBottom: 20,
     alignItems: 'center',
-    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  flatList: {
+    flexGrow: 0, // Prevent FlatList from expanding beyond container
   },
   ageList: {
     alignItems: 'center',
   },
   ageItem: {
-    height: 50,
+    height: 60,
+    width: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 100,
+    marginVertical: 8,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   selectedAge: {
+    borderColor: '#ff69b4',
     borderWidth: 2,
-    borderColor: '#d63384',
-    borderRadius: 10,
+    backgroundColor: '#ffe4e1',
+    transform: [{ scale: 1.05 }],
   },
   ageText: {
     fontSize: 18,
-    color: '#666',
+    color: '#555',
+    textAlign: 'center',
   },
   selectedAgeText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#d63384',
+    color: '#ff69b4',
+    textAlign: 'center',
   },
-  boldAgeText: {
-    fontWeight: 'bold',
+  nearbyAgeText: {
+    fontWeight: '600',
+    color: '#888',
+    textAlign: 'center',
   },
   buttonContainer: {
     flexDirection: 'row',

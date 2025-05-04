@@ -76,13 +76,12 @@ const Question10: React.FC = () => {
       });
     } catch (err: any) {
       console.error('Signup error:', err.message);
-      if (
-        err.message === 'This email has already been signed up with' ||
-        err.message === 'This username is taken'
-      ) {
-        setShowSignupError(err.message);
+      if (err.message === 'This email has already been signed up with') {
+        setShowSignupError('This email is already registered.');
+      } else if (err.message === 'This username is taken') {
+        setShowSignupError('This username is already taken.');
       } else {
-        setShowSignupError('Failed to send confirmation code.');
+        setShowSignupError(err.message || 'An error occurred during signup.');
       }
     } finally {
       setLoading(false);

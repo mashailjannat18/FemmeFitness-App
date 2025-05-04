@@ -1,94 +1,121 @@
 import React from 'react';
-import { StyleSheet, View, Image, Text } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  ImageBackground,
+} from 'react-native';
 import { Link } from 'expo-router';
-import { initializeSignup } from '@/datafiles/userData';
 
-const FullScreenImageWithButton: React.FC = () => {
-  const handleSignUpPress = () => {
-    initializeSignup(); // Reset userData before starting signup
-  };
-
+const IntroMessageScreen: React.FC = () => {
   return (
-    <View style={styles.container}>
-      <Image source={require('../../assets/images/1.jpg')} style={styles.image} />
-      <View style={styles.overlay}>
-        <Text style={styles.mainText}>Welcome to FemmeFitness</Text>
-        <Text style={styles.subText}>Your Path to a Happier, Healthier You!</Text>
-        <View style={styles.container1}>
-          <Link
-            href={{
-              pathname: `./Question1`,
-            }}
-            style={styles.button1}
-            onPress={handleSignUpPress}
-          >
-            <Text style={styles.buttonText}>Sign Up</Text>
-          </Link>
-          <Link
-            href={{
-              pathname: `./Login`,
-            }}
-            style={styles.button2}
-          >
-            <Text style={styles.buttonText}>Login</Text>
+    <ImageBackground
+      source={{
+        uri: 'https://png.pngtree.com/thumb_back/fw800/background/20190319/pngtree-pink-gradient-white-spot-star-background-image_90157.jpg',
+      }}
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <SafeAreaView style={styles.overlay}>
+        {/* Skip button */}
+        <View style={styles.skipContainer}>
+          <Link href="./EntryScreen" asChild>
+            <TouchableOpacity>
+              <Text style={styles.skipText}>Skip</Text>
+            </TouchableOpacity>
           </Link>
         </View>
-      </View>
-    </View>
+
+        <View style={styles.content}>
+          <Text style={styles.mainText}>Welcome to FemmeFitness</Text>
+
+          <Text style={styles.subText}>
+            Empower Your Mind. Strengthen Your Body. Celebrate Your Journey!
+          </Text>
+
+          <Text style={styles.messageText}>
+            Join a community built for strong, unstoppable women. Personalized workouts, motivation, and support — all designed to help you shine from within.
+          </Text>
+
+          <Link href="./MessageScreen" asChild>
+            <TouchableOpacity style={styles.nextButton}>
+              <Text style={styles.nextButtonText}>Next</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+      </SafeAreaView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
-  },
-  image: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
   },
   overlay: {
     flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.3)',
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     paddingHorizontal: 20,
   },
+  skipContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 10,
+  },
+  skipText: {
+    color: '#555',
+    fontSize: 14,
+    fontWeight: '600',
+    padding: 8,
+    backgroundColor: '#eee',
+    borderRadius: 6,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   mainText: {
-    color: 'white',
-    fontSize: 32,
-    marginBottom: 10,
-    fontWeight: 'bold',
+    color: '#d63384',
+    fontSize: 36,
+    fontWeight: '900',
     textAlign: 'center',
+    marginBottom: 15,
+    letterSpacing: 1,
   },
   subText: {
-    color: 'white',
-    fontSize: 18,
-    marginBottom: 30,
+    color: '#ff69b4',
+    fontSize: 20,
+    fontWeight: '600',
     textAlign: 'center',
+    marginBottom: 30,
+    paddingHorizontal: 10,
   },
-  container1: {
-    flexDirection: 'row',
-    gap: 50,
+  messageText: {
+    color: '#7d4c5e',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 50,
+    lineHeight: 24,
+    paddingHorizontal: 15,
   },
-  button1: {
+  nextButton: {
     backgroundColor: '#d63384',
     paddingVertical: 12,
     paddingHorizontal: 25,
     borderRadius: 8,
+    marginTop: 20,
   },
-  button2: {
-    backgroundColor: '#d63384',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  buttonText: {
+  nextButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
-export default FullScreenImageWithButton;
+export default IntroMessageScreen;

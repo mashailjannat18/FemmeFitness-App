@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { setUserData } from '../../datafiles/userData';
 
 const Question2: React.FC = () => {
   const [selectedWeight, setSelectedWeight] = useState<string>('');
+  const [selectedHeight, setSelectedHeight] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const router = useRouter();
+
+  const heightRange = Array.from({ length: 36 }, (_, i) => (3 + i * 0.1).toFixed(1));
 
   const handleWeightChange = (text: string) => {
     if (/^\d*\.?\d*$/.test(text)) {
@@ -29,39 +33,57 @@ const Question2: React.FC = () => {
     }
   };
 
-  const handleNext = () => {
-    console.log(`Next pressed, selectedWeight: ${selectedWeight}`);
+  const handleHeightSelect = (height: string) => {
+    const selected = parseFloat(height);
+    setSelectedHeight(selected);
+    setUserData('height', selected);
+  };
 
-    if (selectedWeight === '') {
-      Alert.alert('Field Required', 'Please enter your weight before proceeding.', [
-        { text: 'OK' },
-      ]);
+  const handleNext = () => {
+    if (selectedWeight === '' || selectedHeight === null) {
+      Alert.alert('Incomplete Fields', 'Please enter both your weight and height before proceeding.', [{ text: 'OK' }]);
     } else {
       const weight = parseFloat(selectedWeight);
       if (isNaN(weight) || weight < 25 || weight > 200) {
-        Alert.alert('Invalid Weight', 'Weight must be between 25 kg and 200 kg.', [
-          { text: 'OK' },
-        ]);
+        Alert.alert('Invalid Weight', 'Weight must be between 25 kg and 200 kg.', [{ text: 'OK' }]);
       } else {
         setUserData('weight', weight);
-        setTimeout(() => {
-          router.push('/(screens)/Question3');
-        }, 500);
+        router.push('/(screens)/Question3');
       }
     }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>What Is Your Weight (kg)?</Text>
+      <Text style={styles.heading}>Let's Get Your Basics</Text>
+
+      {/* Weight Input */}
+      <Text style={styles.label}>What is your Weight (kg)?</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter your weight (kg)"
+        placeholder="Enter your weight"
         keyboardType="decimal-pad"
         value={selectedWeight}
         onChangeText={handleWeightChange}
       />
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+      {/* Height Picker */}
+      <Text style={styles.label}>What is your Height (ft)?</Text>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedHeight?.toString()}
+          onValueChange={handleHeightSelect}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select Height" value={null} />
+          {heightRange.map((height) => (
+            <Picker.Item key={height} label={`${height} ft`} value={height} />
+          ))}
+        </Picker>
+      </View>
+
+      {/* Buttons */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, styles.backButton]}
@@ -69,14 +91,22 @@ const Question2: React.FC = () => {
         >
           <Text style={styles.buttonText}>Back</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[
             styles.button,
-            (selectedWeight === '' || parseFloat(selectedWeight) < 25 || parseFloat(selectedWeight) > 200) &&
-              styles.disabledButton,
+            (selectedWeight === '' ||
+              parseFloat(selectedWeight) < 25 ||
+              parseFloat(selectedWeight) > 200 ||
+              selectedHeight === null) && styles.disabledButton,
           ]}
           onPress={handleNext}
-          disabled={selectedWeight === '' || parseFloat(selectedWeight) < 25 || parseFloat(selectedWeight) > 200}
+          disabled={
+            selectedWeight === '' ||
+            parseFloat(selectedWeight) < 25 ||
+            parseFloat(selectedWeight) > 200 ||
+            selectedHeight === null
+          }
         >
           <Text style={styles.buttonText}>Next</Text>
         </TouchableOpacity>
@@ -88,37 +118,61 @@ const Question2: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 40,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
-  text: {
-    fontSize: 24,
+  heading: {
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 40,
+    color: '#d63384',
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: '600',
+    alignSelf: 'flex-start',
+    marginLeft: 5,
+    marginTop: 10,  // Increased the marginTop to lower the label
     color: '#333',
   },
   input: {
-    width: '80%',
-    height: 50,
+    width: '100%',
+    height: 55,
     borderColor: '#d63384',
     borderWidth: 2,
     borderRadius: 8,
     paddingHorizontal: 10,
-    fontSize: 18,
-    marginVertical: 20,
+    fontSize: 16,
+    marginTop: 8,
+  },
+  pickerContainer: {
+    width: '100%',
+    height: 55,
+    borderColor: '#d63384',
+    borderWidth: 2,
+    borderRadius: 8,
+    justifyContent: 'center',
+    marginTop: 10,  // Lowered picker container a little
+  },
+  picker: {
+    height: 60,
+    width: '100%',
+    color: '#666',
   },
   errorText: {
     color: '#e74c3c',
     fontSize: 14,
-    marginTop: -10,
-    marginBottom: 10,
+    alignSelf: 'flex-start',
+    marginLeft: 10,
+    marginTop: 5,
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 20,
+    marginTop: 30,
+    justifyContent: 'center',
   },
   button: {
     backgroundColor: '#d63384',
@@ -128,16 +182,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     elevation: 3,
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   backButton: {
     backgroundColor: '#a9a9a9',
   },
   disabledButton: {
     backgroundColor: '#a9a9a9',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

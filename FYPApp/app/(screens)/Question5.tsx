@@ -83,7 +83,7 @@ const Question5: React.FC = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, styles.backButton]}
-          onPress={() => router.push("/(screens)/Question4")}
+          onPress={() => router.push("/(screens)/Question3")}
         >
           <Text style={styles.buttonText}>Back</Text>
         </TouchableOpacity>

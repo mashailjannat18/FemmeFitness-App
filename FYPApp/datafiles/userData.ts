@@ -15,6 +15,11 @@ export type UserData = {
   password: string;
   workoutPlan: any[];
   mealPlan?: any[];
+  intensity?: string;
+  lastPeriodDate: Date | null;
+  cycleLength: number;
+  bleedingDays: number;
+  cyclePhases?: any[];
 };
 
 const defaultUserData: UserData = {
@@ -32,11 +37,16 @@ const defaultUserData: UserData = {
   password: '',
   workoutPlan: [],
   mealPlan: [],
+  intensity: '',
+  lastPeriodDate: null,
+  cycleLength: 0,
+  bleedingDays: 0,
+  cyclePhases: [],
 };
 
 export let userData: UserData = { ...defaultUserData };
 
-export const setUserData = (screenKey: keyof UserData, data: number | string | string[] | any[] | null): void => {
+export const setUserData = (screenKey: keyof UserData, data: number | string | string[] | any[] | Date | null): void => {
   userData = { ...userData, [screenKey]: data };
 };
 
@@ -95,6 +105,9 @@ export const addUserToSupabase = async (
       'Stay fit': 'stay_fit',
     };
 
+    const startDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+
+    // Generate workout and meal plans
     const payload = {
       age: Number(userData.age),
       activityLevel: Number(userData.activityLevel),
@@ -104,21 +117,21 @@ export const addUserToSupabase = async (
       preferredRestDay: userData.restDay,
       height: Number(userData.height),
     };
-    console.log('Sending payload to backend:', payload);
+    console.log('Sending payload to backend for workout and meal plans:', payload);
 
-    const response = await fetch('http://192.168.1.9:5000/api/generate-plan', {
+    const workoutResponse = await fetch('http://192.168.1.8:5000/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Backend response error:', errorText);
-      throw new Error(`Failed to generate plans: ${response.status} - ${errorText || 'No error message'}`);
+    if (!workoutResponse.ok) {
+      const errorText = await workoutResponse.text();
+      console.error('Backend response error for workout plan:', errorText);
+      throw new Error(`Failed to generate plans: ${workoutResponse.status} - ${errorText || 'No error message'}`);
     }
 
-    const result = await response.json();
+    const result = await workoutResponse.json();
     console.log('Plans generated:', result);
 
     if (!result.workout_plan || !Array.isArray(result.workout_plan) || result.workout_plan.length === 0) {
@@ -131,9 +144,53 @@ export const addUserToSupabase = async (
       throw new Error('Meal plan is not a non-empty array');
     }
 
+    if (!result.intensity || !['low', 'moderate', 'high'].includes(result.intensity)) {
+      console.error('Invalid intensity value:', result.intensity);
+      throw new Error('Intensity must be one of "low", "moderate", or "high"');
+    }
+
     setUserData('workoutPlan', result.workout_plan);
     setUserData('mealPlan', result.meal_plan);
-    console.log('Stored plans in userData:', { workoutPlan: userData.workoutPlan, mealPlan: userData.mealPlan });
+    setUserData('intensity', result.intensity);
+    console.log('Stored plans and intensity in userData:', { workoutPlan: userData.workoutPlan, mealPlan: userData.mealPlan, intensity: userData.intensity });
+
+    // Generate menstrual cycle prediction if applicable
+    let cyclePhases = [];
+    if (userData.lastPeriodDate && userData.cycleLength && userData.bleedingDays) {
+      const cyclePayload = {
+        lastPeriodDate: userData.lastPeriodDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-'),
+        cycleLength: Number(userData.cycleLength),
+        bleedingDays: Number(userData.bleedingDays),
+        age: Number(userData.age),
+        weight: Number(userData.weight),
+        height: Number(userData.height),
+      };
+      console.log('Sending payload to backend for cycle prediction:', cyclePayload);
+
+      const cycleResponse = await fetch('http://192.168.1.8:5000/api/predict-cycle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cyclePayload),
+      });
+
+      if (!cycleResponse.ok) {
+        const errorText = await cycleResponse.text();
+        console.error('Backend response error for cycle prediction:', errorText);
+        throw new Error(`Failed to predict cycle: ${cycleResponse.status} - ${errorText || 'No error message'}`);
+      }
+
+      const cycleResult = await cycleResponse.json();
+      console.log('Cycle phases generated:', cycleResult);
+
+      if (!cycleResult.cycle_phases || !Array.isArray(cycleResult.cycle_phases)) {
+        console.error('Invalid cycle phases structure:', cycleResult.cycle_phases);
+        throw new Error('Cycle phases must be a non-empty array');
+      }
+
+      cyclePhases = cycleResult.cycle_phases;
+      setUserData('cyclePhases', cyclePhases);
+      console.log('Stored cycle phases in userData:', userData.cyclePhases); // Verify phases here
+    }
 
     const rpcPayload = {
       p_username: userData.username,
@@ -150,6 +207,12 @@ export const addUserToSupabase = async (
       p_challenge_days: userData.challengeDays,
       p_workout_plan: userData.workoutPlan,
       p_meal_plan: userData.mealPlan,
+      p_start_date: startDate,
+      p_intensity: userData.intensity,
+      p_last_period_date: userData.lastPeriodDate ? userData.lastPeriodDate.toISOString().split('T')[0] : null,
+      p_cycle_length: userData.cycleLength,
+      p_bleeding_days: userData.bleedingDays,
+      p_cycle_phases: cyclePhases.length > 0 ? cyclePhases : null,
     };
 
     console.log('RPC payload:', rpcPayload);
@@ -161,7 +224,7 @@ export const addUserToSupabase = async (
       throw new Error(`Failed to insert data into Supabase: ${error.message}`);
     }
 
-    console.log('User data, workout plan, and meal plan successfully saved!', data);
+    console.log('User data, workout plan, meal plan, and cycle phases successfully saved!', data);
     userId = data[0]?.user_id || null;
 
     if (userId === null) {

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Image, View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Image, View, Text, ScrollView, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useUserAuth } from '@/context/UserAuthContext';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 type WorkoutPlan = {
   id: number;
@@ -34,15 +35,15 @@ type ExerciseDetailType = {
 };
 
 export default function ExerciseDetail() {
-  const { id: idString } = useLocalSearchParams<{ id: string }>();
+  const { id: idString, day, source } = useLocalSearchParams<{ id: string; day?: string; source?: string }>();
   const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetailType | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageUrls, setImageUrls] = useState<string[]>([]); // State to hold image URLs
   const router = useRouter();
   const { user } = useUserAuth();
 
   useEffect(() => {
-    // Null check for user
     if (!user || !user.id) {
       setErrorMessage('No user logged in. Redirecting to Login...');
       setTimeout(() => router.push('/Login'), 2000);
@@ -129,60 +130,101 @@ export default function ExerciseDetail() {
       caution: data.caution,
       DailyWorkouts: dailyWorkout,
     });
+
+    // Fetch images from the storage bucket
+    await fetchImages(data.exercise_name);
   };
 
-  const handleDonePress = async () => {
-    // Null check for user
-    if (!user || !user.id) {
-      Alert.alert('Error', 'Please log in to mark exercises as done.');
-      router.push('/Login');
-      return;
-    }
-
-    if (!idString || !exerciseDetail) return;
+  const fetchImages = async (exerciseName: string) => {
     try {
-      const exerciseId = parseInt(idString, 10);
-      if (isNaN(exerciseId)) throw new Error('Invalid exercise ID');
+      console.log(`Fetching images for exercise: ${exerciseName}`);
+      
+      let allFiles: any[] = [];
+      let offset = 0;
+      const limit = 100;
+      let hasMore = true;
 
-      // Calculate time spent (duration_min * sets * 60 seconds)
-      const timeSpentSeconds = exerciseDetail.duration_min * exerciseDetail.sets * 60;
+      // Fetch files in batches until all are retrieved
+      while (hasMore) {
+        const { data: files, error: listError } = await supabase.storage
+          .from('workout-images')
+          .list('', { limit, offset });
 
-      // Check if already completed today
-      const today = new Date().toISOString().split('T')[0];
-      const { data: existingCompletion } = await supabase
-        .from('ExerciseCompletions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('workout_id', exerciseId)
-        .eq('completion_date::date', today)
-        .single();
+        if (listError) {
+          console.error('Error listing files in workout-images bucket:', listError.message);
+          throw new Error('Failed to list images from storage.');
+        }
 
-      if (existingCompletion) {
-        Alert.alert('Info', 'This exercise has already been completed today.');
-        router.push('/(screens)/Exercises');
+        if (!files || files.length === 0) {
+          console.log(`No more files found at offset ${offset}.`);
+          hasMore = false;
+          break;
+        }
+
+        console.log(`Fetched batch at offset ${offset}:`, files.map(f => f.name));
+        allFiles = [...allFiles, ...files];
+        offset += limit;
+
+        // Stop early if we find matching images
+        const matchingFiles = files.filter(file => {
+          const fileNameWithoutExtension = file.name.replace(/\.png$/, '');
+          return fileNameWithoutExtension === exerciseName || fileNameWithoutExtension.startsWith(`${exerciseName} `);
+        });
+
+        if (matchingFiles.length > 0) {
+          console.log(`Found matching images in batch at offset ${offset - limit}, stopping fetch.`);
+          hasMore = false;
+        }
+      }
+
+      if (allFiles.length === 0) {
+        console.log('No files found in workout-images bucket.');
+        setImageUrls([]);
         return;
       }
 
-      // Insert completion
-      const { error } = await supabase
-        .from('ExerciseCompletions')
-        .insert({
-          user_id: parseInt(user.id),
-          workout_id: exerciseId,
-          daily_workout_id: exerciseDetail.daily_workout_id,
-          time_spent_seconds: timeSpentSeconds,
-          calories_burned: exerciseDetail.calories_burned,
-          completion_date: new Date().toISOString(),
-        });
+      console.log('Total files fetched:', allFiles.map(f => f.name));
 
-      if (error) throw new Error('Error saving completion: ' + error.message);
+      // Filter files that exactly match the exercise name
+      const matchingFiles = allFiles.filter(file => {
+        const fileNameWithoutExtension = file.name.replace(/\.png$/, '');
+        return fileNameWithoutExtension === exerciseName || fileNameWithoutExtension.startsWith(`${exerciseName} `);
+      });
 
-      router.push('/(screens)/Exercises');
-    } catch (error: any) {
-      Alert.alert('Error', 'Failed to save exercise completion.');
-      console.error('Error:', error);
+      if (matchingFiles.length === 0) {
+        console.log(`No matching images found for exercise: ${exerciseName}`);
+        setImageUrls([]);
+        return;
+      }
+
+      console.log(`Matching files for ${exerciseName}:`, matchingFiles.map(f => f.name));
+
+      // Generate public URLs for the matching files
+      const urls = matchingFiles.map(file => {
+        const { data } = supabase.storage
+          .from('workout-images')
+          .getPublicUrl(file.name);
+        return data.publicUrl;
+      });
+
+      console.log(`Generated public URLs for ${exerciseName}:`, urls);
+      setImageUrls(urls);
+    } catch (err: any) {
+      console.error('Error fetching images:', err.message || err);
+      setImageUrls([]);
     }
   };
+
+  const handleBackPress = () => {
+    router.back();
+  };
+
+  const renderDetailRow = (label: string, value: string | number) => (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}:</Text>
+      <Text style={styles.detailValue}>{value}</Text>
+    </View>
+  );
 
   if (isLoading) {
     return (
@@ -196,7 +238,15 @@ export default function ExerciseDetail() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{errorMessage}</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(screens)/Exercises')}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() =>
+            router.push({
+              pathname: '/(screens)/Exercises',
+              params: { day: day || '', source: source || '' },
+            })
+          }
+        >
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -207,7 +257,15 @@ export default function ExerciseDetail() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Exercise details not found.</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/(screens)/Exercises')}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() =>
+            router.push({
+              pathname: '/(screens)/Exercises',
+              params: { day: day || '', source: source || '' },
+            })
+          }
+        >
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
@@ -215,120 +273,250 @@ export default function ExerciseDetail() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
+    <View style={styles.container}>
+      {/* Custom Header */}
+      <View style={styles.headerContainer}>
+        <Pressable onPress={handleBackPress} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </Pressable>
         <Text style={styles.headerText}>{exerciseDetail.exercise_name}</Text>
+      </View>
+
+      {/* Main Content */}
+      <ScrollView contentContainerStyle={styles.contentContainer}>
         <Text style={styles.subHeaderText}>
           Date: {exerciseDetail.workout_date || 'Not available'}
         </Text>
-      </View>
 
-      <Image source={{ uri: 'https://via.placeholder.com/230' }} style={styles.image} />
-
-      <View style={styles.content}>
-        <Text style={styles.title}>Description</Text>
-        <Text style={styles.description}>{exerciseDetail.description}</Text>
-
-        <Text style={styles.title}>Details</Text>
-        <Text style={styles.description}>Reps: {exerciseDetail.reps}</Text>
-        <Text style={styles.description}>Sets: {exerciseDetail.sets}</Text>
-        <Text style={styles.description}>Rest Time: {exerciseDetail.rest_time_sec} seconds</Text>
-        <Text style={styles.description}>Duration: {exerciseDetail.duration_min} minutes</Text>
-        <Text style={styles.description}>Calories Burned: {exerciseDetail.calories_burned}</Text>
-        <Text style={styles.description}>Target Muscle: {exerciseDetail.target_muscle}</Text>
-        <Text style={styles.description}>Type: {exerciseDetail.type}</Text>
-        <Text style={styles.description}>Difficulty: {exerciseDetail.difficulty}</Text>
-        {exerciseDetail.caution && (
-          <Text style={styles.description}>Caution: {exerciseDetail.caution}</Text>
+        {/* Image Section */}
+        {imageUrls.length > 0 ? (
+          <View style={styles.imageContainer}>
+            {/* Slider Icon for Multiple Images */}
+            {imageUrls.length > 1 && (
+              <View style={styles.sliderIconContainer}>
+                <MaterialCommunityIcons
+                  name="gesture-swipe"
+                  size={24}
+                  color="#EC4899"
+                />
+                <Text style={styles.sliderIconText}>Swipe to view more</Text>
+              </View>
+            )}
+            {imageUrls.length === 1 ? (
+              <View style={styles.singleImageContainer}>
+                <Image
+                  source={{ uri: imageUrls[0] }}
+                  style={styles.image}
+                  resizeMode="contain"
+                  onError={(e) => console.error(`Failed to load image ${imageUrls[0]}:`, e.nativeEvent.error)}
+                />
+              </View>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.imageScrollView}
+                contentContainerStyle={styles.imageScrollContent}
+              >
+                {imageUrls.map((url, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: url }}
+                    style={styles.image}
+                    resizeMode="contain"
+                    onError={(e) => console.error(`Failed to load image ${url}:`, e.nativeEvent.error)}
+                  />
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        ) : (
+          <View style={styles.noImageContainer}>
+            <Text style={styles.noImageText}>No images available for this exercise.</Text>
+          </View>
         )}
-      </View>
 
-      <TouchableOpacity style={styles.doneButton} onPress={handleDonePress}>
-        <Text style={styles.doneButtonText}>Done</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.content}>
+          <Text style={styles.title}>Description</Text>
+          <Text style={styles.description}>{exerciseDetail.description}</Text>
+
+          <Text style={styles.title}>Details</Text>
+          {renderDetailRow('Reps', exerciseDetail.reps)}
+          {renderDetailRow('Sets', exerciseDetail.sets)}
+          {renderDetailRow('Rest Time', `${exerciseDetail.rest_time_sec} seconds`)}
+          {renderDetailRow('Duration', `${exerciseDetail.duration_min} minutes`)}
+          {renderDetailRow('Calories Burned Estimated', exerciseDetail.calories_burned)}
+          {renderDetailRow('Target Muscle', exerciseDetail.target_muscle)}
+          {renderDetailRow('Type', exerciseDetail.type)}
+          {renderDetailRow('Difficulty', exerciseDetail.difficulty)}
+
+          {exerciseDetail.caution && (
+            <View style={styles.cautionContainer}>
+              <Text style={styles.cautionLabel}>Caution:</Text>
+              <Text style={styles.cautionText}>{exerciseDetail.caution}</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'white',
   },
-  header: {
-    paddingTop: 40,
-    paddingBottom: 16,
-    backgroundColor: '#d63384',
+  // Header Styles
+  headerContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#d63384',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   headerText: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: -25,
+    flex: 1,
+    textAlign: 'center',
+  },
+  backButton: {
+    padding: 8,
+  },
+  // Main Content Styles
+  contentContainer: {
+    paddingBottom: 20,
   },
   subHeaderText: {
     fontSize: 16,
-    color: '#fff',
-    marginTop: 5,
+    color: '#888',
+    marginVertical: 10,
+    textAlign: 'center',
+  },
+  // Image Styles
+  imageContainer: {
+    marginBottom: 30,
+  },
+  imageScrollView: {
+    marginHorizontal: 16,
+  },
+  imageScrollContent: {
+    alignItems: 'center',
+  },
+  singleImageContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 16,
   },
   image: {
-    width: '100%',
-    height: 230,
-    resizeMode: 'cover',
+    width: 230,
+    height: 330,
     borderRadius: 8,
+    marginHorizontal: 8,
+  },
+  noImageContainer: {
+    height: 230,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 16,
     marginBottom: 30,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+  },
+  noImageText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  // Slider Icon Styles
+  sliderIconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  sliderIconText: {
+    fontSize: 14,
+    color: '#EC4899',
+    marginLeft: 8,
   },
   content: {
     paddingHorizontal: 18,
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 12,
+    marginTop: 16,
+    color: 'black',
   },
   description: {
     fontSize: 16,
     color: '#555',
-    marginBottom: 16,
-  },
-  doneButton: {
-    backgroundColor: '#ff69b4',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    alignSelf: 'center',
     marginBottom: 20,
+    lineHeight: 24,
   },
-  doneButtonText: {
-    color: '#fff',
+  detailRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    alignItems: 'baseline',
+  },
+  detailLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: '600',
+    marginRight: 8,
+    minWidth: 140,
+    color: '#ec4899',
+  },
+  detailValue: {
+    fontSize: 16,
+    color: '#666',
+    flexShrink: 1,
+  },
+  cautionContainer: {
+    backgroundColor: '#fff0f5',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  cautionLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#d63384',
+    marginBottom: 4,
+  },
+  cautionText: {
+    fontSize: 15,
+    color: '#666',
+    lineHeight: 22,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#fff',
   },
   errorText: {
     fontSize: 16,
-    color: '#e74c3c',
+    color: '#EC4899',
     textAlign: 'center',
     marginBottom: 20,
-  },
-  backButton: {
-    backgroundColor: '#d63384',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
   },
   backButtonText: {
     color: '#fff',

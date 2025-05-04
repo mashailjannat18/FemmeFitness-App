@@ -1,22 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  ScrollView,
-  BackHandler,
-} from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, ScrollView, BackHandler, Modal, TextInput, Button, RefreshControl } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import Svg, { Circle, LinearGradient, Defs, Stop, Path, Rect } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
 import { useUserAuth } from '@/context/UserAuthContext';
 import { Calendar } from 'react-native-calendars';
+import Logo from '@/assets/images/Logo.png';
+import type { Channel } from '@supabase/supabase-js';
 
-// Types
 type Exercise = {
   id: string;
   exercise_name: string;
@@ -39,11 +30,13 @@ type DailyWorkout = {
 
 type DailyMeal = {
   id: string;
-  day_number: number;
+  daily_workout_id: string;
   daily_calories: number;
   carbs_grams: number;
   protein_grams: number;
   fat_grams: number;
+  sleep_hours: number;
+  water_litres: number;
 };
 
 type WorkoutDay = {
@@ -52,7 +45,6 @@ type WorkoutDay = {
   date: string;
 };
 
-// Circular Progress Component
 interface CircularProgressProps {
   progress: number;
   size?: number;
@@ -151,20 +143,22 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
   );
 };
 
-// Water Glass Component
 interface WaterGlassProps {
   progress: number;
   size?: number;
+  actualLiters: number;
+  expectedLiters: number;
+  onLogPress: () => void;
 }
 
-const WaterGlass: React.FC<WaterGlassProps> = ({ progress, size = 120 }): JSX.Element => {
+const WaterGlass: React.FC<WaterGlassProps> = ({ progress, size = 120, actualLiters, expectedLiters, onLogPress }): JSX.Element => {
   const glassWidth = size * 0.7;
   const glassHeight = size * 1.2;
   const glassX = (size - glassWidth) / 2;
   const glassBottomY = size - 15;
   const glassTopY = 15;
   const waterMaxHeight = glassHeight - 40;
-  const waterHeight = (progress / 100) * waterMaxHeight;
+  const waterHeight = waterMaxHeight / 1.7;
   const waterY = glassBottomY - waterHeight;
 
   const glassPath = `
@@ -188,26 +182,33 @@ const WaterGlass: React.FC<WaterGlassProps> = ({ progress, size = 120 }): JSX.El
   `;
 
   return (
-    <Svg width={size} height={size}>
-      <Defs>
-        <LinearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <Stop offset="0%" stopColor="#E0F7FA" stopOpacity={0.6} />
-          <Stop offset="50%" stopColor="#81D4FA" stopOpacity={0.8} />
-          <Stop offset="100%" stopColor="#0288D1" stopOpacity={0.9} />
-        </LinearGradient>
-      </Defs>
-      <Path d={glassPath} stroke="#B0B0B0" strokeWidth={1.5} fill="rgba(255, 255, 255, 0.1)" />
-      <Path d={waterPath} fill="url(#waterGradient)" />
-    </Svg>
+    <View style={{ alignItems: 'center', height: 180 }}>
+      <Svg width={size} height={size}>
+        <Defs>
+          <LinearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <Stop offset="0%" stopColor="#E0F7FA" stopOpacity={0.6} />
+            <Stop offset="50%" stopColor="#81D4FA" stopOpacity={0.8} />
+            <Stop offset="100%" stopColor="#0288D1" stopOpacity={0.9} />
+          </LinearGradient>
+        </Defs>
+        <Path d={glassPath} stroke="#B0B0B0" strokeWidth={1.5} fill="rgba(255, 255, 261, 0.1)" />
+        <Path d={waterPath} fill="url(#waterGradient)" />
+      </Svg>
+      <Text style={[styles.progressText, { marginTop: 4 }]}>{actualLiters.toFixed(1)}/{expectedLiters.toFixed(1)} L</Text>
+      <TouchableOpacity style={[styles.logButton, { marginTop: 4 }]} onPress={onLogPress}>
+        <Text style={styles.logButtonText}>Log Water</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
-// Sleep Card Component
 interface SleepCardProps {
   progress: number;
+  expectedHours: number;
+  onLogPress: () => void;
 }
 
-const SleepCard: React.FC<SleepCardProps> = ({ progress }): JSX.Element => {
+const SleepCard: React.FC<SleepCardProps> = ({ progress, expectedHours, onLogPress }): JSX.Element => {
   return (
     <View style={styles.sleepContainer}>
       <Svg width="100%" height="100%" style={styles.sleepBackground}>
@@ -223,14 +224,16 @@ const SleepCard: React.FC<SleepCardProps> = ({ progress }): JSX.Element => {
         <Text style={styles.sleepIcon}>🌙</Text>
         <Text style={styles.sleepTitle}>Sleep</Text>
         <Text style={styles.sleepProgressText}>
-          {progress}/{8} hrs
+          {progress.toFixed(1)}/{expectedHours.toFixed(1)} hrs
         </Text>
+        <TouchableOpacity style={styles.logButton} onPress={onLogPress}>
+          <Text style={styles.logButtonText}>Log Sleep</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-// Helper Functions
 function getCurrentMonth() {
   const now = new Date();
   return now.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -252,20 +255,37 @@ function getWorkoutDays(challengeDays: number, startDate: string): WorkoutDay[] 
   return days;
 }
 
-// Main Component
+const getTodayDate = () => {
+  return new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+};
+
 export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   const [dailyWorkout, setDailyWorkout] = useState<DailyWorkout | null>(null);
   const [dailyMeal, setDailyMeal] = useState<DailyMeal | null>(null);
   const [workoutDays, setWorkoutDays] = useState<WorkoutDay[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [streak, setStreak] = useState(0);
-  const [markedDates, setMarkedDates] = useState({});
   const [preferredRestDay, setPreferredRestDay] = useState<string | null>(null);
   const [progressPercentage, setProgressPercentage] = useState(0);
+  const [totalCaloriesToBurn, setTotalCaloriesToBurn] = useState(0);
+  const [caloriesBurnedToday, setCaloriesBurnedToday] = useState(0);
+  const [expectedCaloriesGained, setExpectedCaloriesGained] = useState(0);
+  const [actualCaloriesGained, setActualCaloriesGained] = useState(0);
+  const [currentDay, setCurrentDay] = useState(getTodayDate());
+  const [sleepHours, setSleepHours] = useState<number>(0);
+  const [expectedSleepHours, setExpectedSleepHours] = useState<number>(0);
+  const [showSleepModal, setShowSleepModal] = useState(false);
+  const [inputSleepHours, setInputSleepHours] = useState<string>('');
+  const [showWaterModal, setShowWaterModal] = useState(false);
+  const [inputWaterLiters, setInputWaterLiters] = useState<string>('');
+  const [actualWaterLiters, setActualWaterLiters] = useState<number>(0);
+  const [expectedWaterLiters, setExpectedWaterLiters] = useState<number>(0);
+  const [streak, setStreak] = useState(0);
+  const [markedDates, setMarkedDates] = useState<{ [key: string]: { marked: boolean; color: string; textColor?: string } }>({});
+  const [renderKey, setRenderKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
   const { user } = useUserAuth();
-  const navigation = useNavigation();
 
   useEffect(() => {
     if (!user || !user.id) {
@@ -273,6 +293,22 @@ export default function Home() {
       return;
     }
   }, [user, router]);
+
+  useEffect(() => {
+    const checkDayChange = () => {
+      const newDay = getTodayDate();
+      if (newDay !== currentDay) {
+        console.log('Day changed from', currentDay, 'to', newDay);
+        setCurrentDay(newDay);
+        setCurrentMonth(getCurrentMonth());
+        fetchWorkoutData();
+      }
+    };
+  
+    const intervalId = setInterval(checkDayChange, 60 * 1000);
+  
+    return () => clearInterval(intervalId);
+  }, [currentDay]);
 
   useFocusEffect(
     useCallback(() => {
@@ -283,10 +319,70 @@ export default function Home() {
     }, [user])
   );
 
+  const fetchStreakAndCompletions = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data: streakData, error: streakError } = await supabase
+        .from('Streak')
+        .select('current_streak, last_completion_date')
+        .eq('user_id', user.id)
+        .single();
+
+      if (streakError && streakError.code !== 'PGRST116') {
+        console.error('Error fetching streak:', streakError.message);
+        return;
+      }
+
+      if (streakData) {
+        setStreak(streakData.current_streak || 0);
+      } else {
+        await supabase.from('Streak').insert({
+          user_id: user.id,
+          current_streak: 0,
+          last_completion_date: null,
+        });
+        setStreak(0);
+      }
+
+      const { data: completions, error: completionsError } = await supabase
+        .from('ExerciseCompletions')
+        .select('completion_date')
+        .eq('user_id', user.id)
+        .eq('status', 'completed');
+
+      if (completionsError) {
+        console.error('Error fetching completions for calendar:', completionsError.message);
+        return;
+      }
+
+      const today = getTodayDate();
+      const newMarkedDates: { [key: string]: { marked: boolean; color: string; textColor?: string } } = {};
+      completions.forEach((completion: any) => {
+        const date = new Date(completion.completion_date).toISOString().split('T')[0];
+        newMarkedDates[date] = { marked: true, color: '#FFA500' }; // Orange for completed streak days
+      });
+
+      // Highlight current day in pink, or orange if it matches a completed date
+      if (!newMarkedDates[today]) {
+        newMarkedDates[today] = { marked: true, color: '#EC4899' }; // Pink for current day
+      } else {
+        newMarkedDates[today].color = '#FFA500'; // Orange if completed today
+      }
+
+      setMarkedDates(newMarkedDates);
+    } catch (error: any) {
+      console.error('Error in fetchStreakAndCompletions:', error.message);
+    }
+  };
+
   const fetchWorkoutData = async () => {
     if (!user || !user.id) return;
+
+    let completionSubscription: Channel<any> | null = null;
+    let mealSubscription: Channel<any> | null = null;
+
     try {
-      // Fetch user details for rest day
       const { data: userData } = await supabase
         .from('User')
         .select('preferred_rest_day')
@@ -294,7 +390,6 @@ export default function Home() {
         .single();
       setPreferredRestDay(userData?.preferred_rest_day || null);
 
-      // Fetch workout plan
       const { data: planData, error: planError } = await supabase
         .from('WorkoutPlans')
         .select('id, start_date, challenge_days')
@@ -304,12 +399,17 @@ export default function Home() {
 
       if (planError || !planData) throw new Error('No active workout plan found.');
 
+      console.log('Workout Plan:', { id: planData.id, startDate: planData.start_date, challengeDays: planData.challenge_days });
+
       const days = getWorkoutDays(planData.challenge_days || 30, planData.start_date);
       setWorkoutDays(days);
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayDate();
+      const startOfDay = `${today}T00:00:00.000Z`;
+      const endOfDay = `${today}T23:59:59.999Z`;
 
-      // Fetch daily workout
+      console.log('Real-time Date (today):', today);
+
       const { data: dailyData, error: dailyError } = await supabase
         .from('DailyWorkouts')
         .select('id, day_name, daily_workout_date, focus, total_duration_min, total_calories_burned')
@@ -317,137 +417,481 @@ export default function Home() {
         .eq('daily_workout_date', today)
         .single();
 
+      console.log('Fetched Daily Workout:', dailyData, 'Error:', dailyError);
+
       if (!dailyError && dailyData) {
-        const { data: exerciseData, error: exerciseError } = await supabase
-          .from('Workouts')
-          .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
-          .eq('daily_workout_id', dailyData.id);
+        if (dailyData.focus.toLowerCase().includes('rest')) {
+          setDailyWorkout({
+            id: dailyData.id,
+            day_name: dailyData.day_name,
+            daily_workout_date: dailyData.daily_workout_date,
+            focus: dailyData.focus,
+            total_duration_min: dailyData.total_duration_min,
+            total_calories_burned: dailyData.total_calories_burned,
+            exercises: [],
+          });
+          setProgressPercentage(0);
+          setTotalCaloriesToBurn(0);
+          setCaloriesBurnedToday(0);
+          setExpectedCaloriesGained(0);
+          setActualCaloriesGained(0);
+        } else {
+          const { data: exerciseData, error: exerciseError } = await supabase
+            .from('Workouts')
+            .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
+            .eq('daily_workout_id', dailyData.id);
 
-        if (exerciseError) throw new Error('Error fetching exercises.');
+          if (exerciseError) throw new Error('Error fetching exercises: ' + exerciseError.message);
 
-        // Fetch completions for today
-        const { data: completionData, error: completionError } = await supabase
-          .from('ExerciseCompletions')
-          .select('workout_id')
-          .eq('user_id', user.id)
+          const totalCalories = exerciseData?.reduce((sum: number, exercise: Exercise) => sum + (exercise.calories_burned || 0), 0) || 0;
+          setTotalCaloriesToBurn(totalCalories);
+
+          const { data: completionData, error: completionError } = await supabase
+            .from('ExerciseCompletions')
+            .select('workout_id, calories_burned')
+            .eq('user_id', user.id)
+            .eq('daily_workout_id', dailyData.id)
+            .gte('completion_date', startOfDay)
+            .lte('completion_date', endOfDay);
+
+          if (completionError) throw new Error('Error fetching completions: ' + completionError.message);
+
+          const burnedCalories = completionData?.reduce((sum: number, completion: any) => sum + (completion.calories_burned || 0), 0) || 0;
+          setCaloriesBurnedToday(burnedCalories);
+
+          const totalExercises = exerciseData?.length || 1;
+          const completedExercises = completionData?.length || 0;
+          const calculatedPercentage = Math.round((completedExercises / totalExercises) * 100);
+
+          setProgressPercentage(calculatedPercentage);
+
+          setDailyWorkout({
+            id: dailyData.id,
+            day_name: dailyData.day_name,
+            daily_workout_date: dailyData.daily_workout_date,
+            focus: dailyData.focus,
+            total_duration_min: dailyData.total_duration_min,
+            total_calories_burned: dailyData.total_calories_burned,
+            exercises: exerciseData || [],
+          });
+
+          completionSubscription = supabase
+            .channel('exercise-completions-channel')
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'ExerciseCompletions',
+                filter: `user_id=eq.${user.id}`,
+              },
+              async (payload) => {
+                console.log('ExerciseCompletions change received:', payload);
+                const currentToday = getTodayDate();
+                const currentStartOfDay = `${currentToday}T00:00:00.000Z`;
+                const currentEndOfDay = `${currentToday}T23:59:59.999Z`;
+
+                const { data: updatedCompletions, error: updatedError } = await supabase
+                  .from('ExerciseCompletions')
+                  .select('workout_id, calories_burned, completion_date')
+                  .eq('user_id', user.id)
+                  .eq('daily_workout_id', dailyData.id)
+                  .gte('completion_date', currentStartOfDay)
+                  .lte('completion_date', currentEndOfDay);
+
+                if (updatedError) {
+                  console.error('Error fetching updated completions:', updatedError.message);
+                  return;
+                }
+
+                const updatedBurnedCalories = updatedCompletions?.reduce((sum: number, completion: any) => sum + (completion.calories_burned || 0), 0) || 0;
+                setCaloriesBurnedToday((prev) => {
+                  console.log('Updating caloriesBurnedToday:', prev, '->', updatedBurnedCalories);
+                  return updatedBurnedCalories;
+                });
+
+                const updatedCompletedExercises = updatedCompletions?.length || 0;
+                const updatedPercentage = Math.round((updatedCompletedExercises / totalExercises) * 100);
+                setProgressPercentage((prev) => {
+                  console.log('Updating progressPercentage:', prev, '->', updatedPercentage);
+                  return updatedPercentage;
+                });
+
+                await fetchStreakAndCompletions();
+
+                setRenderKey((prev) => prev + 1);
+              }
+            )
+            .subscribe();
+        }
+
+        const { data: mealData, error: mealError } = await supabase
+          .from('DailyMealPlans')
+          .select('id, daily_workout_id, daily_calories, carbs_grams, protein_grams, fat_grams, calories_intake, water_litres, sleep_hours')
           .eq('daily_workout_id', dailyData.id)
-          .eq('completion_date::date', today);
+          .single();
 
-        if (completionError) throw new Error('Error fetching completions.');
+        if (!mealError && mealData) {
+          setDailyMeal({
+            id: mealData.id,
+            daily_workout_id: mealData.daily_workout_id,
+            daily_calories: mealData.daily_calories,
+            carbs_grams: mealData.carbs_grams,
+            protein_grams: mealData.protein_grams,
+            fat_grams: mealData.fat_grams,
+            sleep_hours: mealData.sleep_hours || 0,
+            water_litres: mealData.water_litres || 0,
+          });
+          setExpectedCaloriesGained(mealData.daily_calories || 0);
+          setActualCaloriesGained(mealData.calories_intake || 0);
+          setExpectedWaterLiters(mealData.water_litres || 0);
+          setExpectedSleepHours(mealData.sleep_hours || 0);
 
-        const totalExercises = exerciseData?.length || 1;
-        const completedExercises = completionData?.length || 0;
-        const calculatedPercentage = Math.round((completedExercises / totalExercises) * 100);
+          mealSubscription = supabase
+            .channel('daily-meal-plans-channel')
+            .on(
+              'postgres_changes',
+              {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'DailyMealPlans',
+                filter: `daily_workout_id=eq.${dailyData.id}`,
+              },
+              async (payload) => {
+                console.log('DailyMealPlans change received:', payload);
+                const { data: updatedMeal, error: updatedMealError } = await supabase
+                  .from('DailyMealPlans')
+                  .select('calories_intake, water_litres, sleep_hours')
+                  .eq('daily_workout_id', dailyData.id)
+                  .single();
 
-        setProgressPercentage(calculatedPercentage);
+                if (updatedMealError) {
+                  console.error('Error fetching updated meal data:', updatedMealError.message);
+                  return;
+                }
 
-        setDailyWorkout({
-          id: dailyData.id,
-          day_name: dailyData.day_name,
-          daily_workout_date: dailyData.daily_workout_date,
-          focus: dailyData.focus,
-          total_duration_min: dailyData.total_duration_min,
-          total_calories_burned: dailyData.total_calories_burned,
-          exercises: exerciseData || [],
-        });
+                setActualCaloriesGained((prev) => {
+                  const newValue = updatedMeal.calories_intake || 0;
+                  console.log('Updating actualCaloriesGained:', prev, '->', newValue);
+                  return newValue;
+                });
+                setExpectedWaterLiters((prev) => {
+                  const newValue = updatedMeal.water_litres || 0;
+                  console.log('Updating expectedWaterLiters:', prev, '->', newValue);
+                  return newValue;
+                });
+                setExpectedSleepHours((prev) => {
+                  const newValue = updatedMeal.sleep_hours || 0;
+                  console.log('Updating expectedSleepHours:', prev, '->', newValue);
+                  return newValue;
+                });
+
+                setRenderKey((prev) => prev + 1);
+              }
+            )
+            .subscribe();
+        } else {
+          console.warn('No DailyMeal found for daily_workout_id:', dailyData.id, 'Error:', mealError?.message);
+          setDailyMeal(null);
+          setExpectedCaloriesGained(0);
+          setActualCaloriesGained(0);
+          setExpectedWaterLiters(0);
+          setExpectedSleepHours(0);
+        }
+
+        await fetchSleepHours(today);
+        await fetchWaterIntake(today);
+
+        const waterSubscription = supabase
+          .channel('daily-water-records-channel')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'DailyWaterRecords',
+              filter: `user_id=eq.${user.id}`,
+            },
+            async (payload) => {
+              console.log('DailyWaterRecords change received:', payload);
+              const currentToday = getTodayDate();
+              await fetchWaterIntake(currentToday);
+              setRenderKey((prev) => prev + 1);
+            }
+          )
+          .subscribe();
+
+        const sleepSubscription = supabase
+          .channel('daily-sleep-records-channel')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'DailySleepRecords',
+              filter: `user_id=eq.${user.id}`,
+            },
+            async (payload) => {
+              console.log('DailySleepRecords change received:', payload);
+              const currentToday = getTodayDate();
+              await fetchSleepHours(currentToday);
+              setRenderKey((prev) => prev + 1);
+            }
+          )
+          .subscribe();
+
+        const streakSubscription = supabase
+          .channel('streak-channel')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'Streak',
+              filter: `user_id=eq.${user.id}`,
+            },
+            async (payload) => {
+              console.log('Streak change received:', payload);
+              await fetchStreakAndCompletions();
+              setRenderKey((prev) => prev + 1);
+            }
+          )
+          .subscribe();
+
+        await fetchStreakAndCompletions();
+
+        return () => {
+          supabase.removeChannel(waterSubscription);
+          supabase.removeChannel(sleepSubscription);
+          supabase.removeChannel(streakSubscription);
+          if (mealSubscription) supabase.removeChannel(mealSubscription);
+          if (completionSubscription) supabase.removeChannel(completionSubscription);
+        };
       } else {
         setDailyWorkout(null);
         setProgressPercentage(0);
-      }
-
-      // Fetch daily meal
-      const { data: mealData, error: mealError } = await supabase
-        .from('DailyMealPlans')
-        .select('id, day_number, daily_calories, carbs_grams, protein_grams, fat_grams')
-        .eq('workout_plan_id', planData.id)
-        .eq('day_number', days.find((day) => day.date === today)?.day_number || 0)
-        .single();
-
-      if (!mealError && mealData) {
-        setDailyMeal({
-          id: mealData.id,
-          day_number: mealData.day_number,
-          daily_calories: mealData.daily_calories,
-          carbs_grams: mealData.carbs_grams,
-          protein_grams: mealData.protein_grams,
-          fat_grams: mealData.fat_grams,
-        });
-      } else {
+        setTotalCaloriesToBurn(0);
+        setCaloriesBurnedToday(0);
+        setExpectedCaloriesGained(0);
+        setActualCaloriesGained(0);
         setDailyMeal(null);
+        setSleepHours(0);
+        setExpectedSleepHours(0);
+        setActualWaterLiters(0);
+        setExpectedWaterLiters(0);
       }
-
-      // Fetch streak and calendar data
-      await fetchStreakAndCalendar(planData.start_date, planData.challenge_days, userData?.preferred_rest_day);
     } catch (error: any) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching data:', error.message);
       setDailyWorkout(null);
       setDailyMeal(null);
       setWorkoutDays([]);
       setProgressPercentage(0);
+      setTotalCaloriesToBurn(0);
+      setCaloriesBurnedToday(0);
+      setExpectedCaloriesGained(0);
+      setActualCaloriesGained(0);
+      setSleepHours(0);
+      setExpectedSleepHours(0);
+      setActualWaterLiters(0);
+      setExpectedWaterLiters(0);
+      setStreak(0);
+      setMarkedDates({});
     }
   };
 
-  const fetchStreakAndCalendar = async (startDate: string, challengeDays: number, restDay: string | null) => {
+  const fetchSleepHours = async (today: string) => {
     if (!user || !user.id) return;
     try {
-      const days = getWorkoutDays(challengeDays, startDate);
-      const start = new Date(startDate);
-      const end = new Date(start);
-      end.setDate(start.getDate() + challengeDays - 1);
-
-      // Fetch all completions within the plan period
-      const { data: completions } = await supabase
-        .from('ExerciseCompletions')
-        .select('completion_date')
+      const { data: sleepData, error: sleepError } = await supabase
+        .from('DailySleepRecords')
+        .select('sleep_hours')
         .eq('user_id', user.id)
-        .gte('completion_date', start.toISOString())
-        .lte('completion_date', end.toISOString());
+        .eq('sleep_date', today)
+        .single();
 
-      const workoutDates = completions?.map((c) => new Date(c.completion_date).toISOString().split('T')[0]) || [];
-      const uniqueWorkoutDates = Array.from(new Set(workoutDates));
-
-      // Mark calendar dates
-      const marked: any = {};
-      let currentStreak = 0;
-      let streakBroken = false;
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-
-      for (let i = 0; i < challengeDays; i++) {
-        const date = new Date(start);
-        date.setDate(start.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
-        const dayName = date.toLocaleString('default', { weekday: 'long' });
-
-        if (restDay && dayName === restDay) {
-          marked[dateStr] = { customStyles: { container: { backgroundColor: '#D3D3D3' }, text: { color: '#FFF' } } };
-          continue;
-        }
-
-        if (uniqueWorkoutDates.includes(dateStr)) {
-          marked[dateStr] = { customStyles: { container: { backgroundColor: '#FF69B4' }, text: { color: '#FFF' } } };
-          if (!streakBroken) currentStreak++;
-        } else if (date <= today && !streakBroken) {
-          streakBroken = true;
-        }
-
-        if (dateStr === tomorrow.toISOString().split('T')[0] && uniqueWorkoutDates.includes(today.toISOString().split('T')[0])) {
-          marked[dateStr] = { customStyles: { container: { borderWidth: 2, borderColor: '#FF69B4' }, text: { color: '#000' } } };
-        }
+      if (sleepError && sleepError.code !== 'PGRST116') {
+        throw new Error('Error fetching sleep hours: ' + sleepError.message);
       }
 
-      setMarkedDates(marked);
-      setStreak(currentStreak);
+      const newSleepHours = sleepData && sleepData.sleep_hours !== null ? sleepData.sleep_hours : 0;
+      setSleepHours((prev) => {
+        console.log('Updating sleepHours:', prev, '->', newSleepHours);
+        return newSleepHours;
+      });
     } catch (error) {
-      console.error('Error fetching streak:', error);
-      setMarkedDates({});
-      setStreak(0);
+      console.error('Error fetching sleep hours:', error);
+      setSleepHours(0);
     }
   };
 
+  const fetchWaterIntake = async (today: string) => {
+    if (!user || !user.id) return;
+    try {
+      const { data: waterData, error: waterError } = await supabase
+        .from('DailyWaterRecords')
+        .select('water_liters')
+        .eq('user_id', user.id)
+        .eq('water_date', today)
+        .single();
+
+      if (waterError && waterError.code !== 'PGRST116') {
+        throw new Error('Error fetching water intake: ' + waterError.message);
+      }
+
+      const newWaterLiters = waterData && waterData.water_liters !== null ? waterData.water_liters : 0;
+      setActualWaterLiters((prev) => {
+        console.log('Updating actualWaterLiters:', prev, '->', newWaterLiters);
+        return newWaterLiters;
+      });
+    } catch (error) {
+      console.error('Error fetching water intake:', error);
+      setActualWaterLiters(0);
+    }
+  };
+
+  const handleLogSleep = async () => {
+    if (!user || !user.id || !inputSleepHours) return;
+
+    const hours = parseFloat(inputSleepHours);
+    if (isNaN(hours) || hours < 0 || hours > 24) {
+      alert('Please enter a valid number of hours between 0 and 24.');
+      return;
+    }
+
+    const today = getTodayDate();
+
+    try {
+      const { data: existingRecord, error: fetchError } = await supabase
+        .from('DailySleepRecords')
+        .select('id, sleep_hours')
+        .eq('user_id', user.id)
+        .eq('sleep_date', today)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw new Error('Error checking existing sleep record: ' + fetchError.message);
+      }
+
+      const previousHours = existingRecord && existingRecord.sleep_hours !== null ? existingRecord.sleep_hours : 0;
+      const totalHours = previousHours + hours;
+
+      if (totalHours > 24) {
+        alert('Total sleep hours for the day cannot exceed 24 hours.');
+        return;
+      }
+
+      if (existingRecord) {
+        const { error: updateError } = await supabase
+          .from('DailySleepRecords')
+          .update({ sleep_hours: totalHours, created_at: new Date().toISOString() })
+          .eq('id', existingRecord.id);
+
+        if (updateError) throw new Error('Error updating sleep hours: ' + updateError.message);
+      } else {
+        const { error: insertError } = await supabase
+          .from('DailySleepRecords')
+          .insert({
+            user_id: user.id,
+            sleep_date: today,
+            sleep_hours: hours,
+            created_at: new Date().toISOString(),
+          });
+
+        if (insertError) throw new Error('Error logging sleep hours: ' + insertError.message);
+      }
+
+      await fetchSleepHours(today);
+      setShowSleepModal(false);
+      setInputSleepHours('');
+      setRenderKey((prev) => prev + 1);
+    } catch (error) {
+      console.error('Error logging sleep hours:', error);
+      alert('Failed to log sleep hours. Please try again.');
+    }
+  };
+
+  const handleLogWater = async () => {
+    if (!user || !user.id || !inputWaterLiters) return;
+
+    const liters = parseFloat(inputWaterLiters);
+    if (isNaN(liters) || liters < 0) {
+      alert('Please enter a valid number of liters (greater than or equal to 0).');
+      return;
+    }
+
+    const today = getTodayDate();
+
+    try {
+      const { data: existingRecord, error: fetchError } = await supabase
+        .from('DailyWaterRecords')
+        .select('id, water_liters')
+        .eq('user_id', user.id)
+        .eq('water_date', today)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw new Error('Error checking existing water record: ' + fetchError.message);
+      }
+
+      const previousLiters = existingRecord && existingRecord.water_liters !== null ? existingRecord.water_liters : 0;
+      const totalLiters = previousLiters + liters;
+
+      if (existingRecord) {
+        const { error: updateError } = await supabase
+          .from('DailyWaterRecords')
+          .update({ water_liters: totalLiters, created_at: new Date().toISOString() })
+          .eq('id', existingRecord.id);
+
+        if (updateError) throw new Error('Error updating water intake: ' + updateError.message);
+      } else {
+        const { error: insertError } = await supabase
+          .from('DailyWaterRecords')
+          .insert({
+            user_id: user.id,
+            water_date: today,
+            water_liters: liters,
+            created_at: new Date().toISOString(),
+          });
+
+        if (insertError) throw new Error('Error logging water intake: ' + insertError.message);
+      }
+
+      await fetchWaterIntake(today);
+      setShowWaterModal(false);
+      setInputWaterLiters('');
+      setRenderKey((prev) => prev + 1);
+    } catch (error) {
+      console.error('Error logging water intake:', error);
+      alert('Failed to log water intake. Please try again.');
+    }
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchWorkoutData();
+    setRefreshing(false);
+  }, []);
+
   const navigateToExercises = (dayName: string) => {
-    router.push(`/(screens)/Exercises?day=${dayName}`);
+    router.push({
+      pathname: '/(screens)/Exercises',
+      params: { day: dayName, source: 'Home' },
+    });
+  };
+
+  const navigateToMealDetail = () => {
+    if (!dailyWorkout || !dailyMeal) {
+      console.warn('Cannot navigate to MealDetail: dailyWorkout or dailyMeal is null');
+      return;
+    }
+    router.push({
+      pathname: '/(screens)/MealDetail',
+      params: {
+        meal: dailyWorkout.day_name,
+        dailyWorkoutId: dailyWorkout.id,
+        from: 'home',
+      },
+    });
   };
 
   if (!user || !user.id) {
@@ -461,219 +905,296 @@ export default function Home() {
     );
   }
 
+  const currentDate = new Date();
+  const currentMonthIndex = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+  const filteredWorkoutDays = workoutDays.filter((day) => {
+    const dayDate = new Date(day.date);
+    return dayDate.getMonth() === currentMonthIndex && dayDate.getFullYear() === currentYear;
+  });
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Streak Card */}
-      <View style={[styles.card, styles.streakCard]}>
-        <View style={styles.streakHeader}>
-          <Text style={styles.streakTitle}>🔥 Current Streak</Text>
-          <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)}>
-            <Text style={styles.calendarLink}>Calendar</Text>
-          </TouchableOpacity>
-          <Text style={styles.streakDays}>{streak} days</Text>
-        </View>
-        <Text style={styles.month}>{currentMonth}</Text>
-
-        {showCalendar ? (
-          <Calendar
-            markedDates={markedDates}
-            markingType={'custom'}
-            style={styles.calendar}
-            theme={{
-              calendarBackground: '#FFF',
-              textSectionTitleColor: '#000',
-              todayTextColor: '#EC4899',
-              dayTextColor: '#000',
-              arrowColor: '#EC4899',
-            }}
-            onDayPress={(day) => {
-              const selectedDay = workoutDays.find((d) => d.date === day.dateString);
-              if (selectedDay) navigateToExercises(selectedDay.day_name);
-            }}
-          />
-        ) : (
-          <FlatList
-            data={workoutDays}
-            keyExtractor={(item) => item.date}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.dateList}
-            renderItem={({ item, index }) => {
-              const today = new Date().toISOString().split('T')[0];
-              const isCurrentDate = item.date === today;
-              return (
-                <TouchableOpacity
-                  style={[
-                    styles.dateItem,
-                    index < 7 && styles.activeDateItem,
-                    isCurrentDate && styles.currentDateItem,
-                  ]}
-                  onPress={() => navigateToExercises(item.day_name)}
-                >
-                  <Text
-                    style={[
-                      styles.dateDay,
-                      isCurrentDate && styles.currentDateText,
-                    ]}
-                  >
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'][index % 7]}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.dateText,
-                      isCurrentDate && styles.currentDateText,
-                    ]}
-                  >
-                    {item.day_number}
-                  </Text>
-                  {isCurrentDate && <View style={styles.currentDayIndicator} />}
-                </TouchableOpacity>
-              );
-            }}
-          />
-        )}
+    <View key={renderKey} style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Image
+          source={Logo}
+          style={styles.logo}
+        />
+        <Text style={styles.headerText}>Home</Text>
+        <Text style={styles.usernameText}>{user.username || 'User'}</Text>
       </View>
 
-      {/* Progress Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Today's Progress</Text>
-        <View style={styles.progressGrid}>
-          <View style={[styles.progressCard, { height: 260 }]}>
-            <Text style={styles.progressIcon}>📈</Text>
-            <Text style={styles.progressTitle}>Calories Gained</Text>
-            <CircularProgress
-              progress={dailyMeal ? (dailyMeal.daily_calories / 2000) * 100 : 0}
-              gradientId="caloriesGainedGradient"
-              displayText={dailyMeal ? `${dailyMeal.daily_calories.toFixed(1)}/2000 cal` : '0/2000 cal'}
+      <ScrollView
+        style={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#EC4899"
+            colors={['#EC4899']}
+          />
+        }
+      >
+        <View style={[styles.card, styles.streakCard]}>
+          <View style={styles.streakHeader}>
+            <Text style={styles.streakTitle}>🔥 Current Streak</Text>
+            <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.calendarButton}>
+              <Text style={styles.calendarLink}>View Calendar</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.calendarText}>
+            <Text style={styles.month}>{currentMonth}</Text>
+            <Text style={[styles.streakDays, { color: '#FFA500' }]}>{streak} days</Text>
+          </View>
+
+          {showCalendar ? (
+            <Calendar
+              style={styles.calendar}
+              theme={{
+                calendarBackground: '#FFF',
+                textSectionTitleColor: '#000',
+                todayTextColor: '#EC4899',
+                dayTextColor: '#000',
+                arrowColor: '#EC4899',
+              }}
+              markedDates={markedDates}
             />
-          </View>
+          ) : (
+            <FlatList
+              data={filteredWorkoutDays}
+              keyExtractor={(item) => item.date}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.dateList}
+              renderItem={({ item, index }) => {
+                const today = getTodayDate();
+                const isCompleted = markedDates[item.date]?.color === '#FFA500';
+                const isCurrentDate = item.date === today;
+                const backgroundColor = isCompleted ? '#FFA500' : isCurrentDate ? '#EC4899' : '#F3F4F6';
+                const textColor = isCompleted || isCurrentDate ? '#FFFFFF' : '#1F2937';
 
-          <View style={[styles.progressCard, { height: 260 }]}>
-            <Text style={styles.progressIcon}>🔥</Text>
-            <Text style={styles.progressTitle}>Calories Burnt</Text>
-            <CircularProgress
-              progress={dailyWorkout ? (dailyWorkout.total_calories_burned / 500) * 100 : 0}
-              gradientId="caloriesBurntGradient"
-              displayText={dailyWorkout ? `${dailyWorkout.total_calories_burned}/500 cal` : '0/500 cal'}
+                return (
+                  <View
+                    style={[
+                      styles.dateItem,
+                      { backgroundColor },
+                      (isCompleted || isCurrentDate) && { width: 48, height: 72 },
+                    ]}
+                  >
+                    <Text style={[styles.dateDay, { color: textColor }]}>{['S', 'M', 'T', 'W', 'T', 'F', 'S'][index % 7]}</Text>
+                    <Text style={[styles.dateText, { color: textColor }]}>{item.day_number}</Text>
+                    {isCurrentDate && !isCompleted && <View style={styles.currentDayIndicator} />}
+                  </View>
+                );
+              }}
             />
-          </View>
-
-          <View style={[styles.progressCard, { height: 260 }]}>
-            <SleepCard progress={6} />
-          </View>
-
-          <View style={[styles.progressCard, { height: 260 }]}>
-            <Text style={styles.progressIcon}>💧</Text>
-            <Text style={styles.progressTitle}>Water</Text>
-            <WaterGlass progress={66.67} />
-            <Text style={styles.progressText}>2/3 L</Text>
-          </View>
+          )}
         </View>
-      </View>
 
-      {/* Workout Card */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Workout</Text>
-          <TouchableOpacity onPress={() => navigateToExercises(dailyWorkout?.day_name || 'Today')}>
-            <Text style={styles.seeAllText}>See All</Text>
-          </TouchableOpacity>
-        </View>
-        {dailyWorkout ? (
-          dailyWorkout.focus.toLowerCase().includes('rest') ? (
-            <View style={[styles.card, styles.workoutCard]}>
-              <Text style={styles.noWorkoutText}>Today is a Rest Day. No exercises scheduled.</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Today's Progress</Text>
+          <View style={styles.progressGrid}>
+            <View style={[styles.progressCard, { height: 260 }]}>
+              <Text style={styles.progressIcon}>📈</Text>
+              <Text style={styles.progressTitle}>Calories Gained</Text>
+              <CircularProgress
+                progress={
+                  expectedCaloriesGained > 0
+                    ? Math.min((actualCaloriesGained / expectedCaloriesGained) * 100, 100)
+                    : 0
+                }
+                gradientId="caloriesGainedGradient"
+                displayText={`${actualCaloriesGained.toFixed(1)}/${expectedCaloriesGained.toFixed(1)} cal`}
+              />
             </View>
-          ) : dailyWorkout.exercises.length > 0 ? (
-            <TouchableOpacity
-              style={[styles.card, styles.workoutCard]}
-              onPress={() => navigateToExercises(dailyWorkout.day_name)}
-            >
-              <View style={styles.workoutRow}>
-                <Image
-                  source={{
-                    uri: dailyWorkout.exercises[0].image || 'https://via.placeholder.com/80',
-                  }}
-                  style={styles.workoutImage}
-                />
-                <View style={styles.workoutInfo}>
-                  <Text style={styles.workoutName}>{dailyWorkout.exercises[0].exercise_name}</Text>
-                  <View style={styles.workoutStats}>
-                    <View style={styles.workoutStatItem}>
-                      <Text style={styles.workoutStatIcon}>🔥</Text>
-                      <Text style={styles.workoutStatText}>
-                        {dailyWorkout.exercises[0].calories_burned} cal
-                      </Text>
-                    </View>
-                    <View style={styles.workoutStatItem}>
-                      <Text style={styles.workoutStatIcon}>🔁</Text>
-                      <Text style={styles.workoutStatText}>
-                        {dailyWorkout.exercises[0].reps} reps
-                      </Text>
+
+            <View style={[styles.progressCard, { height: 260 }]}>
+              <Text style={styles.progressIcon}>🔥</Text>
+              <Text style={styles.progressTitle}>Calories Burnt</Text>
+              <CircularProgress
+                progress={totalCaloriesToBurn > 0 ? (caloriesBurnedToday / totalCaloriesToBurn) * 100 : 0}
+                gradientId="caloriesBurntGradient"
+                displayText={`${caloriesBurnedToday.toFixed(1)}/${totalCaloriesToBurn.toFixed(1)} cal`}
+              />
+            </View>
+
+            <View style={[styles.progressCard, { height: 260 }]}>
+              <SleepCard
+                progress={sleepHours}
+                expectedHours={expectedSleepHours}
+                onLogPress={() => setShowSleepModal(true)}
+              />
+            </View>
+
+            <View style={[styles.progressCard, { height: 260 }]}>
+              <Text style={styles.progressIcon}>💧</Text>
+              <Text style={styles.progressTitle}>Water</Text>
+              <WaterGlass
+                progress={expectedWaterLiters > 0 ? (actualWaterLiters / expectedWaterLiters) * 100 : 0}
+                actualLiters={actualWaterLiters}
+                expectedLiters={expectedWaterLiters}
+                onLogPress={() => setShowWaterModal(true)}
+              />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Workout</Text>
+          </View>
+          {dailyWorkout ? (
+            dailyWorkout.focus.toLowerCase().includes('rest') ? (
+              <View style={[styles.card, styles.workoutCard]}>
+                <Text style={styles.noWorkoutText}>Today is a Rest Day. No exercises scheduled.</Text>
+              </View>
+            ) : dailyWorkout.exercises.length > 0 ? (
+              <TouchableOpacity
+                style={[styles.card, styles.workoutCard]}
+                onPress={() => navigateToExercises(dailyWorkout.day_name)}
+              >
+                <View style={styles.workoutRow}>
+                  <View style={styles.workoutInfo}>
+                    <Text style={styles.workoutName}>{dailyWorkout.day_name}</Text>
+                    <View style={styles.workoutStats}>
+                      <View style={styles.workoutStatItem}>
+                        <Text style={styles.workoutStatIcon}>🎯</Text>
+                        <Text style={styles.workoutStatText}>
+                          {dailyWorkout.focus}
+                        </Text>
+                      </View>
+                      <View style={styles.workoutStatItem}>
+                        <Text style={styles.workoutStatIcon}>⏰</Text>
+                        <Text style={styles.workoutStatText}>
+                          {dailyWorkout.total_duration_min} min
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
-              </View>
-              <View style={styles.workoutProgress}>
-                <View style={[styles.progressBar, { width: `${progressPercentage}%` }]}>
-                  <View style={styles.progressFill} />
+                <View style={styles.workoutProgress}>
+                  <View style={[styles.progressBar, { width: `${progressPercentage}%` }]}>
+                    <View style={styles.progressFill} />
+                  </View>
+                  <Text style={styles.progressLabel}>{progressPercentage}% completed</Text>
                 </View>
-                <Text style={styles.progressLabel}>{progressPercentage}% completed</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={[styles.card, styles.workoutCard]}>
+                <Text style={styles.noWorkoutText}>No exercises scheduled for today.</Text>
+              </View>
+            )
+          ) : (
+            <View style={[styles.card, styles.workoutCard]}>
+              <Text style={styles.noWorkoutText}>No workout scheduled for today.</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Nutrition</Text>
+          </View>
+          {dailyMeal ? (
+            <TouchableOpacity
+              style={[styles.card, styles.mealContainer]}
+              onPress={navigateToMealDetail}
+            >
+              <Text style={styles.mealText}>{dailyWorkout?.day_name}</Text>
+              <View style={styles.mealDetails}>
+                <Text style={styles.mealDetailText}>
+                  Calories: {dailyMeal.daily_calories.toFixed(1)} cal
+                </Text>
+                <Text style={styles.mealDetailText}>
+                  Carbs: {dailyMeal.carbs_grams.toFixed(1)}g
+                </Text>
+                <Text style={styles.mealDetailText}>
+                  Protein: {dailyMeal.protein_grams.toFixed(1)}g
+                </Text>
+                <Text style={styles.mealDetailText}>
+                  Fat: {dailyMeal.fat_grams.toFixed(1)}g
+                </Text>
               </View>
             </TouchableOpacity>
           ) : (
-            <View style={[styles.card, styles.workoutCard]}>
-              <Text style={styles.noWorkoutText}>No exercises scheduled for today.</Text>
+            <View style={[styles.card, styles.mealContainer]}>
+              <Text style={styles.noMealText}>No meal plan available for today.</Text>
             </View>
-          )
-        ) : (
-          <View style={[styles.card, styles.workoutCard]}>
-            <Text style={styles.noWorkoutText}>No workout scheduled for today.</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Nutrition Section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Nutrition</Text>
-          <TouchableOpacity
-            onPress={() =>
-              router.push(
-                `/(screens)/MealDetail?meal=Day ${dailyMeal?.day_number || 'Today'}&day=${
-                  dailyMeal?.day_number || 0
-                }`
-              )
-            }
-          >
-            <Text style={styles.seeAllText}>See Details</Text>
-          </TouchableOpacity>
+          )}
         </View>
-        {dailyMeal ? (
-          <View style={[styles.card, styles.mealContainer]}>
-            <Text style={styles.mealText}>Day {dailyMeal.day_number}</Text>
-            <View style={styles.mealDetails}>
-              <Text style={styles.mealDetailText}>
-                Calories: {dailyMeal.daily_calories.toFixed(1)} kcal
-              </Text>
-              <Text style={styles.mealDetailText}>
-                Carbs: {dailyMeal.carbs_grams.toFixed(1)}g
-              </Text>
-              <Text style={styles.mealDetailText}>
-                Protein: {dailyMeal.protein_grams.toFixed(1)}g
-              </Text>
-              <Text style={styles.mealDetailText}>
-                Fat: {dailyMeal.fat_grams.toFixed(1)}g
-              </Text>
+      </ScrollView>
+
+      <Modal
+        visible={showSleepModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSleepModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Log Sleep Hours</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter hours slept (e.g., 7.5)"
+              keyboardType="numeric"
+              value={inputSleepHours}
+              onChangeText={setInputSleepHours}
+            />
+            <View style={styles.modalButtonContainer}>
+              <Button
+                title="Cancel"
+                onPress={() => {
+                  setShowSleepModal(false);
+                  setInputSleepHours('');
+                }}
+                color="#FF4040"
+              />
+              <Button
+                title="Save"
+                onPress={handleLogSleep}
+                color="#10B981"
+              />
             </View>
           </View>
-        ) : (
-          <View style={[styles.card, styles.mealContainer]}>
-            <Text style={styles.noMealText}>No meal plan available for today.</Text>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showWaterModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowWaterModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Log Water Intake</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter liters of water (e.g., 0.5)"
+              keyboardType="numeric"
+              value={inputWaterLiters}
+              onChangeText={setInputWaterLiters}
+            />
+            <View style={styles.modalButtonContainer}>
+              <Button
+                title="Cancel"
+                onPress={() => {
+                  setShowWaterModal(false);
+                  setInputWaterLiters('');
+                }}
+                color="#FF4040"
+              />
+              <Button
+                title="Save"
+                onPress={handleLogWater}
+                color="#10B981"
+              />
+            </View>
           </View>
-        )}
-      </View>
-    </ScrollView>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
@@ -681,6 +1202,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#ff1297',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    flex: 1,
+  },
+  usernameText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  contentContainer: {
     paddingHorizontal: 16,
     paddingTop: 24,
   },
@@ -704,29 +1256,46 @@ const styles = StyleSheet.create({
   },
   streakHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 8,
   },
   streakTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1F2937',
+    marginLeft: -5,
+  },
+  calendarButton: {
+    marginLeft: 'auto',
   },
   calendarLink: {
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '600',
-    color: '#3B82F6',
+    color: '#FFFFFF',
+    backgroundColor: '#3B82F6',
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+    borderRadius: 20,
+    textAlign: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  streakDays: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#EC4899',
+  calendarText: {
+    display: 'flex',
+    flexDirection: 'row',
   },
   month: {
     fontSize: 14,
     color: '#6B7280',
     marginBottom: 12,
+  },
+  streakDays: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 12,
+    marginLeft: 'auto',
   },
   dateList: {
     paddingVertical: 8,
@@ -741,10 +1310,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-  },
-  activeDateItem: {
-    backgroundColor: '#FCE7F3',
-    borderColor: '#EC4899',
   },
   currentDateItem: {
     width: 48,
@@ -830,7 +1395,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressTitle: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '600',
     color: '#4B5563',
     marginBottom: 12,
@@ -840,7 +1405,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#1F2937',
-    marginTop: 12,
+    marginBottom: 8,
   },
   sleepContainer: {
     borderRadius: 16,
@@ -876,9 +1441,21 @@ const styles = StyleSheet.create({
   },
   sleepProgressText: {
     color: '#FFF',
-    fontSize: 25,
+    fontSize: 20,
     fontWeight: '600',
     marginTop: 8,
+    marginBottom: 8,
+  },
+  logButton: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  logButtonText: {
+    color: '#0288D1',
+    fontSize: 14,
+    fontWeight: '600',
   },
   workoutCard: {
     padding: 0,
@@ -973,5 +1550,38 @@ const styles = StyleSheet.create({
     color: '#4B5563',
     textAlign: 'center',
     padding: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  modalInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
 });

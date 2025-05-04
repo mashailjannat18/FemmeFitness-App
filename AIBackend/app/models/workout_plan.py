@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 import os
 import logging
 from datetime import datetime, timedelta
@@ -224,7 +224,7 @@ def filter_workouts(df: pd.DataFrame, met_recs: List[str], diff_recs: List[str])
 def get_actual_date(day_index: int) -> tuple[str, str]:
     """Calculate the actual date and weekday starting from the current date."""
     start_date = datetime.now().date()
-    actual_date = start_date + timedelta(days=day_index)
+    actual_date = start_date + timedelta(days=day_index)  # day_index starts at 0 for Day 1
     weekday = actual_date.strftime('%A')
     date_str = actual_date.strftime('%B %d, %Y')
     return weekday, date_str
@@ -344,7 +344,7 @@ def clean_workout_data(workout: Dict) -> Dict:
             cleaned_workout[key] = value
     return cleaned_workout
 
-def generate_workout_plan(data: Dict[str, Any]) -> List[Dict]:
+def generate_workout_plan(data: Dict[str, Any]) -> Tuple[List[Dict], str]:
     global USER_AGE_GROUP, USER_ACTIVITY_LEVEL, USER_GOAL, USER_WEIGHT
     try:
         logger.info("Starting workout plan generation")
@@ -376,6 +376,10 @@ def generate_workout_plan(data: Dict[str, Any]) -> List[Dict]:
         rest_time = rest_time_config[USER_AGE_GROUP][USER_ACTIVITY_LEVEL]
         logger.info(f"Workout parameters: Exercises={num_exercises}, Sets={sets}, Reps={reps}, RepTime={rep_time}, RestTime={rest_time}")
 
+        # Determine intensity based on activity level
+        intensity = USER_ACTIVITY_LEVEL  # Already set to 'low', 'moderate', or 'high'
+        logger.info(f"Determined workout intensity: {intensity}")
+
         # Generate final populated plan
         final_plan = []
         focus_index_tracker = {}
@@ -401,14 +405,16 @@ def generate_workout_plan(data: Dict[str, Any]) -> List[Dict]:
                     duration_min = 0.5  # 30 seconds per exercise
                     calories = calculate_calories_burned(met, duration_min, USER_WEIGHT)
                     w['Sets'] = 1
-                    w['Reps'] = 'None'
+                    # Use the Reps value directly from the CSV, default to 'Hold for 30 sec' if not specified
+                    exercise_reps = w.get('Reps', '30 sec hold')
+                    w['Reps'] = str(exercise_reps)  # Ensure Reps is a string
                     w['Rest Time (sec)'] = rest_time
                     w['Duration (min)'] = duration_min
                     w['Calories Burned'] = round(calories, 2)
                     total_duration += duration_min
                     total_calories += calories
                     day_data['Workouts'].append(w)
-                    logger.debug(f"Added Active Rest workout: {w.get('Name')}")
+                    logger.debug(f"Added Active Rest workout: {w.get('Name')}, Reps={w['Reps']}")
                 day_data['Total Duration (min)'] = round(total_duration, 2)
                 day_data['Total Calories Burned'] = round(total_calories, 2)
             else:
@@ -428,7 +434,7 @@ def generate_workout_plan(data: Dict[str, Any]) -> List[Dict]:
                     if w.get('Caution') == 'Isometric Hold':
                         duration_min = 0.5
                         exercise_sets = 1
-                        exercise_reps = 'None'
+                        exercise_reps = w.get('Reps', '30 sec hold')
                         exercise_rest_time = rest_time
                     else:
                         total_seconds = (sets * reps * rep_time) + ((sets - 1) * rest_time)
@@ -438,7 +444,7 @@ def generate_workout_plan(data: Dict[str, Any]) -> List[Dict]:
                         exercise_rest_time = rest_time
                     calories = calculate_calories_burned(met, duration_min, USER_WEIGHT)
                     w['Sets'] = exercise_sets
-                    w['Reps'] = exercise_reps
+                    w['Reps'] = str(exercise_reps)  # Ensure Reps is a string
                     w['Rest Time (sec)'] = exercise_rest_time
                     w['Duration (min)'] = round(duration_min, 2)
                     w['Calories Burned'] = round(calories, 2)
@@ -452,7 +458,7 @@ def generate_workout_plan(data: Dict[str, Any]) -> List[Dict]:
             final_plan.append(day_data)
 
         logger.info("Workout plan generation completed")
-        return final_plan
+        return final_plan, intensity
 
     except Exception as e:
         logger.error(f"Error generating workout plan: {str(e)}")

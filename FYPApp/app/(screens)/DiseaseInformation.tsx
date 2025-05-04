@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,21 @@ import {
   Easing,
   ScrollView,
   Dimensions,
+  Alert,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { useRouter } from 'expo-router';
+import { useUserAuth } from '@/context/UserAuthContext';
+import { supabase } from '@/lib/supabase';
 
 const { width } = Dimensions.get('window');
 
 const DiseaseInformation = () => {
   const [selectedDiseases, setSelectedDiseases] = useState<string[]>([]);
+  const [initialDiseases, setInitialDiseases] = useState<string[]>([]);
+  const router = useRouter();
+  const { user, refreshUser } = useUserAuth();
 
   const diseases = [
     {
@@ -42,15 +49,43 @@ const DiseaseInformation = () => {
 
   const scaleAnimations = diseases.map(() => new Animated.Value(1));
 
+  useEffect(() => {
+    const fetchUserDiseases = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('User')
+        .select('diseases')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user diseases:', error);
+        Alert.alert('Error', 'Failed to load your conditions.');
+        return;
+      }
+
+      const userDiseases = data.diseases ? data.diseases.split(',').filter((d: string) => d.trim() !== '') : [];
+      setSelectedDiseases(userDiseases.length > 0 ? userDiseases : ['Nothing']);
+      setInitialDiseases(userDiseases.length > 0 ? userDiseases : ['Nothing']);
+    };
+
+    fetchUserDiseases();
+  }, [user]);
+
   const handlePress = (index: number, disease: string) => {
     if (disease === 'Nothing') {
-      setSelectedDiseases([]); // Clear all selections when "Nothing" is clicked
+      setSelectedDiseases(['Nothing']);
     } else {
       setSelectedDiseases(prevState => {
+        if (prevState.includes('Nothing')) {
+          return [disease];
+        }
         if (prevState.includes(disease)) {
-          return prevState.filter(item => item !== disease); // Unselect if already selected
+          const newSelection = prevState.filter(item => item !== disease);
+          return newSelection.length > 0 ? newSelection : ['Nothing'];
         } else {
-          return [...prevState, disease]; // Add to selection
+          return [...prevState.filter(item => item !== 'Nothing'), disease];
         }
       });
     }
@@ -71,8 +106,44 @@ const DiseaseInformation = () => {
     ]).start();
   };
 
+  const handleSave = async () => {
+    if (!user) {
+      Alert.alert('Error', 'User not logged in.');
+      return;
+    }
+
+    if (JSON.stringify(selectedDiseases) === JSON.stringify(initialDiseases)) {
+      Alert.alert('Info', 'No changes to save.');
+      return;
+    }
+
+    const diseasesString = selectedDiseases.join(',');
+
+    const { error } = await supabase
+      .from('User')
+      .update({ diseases: diseasesString })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error('Error updating diseases:', error);
+      Alert.alert('Error', 'Failed to update your conditions.');
+      return;
+    }
+
+    setInitialDiseases(selectedDiseases);
+    await refreshUser();
+    Alert.alert('Success', 'Your conditions have been updated.');
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => router.push('../(tabs)/Profile')}>
+          <MaterialIcons name="arrow-back" size={24} color="#FF69B4" />
+        </TouchableOpacity>
+        <Text style={styles.header}>Conditions Setting</Text>
+      </View>
+
       <Text style={styles.heading}>Current Condition</Text>
       <View style={styles.currentGoalContainer}>
         <Text style={styles.selectedGoal}>
@@ -103,6 +174,10 @@ const DiseaseInformation = () => {
           </Animated.View>
         ))}
       </View>
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <Text style={styles.saveButtonText}>Save Changes</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -110,10 +185,23 @@ const DiseaseInformation = () => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#ffffff', // Set background color to white
+    backgroundColor: '#ffffff',
     padding: 20,
     paddingBottom: 40,
     alignItems: 'center',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
+    width: '100%',
+  },
+  header: {
+    fontSize: 23,
+    fontWeight: '700',
+    color: '#FF1493',
+    textAlign: 'center',
+    flex: 1,
   },
   heading: {
     fontSize: 28,
@@ -192,13 +280,26 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#FF69B4', // Updated color
+    color: '#FF69B4',
     fontWeight: '700',
     marginBottom: 4,
   },
   cardDescription: {
     fontSize: 14,
     color: '#555',
+  },
+  saveButton: {
+    backgroundColor: '#FF69B4',
+    padding: 14,
+    borderRadius: 8,
+    marginTop: 20,
+    width: width * 0.6,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
 
