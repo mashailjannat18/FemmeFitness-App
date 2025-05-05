@@ -10,8 +10,8 @@ interface UnifiedFoodResult {
   protein: number;
   carbs: number;
   fat: number;
-  servingQty: number | null;      // Serving quantity (e.g., 10 for "10 grapes")
-  servingWeightGrams: number | null; // Weight in grams (e.g., 49 grams)
+  servingQty: number | null;
+  servingWeightGrams: number | null;
   sourceData: any;
   id: string;
 }

@@ -5,7 +5,7 @@ import { initializeSignup } from '@/datafiles/userData';
 
 const FullScreenImageWithButton: React.FC = () => {
   const handleSignUpPress = () => {
-    initializeSignup(); // Reset userData before starting signup
+    initializeSignup(); 
   };
 
   return (

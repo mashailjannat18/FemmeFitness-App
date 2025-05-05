@@ -33,7 +33,7 @@ def predict_cycle_phases(last_period_date_str: str, cycle_length: int, bleeding_
     elif age > 35:
         ovulation_shift -= 1
     if bmi < 18.5:
-        ovulation_shift += 2  # delayed ovulation
+        ovulation_shift += 2
     elif 25 <= bmi < 30:
         ovulation_shift += 1
     elif bmi >= 30:

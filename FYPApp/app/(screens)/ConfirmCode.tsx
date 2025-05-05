@@ -9,8 +9,8 @@ const ConfirmCode: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds (600 seconds)
-  const [resendCooldown, setResendCooldown] = useState(60); // 1 minute cooldown for resend
+  const [timeLeft, setTimeLeft] = useState(600);
+  const [resendCooldown, setResendCooldown] = useState(60);
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
   const { verifyCode, resendCode } = useUserAuth();
@@ -58,7 +58,7 @@ const ConfirmCode: React.FC = () => {
 
       await verifyCode(email, code);
 
-      resetUserData(); // Reset data after successful signup
+      resetUserData();
       router.replace('../(tabs)');
     } catch (err: any) {
       console.error('Verification error:', err.message);
@@ -76,8 +76,8 @@ const ConfirmCode: React.FC = () => {
     try {
       setResendLoading(true);
       setError(null);
-      setTimeLeft(600); // Reset expiration timer to 10 minutes
-      setResendCooldown(60); // Reset resend cooldown to 1 minute
+      setTimeLeft(600);
+      setResendCooldown(60);
 
       if (!email) {
         throw new Error('Email is missing.');
@@ -87,7 +87,7 @@ const ConfirmCode: React.FC = () => {
     } catch (err: any) {
       console.error('Resend error:', err.message);
       if (err.message === 'Maximum resend attempts reached. Please restart the signup process.') {
-        router.push('/(screens)/Question1'); // Redirect to start of signup
+        router.push('/(screens)/Question1');
       }
       setError(err.message || 'Failed to resend confirmation code.');
     } finally {

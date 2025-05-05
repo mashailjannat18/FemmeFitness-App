@@ -78,7 +78,7 @@ export default function OvulationTracker() {
     if (!user?.id) return;
 
     try {
-      const response = await fetch('http://192.168.1.3:5000/api/recalibrate-cycle', {
+      const response = await fetch('http://192.168.1.8:5000/api/recalibrate-cycle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.id }),
@@ -211,7 +211,7 @@ export default function OvulationTracker() {
         throw new Error('Failed to fetch user data');
       }
 
-      const response = await fetch('http://192.168.1.3:5000/api/predict-cycle', {
+      const response = await fetch('http://192.168.1.8:5000/api/predict-cycle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -304,7 +304,7 @@ export default function OvulationTracker() {
         workoutPlanId: workoutPlanData.id,
       };
 
-      const planResponse = await fetch('http://192.168.1.3:5000/api/update-plan', {
+      const planResponse = await fetch('http://192.168.1.8:5000/api/update-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -364,7 +364,7 @@ export default function OvulationTracker() {
 
       const formattedLastPeriodDate = formatDateToDDMMYYYY(lastPeriodDate);
 
-      const response = await fetch('http://192.168.1.3:5000/api/predict-cycle', {
+      const response = await fetch('http://192.168.1.8:5000/api/predict-cycle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -457,7 +457,7 @@ export default function OvulationTracker() {
         workoutPlanId: workoutPlanData.id,
       };
 
-      const planResponse = await fetch('http://192.168.1.3:5000/api/update-plan', {
+      const planResponse = await fetch('http://192.168.1.8:5000/api/update-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

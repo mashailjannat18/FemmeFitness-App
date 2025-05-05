@@ -224,7 +224,7 @@ def filter_workouts(df: pd.DataFrame, met_recs: List[str], diff_recs: List[str])
 def get_actual_date(day_index: int) -> tuple[str, str]:
     """Calculate the actual date and weekday starting from the current date."""
     start_date = datetime.now().date()
-    actual_date = start_date + timedelta(days=day_index)  # day_index starts at 0 for Day 1
+    actual_date = start_date + timedelta(days=day_index)
     weekday = actual_date.strftime('%A')
     date_str = actual_date.strftime('%B %d, %Y')
     return weekday, date_str

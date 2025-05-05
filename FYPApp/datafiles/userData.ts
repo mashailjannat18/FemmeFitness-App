@@ -120,7 +120,7 @@ export const addUserToSupabase = async (
       };
       console.log('Sending payload to backend for cycle prediction:', cyclePayload);
 
-      const cycleResponse = await fetch('http://192.168.1.3:5000/api/predict-cycle', {
+      const cycleResponse = await fetch('http://192.168.1.8:5000/api/predict-cycle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cyclePayload),
@@ -159,7 +159,7 @@ export const addUserToSupabase = async (
     };
     console.log('Sending payload to backend for workout and meal plans:', payload);
 
-    const workoutResponse = await fetch('http://192.168.1.3:5000/api/generate-plan', {
+    const workoutResponse = await fetch('http://192.168.1.8:5000/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

@@ -1,5 +1,5 @@
-const NUTRITIONIX_APP_ID = 'af25b1a8';
-const NUTRITIONIX_APP_KEY = '1902c21626133aa332a2856f0d10eeab';
+const NUTRITIONIX_APP_ID = '';
+const NUTRITIONIX_APP_KEY = '';
 
 export const searchDishes = async (query: string) => {
   try {
@@ -12,9 +12,9 @@ export const searchDishes = async (query: string) => {
       },
       body: JSON.stringify({ 
         query,
-        detailed: true, // Request detailed nutrient info
-        common: true,   // Include common foods
-        branded: false  // Exclude branded foods for simplicity
+        detailed: true, 
+        common: true,  
+        branded: false 
       })
     });
 
@@ -24,7 +24,6 @@ export const searchDishes = async (query: string) => {
     }
 
     const data = await res.json();
-    // Combine common and branded results (we're only using common here)
     const commonFoods = data.common || [];
     return commonFoods;
   } catch (error) {

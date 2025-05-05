@@ -28,7 +28,7 @@ export default function MealDetail() {
   const router = useRouter();
   const [nutrients, setNutrients] = useState<Nutrient[]>([]);
   const [waterIntake, setWaterIntake] = useState<number | null>(null);
-  const [dailyCalories, setDailyCalories] = useState<number | null>(null); // New state for daily calories
+  const [dailyCalories, setDailyCalories] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,7 +60,7 @@ export default function MealDetail() {
         ]);
 
         setWaterIntake(mealData.water_litres || 0);
-        setDailyCalories(mealData.daily_calories || 0); // Set daily calories
+        setDailyCalories(mealData.daily_calories || 0);
       } catch (error) {
         console.error('Error fetching meal details:', error);
       }
@@ -163,8 +163,8 @@ export default function MealDetail() {
     { type: 'image' },
     { type: 'search' },
     { type: 'suggestions', data: suggestions },
-    { type: 'caloriesTitle' }, // New section for calories title
-    { type: 'calories' }, // New section for calories to be gained
+    { type: 'caloriesTitle' },
+    { type: 'calories' },
     { type: 'nutrientsTitle' },
     { type: 'nutrients', data: nutrients },
     { type: 'water' },
@@ -246,7 +246,7 @@ export default function MealDetail() {
                           servingQty: suggestion.servingQty?.toString() ?? 'N/A',
                           servingWeightGrams: suggestion.servingWeightGrams?.toString() ?? 'N/A',
                           type: suggestion.type,
-                          dailyWorkoutId: dailyWorkoutId, // Ensure dailyWorkoutId is passed
+                          dailyWorkoutId: dailyWorkoutId,
                         },
                       });
                       setSearchQuery(suggestion.name);
@@ -406,22 +406,22 @@ const styles = StyleSheet.create({
   suggestionsContainer: {
     width: width * 0.9,
     alignSelf: 'center',
-    zIndex: 1000, // Ensure suggestions appear above other content
+    zIndex: 1000, 
   },
   suggestionsList: {
-    maxHeight: 495, // Allow at least 5 items (48px each)
+    maxHeight: 495,
     borderRadius: 8,
     borderColor: '#ddd',
     borderWidth: 1,
     backgroundColor: '#fff',
     marginTop: 0,
-    zIndex: 1000, // Ensure list appears above other content
+    zIndex: 1000, 
   },
   suggestionItem: {
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-    minHeight: 48, // Ensure consistent height for each item
+    minHeight: 48,
   },
   suggestionText: {
     fontSize: 16,

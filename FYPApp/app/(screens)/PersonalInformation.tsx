@@ -148,6 +148,11 @@ const PersonalInformation = () => {
     await updateUserAndPlan(updatePayload);
   };
 
+  const formatDateToDDMMYYYY = (dateStr: string) => {
+    const [year, month, day] = dateStr.split('-');
+    return `${day}-${month}-${year}`;
+  };
+
   const updateUserAndPlan = async (updatePayload: { weight?: number; activityLevel?: number; challengeDays?: number }) => {
     try {
       const { data: userData, error: userError } = await supabase
@@ -180,6 +185,8 @@ const PersonalInformation = () => {
         return;
       }
 
+      const formattedLastPeriodDate = userData.last_period_date ? formatDateToDDMMYYYY(userData.last_period_date) : null;
+
       // Prepare payload for generating new plan
       const payload = {
         age: userData.age,
@@ -195,7 +202,7 @@ const PersonalInformation = () => {
       };
 
       // Call the backend to generate new plans for the remaining days
-      const response = await fetch('http://192.168.1.3:5000/api/update-plan', {
+      const response = await fetch('http://192.168.1.8:5000/api/update-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

@@ -504,9 +504,9 @@ const Exercises: React.FC = () => {
                 </View>
               ) : (
                 <TouchableOpacity
-                  style={[styles.playButton, (loading || !dailyWorkoutId /* || !isCurrentDay */) && styles.playButtonDisabled]}
+                  style={[styles.playButton, (loading || !dailyWorkoutId || !isCurrentDay ) && styles.playButtonDisabled]}
                   onPress={handlePlayAll}
-                  disabled={loading || !dailyWorkoutId /* || !isCurrentDay */}
+                  disabled={loading || !dailyWorkoutId || !isCurrentDay }
                 >
                   <Text style={styles.playButtonText}>Play All</Text>
                 </TouchableOpacity>
