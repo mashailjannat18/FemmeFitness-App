@@ -1,51 +1,102 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { router } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
-import { useRouter } from 'expo-router';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useUserAuth } from '@/context/UserAuthContext';
+import { supabase } from '@/lib/supabase';
 
-function PeriodsCalendar() {
-  const router = useRouter();
+interface CyclePhase {
+  date: string;
+  phase: string;
+}
 
-  const getPastMonths = () => {
-    const months = [];
-    const currentDate = new Date();
-    for (let i = 0; i < 5; i++) {
-      const pastDate = new Date(currentDate);
-      pastDate.setMonth(currentDate.getMonth() - i);
-      const year = pastDate.getFullYear();
-      const month = String(pastDate.getMonth() + 1).padStart(2, '0');
-      months.push(`${year}-${month}`);
+export default function PeriodsCalendar() {
+  const { user } = useUserAuth();
+  const [markedDates, setMarkedDates] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchCyclePhases();
+  }, [user?.id]);
+
+  const fetchCyclePhases = async () => {
+    if (!user?.id) return;
+
+    setRefreshing(true);
+    try {
+      const { data, error } = await supabase
+        .from('MenstrualCyclePhases')
+        .select('date, phase')
+        .eq('user_id', user.id)
+        .order('date', { ascending: true });
+
+      if (error) {
+        Alert.alert('Error', 'Failed to fetch cycle phases: ' + error.message);
+        return;
+      }
+
+      const marks: { [key: string]: any } = {};
+      data.forEach((phase: CyclePhase) => {
+        let dotColor = '#333';
+        let containerStyle: { backgroundColor?: string; borderWidth?: number; borderColor?: string; borderStyle?: string } = {};
+
+        switch (phase.phase) {
+          case 'Ovulation':
+            dotColor = '#ff69b4';
+            containerStyle = { backgroundColor: 'transparent', borderWidth: 2, borderColor: '#ff69b4', borderStyle: 'dashed' };
+            break;
+          case 'Luteal':
+            dotColor = '#ff69b4';
+            containerStyle = { backgroundColor: '#6cb8fb' };
+            break;
+          case 'Menstruation':
+            dotColor = 'red';
+            containerStyle = { backgroundColor: 'red' };
+            break;
+          case 'Follicular':
+            dotColor = 'magenta';
+            containerStyle = { backgroundColor: 'magenta' };
+            break;
+          default:
+            dotColor = '#333';
+            containerStyle = { backgroundColor: '#333' };
+        }
+
+        marks[phase.date] = {
+          customStyles: {
+            container: {
+              borderRadius: 10,
+              width: 30,
+              height: 30,
+              justifyContent: 'center',
+              alignItems: 'center',
+              ...containerStyle,
+            },
+            text: {
+              color: phase.phase === 'Ovulation' ? '#ff69b4' : 'white',
+              fontWeight: 'bold',
+            },
+          },
+          selected: true,
+          selectedColor: dotColor,
+        };
+      });
+
+      setMarkedDates(marks);
+    } catch (error) {
+      Alert.alert('Error', 'An unexpected error occurred: ' + (error as Error).message);
+    } finally {
+      setRefreshing(false);
     }
-    return months;
   };
 
-  const pastMonths = getPastMonths();
+  const handleGoBack = () => {
+    router.back();
+  };
 
-  // Example function to generate marked dates for each month
-  const getMarkedDatesForMonth = (month: string) => {
-    const markedDates: { [key: string]: any } = {};
-    const [year, monthNum] = month.split('-').map(Number);
-    
-    // Example: Mark the 10th to 14th of each month as period days
-    // Replace this with your actual period data logic
-    for (let day = 10; day <= 14; day++) {
-      const date = `${year}-${monthNum.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      markedDates[date] = {
-        selected: true,
-        marked: true,
-        dotColor: '#FF69B4',
-        selectedColor: '#FF69B4',
-      };
-    }
-    
-    return markedDates;
+  const handleRefresh = () => {
+    fetchCyclePhases();
   };
 
   return (
@@ -55,47 +106,65 @@ function PeriodsCalendar() {
           <MaterialIcons name="arrow-back" size={24} color="#FF69B4" />
         </TouchableOpacity>
         <Text style={styles.headerHeading}>Periods Calendar</Text>
+        <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
+          {refreshing ? <ActivityIndicator size="small" color="#FF69B4" /> : <MaterialIcons name="refresh" size={24} color="#FF69B4" />}
+        </TouchableOpacity>
       </View>
-
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.subHeading}>Track your cycle with ease</Text>
-        </View>
-
-        {pastMonths.map((month, index) => (
-          <View key={index} style={styles.calendarContainer}>
-            <Text style={styles.monthHeader}>
-              {new Date(month).toLocaleString('default', { month: 'long', year: 'numeric' })}
-            </Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <View style={styles.calendarContainer}>
             <Calendar
-              current={month}
+              style={styles.calendar}
+              current={new Date().toISOString().split('T')[0]}
               hideExtraDays={true}
-              firstDay={1}
-              disableMonthChange={true}
-              enableSwipeMonths={false}
-              hideArrows={true}
-              markedDates={getMarkedDatesForMonth(month)}
+              enableSwipeMonths={true}
+              markedDates={markedDates}
+              markingType={'custom'}
               theme={{
                 backgroundColor: '#ffffff',
                 calendarBackground: '#ffffff',
-                monthTextColor: '#FF69B4',
-                dayTextColor: '#333',
-                textDayFontWeight: 'bold',
+                textSectionTitleColor: '#ff69b4',
+                selectedDayBackgroundColor: '#ff69b4',
+                selectedDayTextColor: '#ffffff',
+                todayTextColor: '#ff69b4',
+                dayTextColor: '#333333',
+                textDisabledColor: '#d9d9d9',
+                arrowColor: '#ff69b4',
                 textMonthFontWeight: 'bold',
-                textDayHeaderFontWeight: 'bold',
-                selectedDayBackgroundColor: '#FF69B4',
-                selectedDayTextColor: '#fff',
-                todayTextColor: '#FF69B4',
-                arrowColor: '#FF69B4',
-                textSectionTitleColor: '#FF69B4',
-                textDisabledColor: '#d3d3d3',
-                dotColor: '#FF69B4',
-                selectedDotColor: '#fff',
+                textDayFontWeight: 'normal',
+                monthTextColor: '#ff69b4',
               }}
-              style={styles.calendar}
             />
           </View>
-        ))}
+
+          <View style={styles.symbolsContainer}>
+            <Text style={styles.symbolsHeading}>Symbols</Text>
+
+            <View style={styles.symbolContainer}>
+              <View style={[styles.circle, styles.ovulationCircle]} />
+              <Text style={styles.symbolText}>Ovulation</Text>
+            </View>
+
+            <View style={styles.symbolContainer}>
+              <View style={[styles.circle, styles.lutealCircle]} />
+              <Text style={styles.symbolText}>Luteal Phase</Text>
+            </View>
+
+            <View style={styles.symbolContainer}>
+              <View style={[styles.circle, styles.menstrualCircle]} />
+              <Text style={styles.symbolText}>Menstrual Phase</Text>
+            </View>
+
+            <View style={styles.symbolContainer}>
+              <View style={[styles.circle, styles.follicularCircle]} />
+              <Text style={styles.symbolText}>Follicular Phase</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity onPress={handleGoBack} style={styles.button}>
+            <Text style={styles.buttonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
@@ -104,7 +173,7 @@ function PeriodsCalendar() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: '#ffffff', // White background
+    backgroundColor: '#ffffff',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -120,53 +189,97 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
   },
-  container: {
+  scrollContainer: {
     flexGrow: 1,
-    paddingBottom: 40,
-    paddingTop: 20,
+    backgroundColor: '#fff',
   },
-  header: {
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: 20,
-  },
-  heading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FF69B4', // Hot pink
-  },
-  subHeading: {
-    fontSize: 14,
-    color: '#FF69B4', // Hot pink
-    marginTop: 4,
+    padding: 20,
   },
   calendarContainer: {
-    width: '90%',
-    alignSelf: 'center',
+    width: '100%',
     marginBottom: 30,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 15,
-    shadowColor: '#FF69B4', // Hot pink shadow
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#FFB6C1', // Light pink for border
-  },
-  monthHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FF69B4', // Hot pink
-    marginBottom: 10,
-    textAlign: 'center',
+    borderRadius: 10,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   calendar: {
-    borderWidth: 1,
-    borderColor: '#FFB6C1', // Light pink for calendar border
-    borderRadius: 12,
+    borderRadius: 10,
+  },
+  symbolsContainer: {
+    width: '100%',
+    backgroundColor: '#f8e3f5',
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 30,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  symbolsHeading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+  },
+  symbolContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
     width: '100%',
   },
+  circle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: 15,
+  },
+  ovulationCircle: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#ff69b4',
+    borderStyle: 'dotted',
+  },
+  lutealCircle: {
+    backgroundColor: '#6cb8fb',
+  },
+  menstrualCircle: {
+    backgroundColor: 'red',
+  },
+  follicularCircle: {
+    backgroundColor: 'magenta',
+  },
+  symbolText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  button: {
+    backgroundColor: '#ff69b4',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    marginTop: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  buttonText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  refreshButton: {
+    padding: 5,
+  },
 });
-
-export default PeriodsCalendar;

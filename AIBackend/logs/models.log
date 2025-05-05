@@ -9944,3 +9944,1056 @@
 2025-05-04 19:37:09,294 - INFO - Meal plan generation completed
 2025-05-04 19:37:09,297 - INFO - 192.168.1.7 - - [04/May/2025 19:37:09] "POST /api/generate-plan HTTP/1.1" 200 -
 2025-05-04 19:37:09,465 - INFO - 192.168.1.7 - - [04/May/2025 19:37:09] "POST /api/predict-cycle HTTP/1.1" 200 -
+2025-05-04 20:50:56,386 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.8:5000
+2025-05-04 20:50:56,388 - INFO - [33mPress CTRL+C to quit[0m
+2025-05-04 20:50:56,394 - INFO -  * Restarting with stat
+2025-05-04 20:51:01,077 - WARNING -  * Debugger is active!
+2025-05-04 20:51:01,093 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 05:05:48,975 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\models\\menstruation_cycle.py', reloading
+2025-05-05 05:05:50,638 - INFO -  * Restarting with stat
+2025-05-05 05:20:02,075 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.8:5000
+2025-05-05 05:20:02,075 - INFO - [33mPress CTRL+C to quit[0m
+2025-05-05 05:20:02,084 - INFO -  * Restarting with stat
+2025-05-05 05:20:09,143 - WARNING -  * Debugger is active!
+2025-05-05 05:20:09,161 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 05:20:46,612 - INFO - 192.168.1.7 - - [05/May/2025 05:20:46] "[35m[1mPOST /api/recalibrate-cycle HTTP/1.1[0m" 500 -
+2025-05-05 05:22:03,584 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\routes\\cycle_routes.py', reloading
+2025-05-05 05:22:04,405 - INFO -  * Restarting with stat
+2025-05-05 05:22:24,023 - WARNING -  * Debugger is active!
+2025-05-05 05:22:24,122 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 05:23:03,545 - INFO - 192.168.1.8 - - [05/May/2025 05:23:03] "[33mPOST /rpc/get_user_data HTTP/1.1[0m" 404 -
+2025-05-05 05:23:03,558 - INFO - 192.168.1.7 - - [05/May/2025 05:23:03] "[35m[1mPOST /api/recalibrate-cycle HTTP/1.1[0m" 500 -
+2025-05-05 05:25:52,295 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\routes\\cycle_routes.py', reloading
+2025-05-05 05:25:53,246 - INFO -  * Restarting with stat
+2025-05-05 05:26:03,129 - WARNING -  * Debugger is active!
+2025-05-05 05:26:03,141 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 05:30:26,643 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app.py', reloading
+2025-05-05 05:30:27,196 - INFO -  * Restarting with stat
+2025-05-05 05:30:40,089 - WARNING -  * Debugger is active!
+2025-05-05 05:30:40,098 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 05:31:17,746 - INFO - 192.168.1.7 - - [05/May/2025 05:31:17] "[35m[1mPOST /api/recalibrate-cycle HTTP/1.1[0m" 500 -
+2025-05-05 05:37:09,380 - INFO - 192.168.1.7 - - [05/May/2025 05:37:09] "[35m[1mPOST /api/recalibrate-cycle HTTP/1.1[0m" 500 -
+2025-05-05 05:39:07,378 - INFO - 192.168.1.7 - - [05/May/2025 05:39:07] "[35m[1mPOST /api/recalibrate-cycle HTTP/1.1[0m" 500 -
+2025-05-05 05:41:01,087 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\routes\\cycle_routes.py', reloading
+2025-05-05 05:41:01,366 - INFO -  * Restarting with stat
+2025-05-05 05:41:09,583 - WARNING -  * Debugger is active!
+2025-05-05 05:41:09,696 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 05:41:29,397 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\routes\\cycle_routes.py', reloading
+2025-05-05 05:41:29,697 - INFO -  * Restarting with stat
+2025-05-05 05:41:38,526 - WARNING -  * Debugger is active!
+2025-05-05 05:41:38,560 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 05:43:58,758 - INFO - 192.168.1.7 - - [05/May/2025 05:43:58] "[35m[1mPOST /api/recalibrate-cycle HTTP/1.1[0m" 500 -
+2025-05-05 05:49:42,009 - INFO - 192.168.1.7 - - [05/May/2025 05:49:42] "POST /api/recalibrate-cycle HTTP/1.1" 200 -
+2025-05-05 05:53:23,175 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\models\\ovulation_recalibration.py', reloading
+2025-05-05 05:53:23,492 - INFO -  * Restarting with stat
+2025-05-05 05:53:28,587 - WARNING -  * Debugger is active!
+2025-05-05 05:53:28,600 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 06:55:43,646 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\routes\\workout_routes.py', reloading
+2025-05-05 06:55:45,716 - INFO -  * Restarting with stat
+2025-05-05 06:56:01,032 - WARNING -  * Debugger is active!
+2025-05-05 06:56:01,049 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 07:05:43,680 - INFO - 192.168.1.7 - - [05/May/2025 07:05:43] "POST /api/send-confirmation-email HTTP/1.1" 200 -
+2025-05-05 07:06:06,867 - INFO - 192.168.1.7 - - [05/May/2025 07:06:06] "POST /api/predict-cycle HTTP/1.1" 200 -
+2025-05-05 07:06:07,008 - INFO - Starting workout plan generation
+2025-05-05 07:06:07,008 - INFO - Loading user profile
+2025-05-05 07:06:07,009 - INFO - Converting activity level slider value 72
+2025-05-05 07:06:07,011 - INFO - Mapping age 28 to age group
+2025-05-05 07:06:07,013 - INFO - User profile loaded: Age=28, ActivityLevel=high, Goal=stay_fit
+2025-05-05 07:06:07,015 - INFO - Loading workouts CSV from D:\FA21-BSE-027\7th Semester\Mobile Application Development\ProjectWork\AIBackend\app\..\data\workouts.csv
+2025-05-05 07:06:07,099 - INFO - Replacing NaN values in workouts DataFrame
+2025-05-05 07:06:07,118 - INFO - Loaded 326 workout entries
+2025-05-05 07:06:07,119 - INFO - Getting recommendations for age 28 and activity level high
+2025-05-05 07:06:07,122 - INFO - Recommendations: MET=['low', 'moderate', 'high'], Difficulty=['Beginner', 'Intermediate']
+2025-05-05 07:06:07,123 - INFO - Filtering workouts based on MET and difficulty recommendations
+2025-05-05 07:06:07,135 - INFO - Filtered workouts: 277 entries
+2025-05-05 07:06:07,142 - INFO - Generating workout plan for goal=stay_fit, duration=15 days, rest day=Wednesday
+2025-05-05 07:06:07,143 - INFO - Day 1 (Monday, May 05, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:06:07,143 - INFO - Day 2 (Tuesday, May 06, 2025): Assigned focus Lower Body Strength
+2025-05-05 07:06:07,144 - INFO - Day 3 (Wednesday, May 07, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 07:06:07,144 - INFO - Day 4 (Thursday, May 08, 2025): Assigned focus Light Endurance
+2025-05-05 07:06:07,144 - INFO - Day 5 (Friday, May 09, 2025): Assigned focus Core + Abs
+2025-05-05 07:06:07,145 - INFO - Day 6 (Saturday, May 10, 2025): Assigned focus Light Endurance
+2025-05-05 07:06:07,145 - INFO - Day 7 (Sunday, May 11, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 07:06:07,145 - INFO - Day 8 (Monday, May 12, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:06:07,146 - INFO - Day 9 (Tuesday, May 13, 2025): Assigned focus Lower Body Strength
+2025-05-05 07:06:07,148 - INFO - Day 10 (Wednesday, May 14, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 07:06:07,149 - INFO - Day 11 (Thursday, May 15, 2025): Assigned focus Light Endurance
+2025-05-05 07:06:07,149 - INFO - Day 12 (Friday, May 16, 2025): Assigned focus Core + Abs
+2025-05-05 07:06:07,150 - INFO - Day 13 (Saturday, May 17, 2025): Assigned focus Light Endurance
+2025-05-05 07:06:07,150 - INFO - Day 14 (Sunday, May 18, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 07:06:07,151 - INFO - Day 15 (Monday, May 19, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:06:07,152 - INFO - Generated initial plan with 15 days
+2025-05-05 07:06:07,158 - INFO - Workout parameters: Exercises=5, Sets=3, Reps=15, RepTime=3, RestTime=20
+2025-05-05 07:06:07,162 - INFO - Determined workout intensity: high
+2025-05-05 07:06:07,163 - INFO - Generating workouts for focus Upper Body Strength on Day 1 (Monday, May 05, 2025)
+2025-05-05 07:06:07,164 - INFO - Getting workouts for focus area Upper Body Strength and activity level high
+2025-05-05 07:06:07,168 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:06:07,182 - INFO - Generating workouts for focus Lower Body Strength on Day 2 (Tuesday, May 06, 2025)
+2025-05-05 07:06:07,183 - INFO - Getting workouts for focus area Lower Body Strength and activity level high
+2025-05-05 07:06:07,194 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 07:06:07,196 - INFO - Day 3 (Wednesday, May 07, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 07:06:07,198 - INFO - Generating workouts for focus Light Endurance on Day 4 (Thursday, May 08, 2025)
+2025-05-05 07:06:07,198 - INFO - Getting workouts for focus area Light Endurance and activity level high
+2025-05-05 07:06:07,201 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:06:07,208 - INFO - Generating workouts for focus Core + Abs on Day 5 (Friday, May 09, 2025)
+2025-05-05 07:06:07,208 - INFO - Getting workouts for focus area Core + Abs and activity level high
+2025-05-05 07:06:07,210 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 07:06:07,215 - INFO - Generating workouts for focus Light Endurance on Day 6 (Saturday, May 10, 2025)
+2025-05-05 07:06:07,215 - INFO - Getting workouts for focus area Light Endurance and activity level high
+2025-05-05 07:06:07,218 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:06:07,227 - INFO - Day 7 (Sunday, May 11, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 07:06:07,227 - INFO - Getting workouts for focus area Active Rest Day and activity level high
+2025-05-05 07:06:07,230 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 07:06:07,242 - INFO - Generating workouts for focus Upper Body Strength on Day 8 (Monday, May 12, 2025)
+2025-05-05 07:06:07,243 - INFO - Getting workouts for focus area Upper Body Strength and activity level high
+2025-05-05 07:06:07,245 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:06:07,248 - INFO - Generating workouts for focus Lower Body Strength on Day 9 (Tuesday, May 13, 2025)
+2025-05-05 07:06:07,248 - INFO - Getting workouts for focus area Lower Body Strength and activity level high
+2025-05-05 07:06:07,259 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 07:06:07,262 - INFO - Day 10 (Wednesday, May 14, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 07:06:07,263 - INFO - Generating workouts for focus Light Endurance on Day 11 (Thursday, May 15, 2025)
+2025-05-05 07:06:07,263 - INFO - Getting workouts for focus area Light Endurance and activity level high
+2025-05-05 07:06:07,266 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:06:07,275 - INFO - Generating workouts for focus Core + Abs on Day 12 (Friday, May 16, 2025)
+2025-05-05 07:06:07,276 - INFO - Getting workouts for focus area Core + Abs and activity level high
+2025-05-05 07:06:07,280 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 07:06:07,284 - INFO - Generating workouts for focus Light Endurance on Day 13 (Saturday, May 17, 2025)
+2025-05-05 07:06:07,290 - INFO - Getting workouts for focus area Light Endurance and activity level high
+2025-05-05 07:06:07,296 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:06:07,299 - INFO - Day 14 (Sunday, May 18, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 07:06:07,301 - INFO - Getting workouts for focus area Active Rest Day and activity level high
+2025-05-05 07:06:07,310 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 07:06:07,318 - INFO - Generating workouts for focus Upper Body Strength on Day 15 (Monday, May 19, 2025)
+2025-05-05 07:06:07,326 - INFO - Getting workouts for focus area Upper Body Strength and activity level high
+2025-05-05 07:06:07,329 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:06:07,334 - INFO - Workout plan generation completed
+2025-05-05 07:06:07,346 - INFO - 192.168.1.7 - - [05/May/2025 07:06:07] "[35m[1mPOST /api/generate-plan HTTP/1.1[0m" 500 -
+2025-05-05 07:08:36,072 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\models\\meal_plan.py', reloading
+2025-05-05 07:08:38,657 - INFO -  * Restarting with stat
+2025-05-05 07:08:54,235 - WARNING -  * Debugger is active!
+2025-05-05 07:08:54,245 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 07:09:11,492 - INFO -  * Detected change in 'D:\\FA21-BSE-027\\7th Semester\\Mobile Application Development\\ProjectWork\\AIBackend\\app\\routes\\workout_routes.py', reloading
+2025-05-05 07:09:11,908 - INFO -  * Restarting with stat
+2025-05-05 07:09:23,520 - WARNING -  * Debugger is active!
+2025-05-05 07:09:23,537 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 07:11:44,363 - INFO - 192.168.1.7 - - [05/May/2025 07:11:44] "POST /api/send-confirmation-email HTTP/1.1" 200 -
+2025-05-05 07:12:04,937 - INFO - 192.168.1.7 - - [05/May/2025 07:12:04] "POST /api/predict-cycle HTTP/1.1" 200 -
+2025-05-05 07:12:05,137 - INFO - Starting workout plan generation
+2025-05-05 07:12:05,138 - INFO - Loading user profile
+2025-05-05 07:12:05,139 - INFO - Converting activity level slider value 49
+2025-05-05 07:12:05,139 - INFO - Mapping age 25 to age group
+2025-05-05 07:12:05,140 - INFO - User profile loaded: Age=25, ActivityLevel=moderate, Goal=stay_fit
+2025-05-05 07:12:05,140 - INFO - Loading workouts CSV from D:\FA21-BSE-027\7th Semester\Mobile Application Development\ProjectWork\AIBackend\app\..\data\workouts.csv
+2025-05-05 07:12:05,184 - INFO - Replacing NaN values in workouts DataFrame
+2025-05-05 07:12:05,200 - INFO - Loaded 326 workout entries
+2025-05-05 07:12:05,203 - INFO - Getting recommendations for age 25 and activity level moderate
+2025-05-05 07:12:05,204 - INFO - Recommendations: MET=['low', 'moderate'], Difficulty=['Beginner', 'Intermediate']
+2025-05-05 07:12:05,205 - INFO - Filtering workouts based on MET and difficulty recommendations
+2025-05-05 07:12:05,217 - INFO - Filtered workouts: 273 entries
+2025-05-05 07:12:05,218 - INFO - Generating workout plan for goal=stay_fit, duration=15 days, rest day=Wednesday
+2025-05-05 07:12:05,219 - INFO - Day 1 (Monday, May 05, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:12:05,219 - INFO - Day 2 (Tuesday, May 06, 2025): Assigned focus Lower Body Strength
+2025-05-05 07:12:05,220 - INFO - Day 3 (Wednesday, May 07, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 07:12:05,221 - INFO - Day 4 (Thursday, May 08, 2025): Assigned focus Light Endurance
+2025-05-05 07:12:05,223 - INFO - Day 5 (Friday, May 09, 2025): Assigned focus Core + Abs
+2025-05-05 07:12:05,224 - INFO - Day 6 (Saturday, May 10, 2025): Assigned focus Light Endurance
+2025-05-05 07:12:05,228 - INFO - Day 7 (Sunday, May 11, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 07:12:05,229 - INFO - Day 8 (Monday, May 12, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:12:05,230 - INFO - Day 9 (Tuesday, May 13, 2025): Assigned focus Lower Body Strength
+2025-05-05 07:12:05,231 - INFO - Day 10 (Wednesday, May 14, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 07:12:05,231 - INFO - Day 11 (Thursday, May 15, 2025): Assigned focus Light Endurance
+2025-05-05 07:12:05,232 - INFO - Day 12 (Friday, May 16, 2025): Assigned focus Core + Abs
+2025-05-05 07:12:05,232 - INFO - Day 13 (Saturday, May 17, 2025): Assigned focus Light Endurance
+2025-05-05 07:12:05,233 - INFO - Day 14 (Sunday, May 18, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 07:12:05,233 - INFO - Day 15 (Monday, May 19, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:12:05,238 - INFO - Generated initial plan with 15 days
+2025-05-05 07:12:05,239 - INFO - Workout parameters: Exercises=4, Sets=3, Reps=15, RepTime=4, RestTime=30
+2025-05-05 07:12:05,239 - INFO - Determined workout intensity: moderate
+2025-05-05 07:12:05,240 - INFO - Generating workouts for focus Upper Body Strength on Day 1 (Monday, May 05, 2025)
+2025-05-05 07:12:05,244 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 07:12:05,248 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:12:05,254 - INFO - Generating workouts for focus Lower Body Strength on Day 2 (Tuesday, May 06, 2025)
+2025-05-05 07:12:05,256 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 07:12:05,267 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 07:12:05,270 - INFO - Day 3 (Wednesday, May 07, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 07:12:05,271 - INFO - Generating workouts for focus Light Endurance on Day 4 (Thursday, May 08, 2025)
+2025-05-05 07:12:05,278 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 07:12:05,283 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:12:05,286 - INFO - Generating workouts for focus Core + Abs on Day 5 (Friday, May 09, 2025)
+2025-05-05 07:12:05,287 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 07:12:05,290 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 07:12:05,299 - INFO - Generating workouts for focus Light Endurance on Day 6 (Saturday, May 10, 2025)
+2025-05-05 07:12:05,300 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 07:12:05,304 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:12:05,310 - INFO - Day 7 (Sunday, May 11, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 07:12:05,311 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 07:12:05,314 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 07:12:05,320 - INFO - Generating workouts for focus Upper Body Strength on Day 8 (Monday, May 12, 2025)
+2025-05-05 07:12:05,322 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 07:12:05,327 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:12:05,333 - INFO - Generating workouts for focus Lower Body Strength on Day 9 (Tuesday, May 13, 2025)
+2025-05-05 07:12:05,334 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 07:12:05,340 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 07:12:05,348 - INFO - Day 10 (Wednesday, May 14, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 07:12:05,349 - INFO - Generating workouts for focus Light Endurance on Day 11 (Thursday, May 15, 2025)
+2025-05-05 07:12:05,350 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 07:12:05,356 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:12:05,363 - INFO - Generating workouts for focus Core + Abs on Day 12 (Friday, May 16, 2025)
+2025-05-05 07:12:05,364 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 07:12:05,368 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 07:12:05,373 - INFO - Generating workouts for focus Light Endurance on Day 13 (Saturday, May 17, 2025)
+2025-05-05 07:12:05,377 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 07:12:05,381 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:12:05,386 - INFO - Day 14 (Sunday, May 18, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 07:12:05,387 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 07:12:05,389 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 07:12:05,482 - INFO - Generating workouts for focus Upper Body Strength on Day 15 (Monday, May 19, 2025)
+2025-05-05 07:12:05,520 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 07:12:05,523 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:12:05,533 - INFO - Workout plan generation completed
+2025-05-05 07:12:05,534 - INFO - Starting meal plan generation
+2025-05-05 07:12:05,535 - INFO - Loading user profile for meal plan
+2025-05-05 07:12:05,537 - INFO - Converting activity level slider value 49
+2025-05-05 07:12:05,537 - INFO - Mapping age 25 to age group
+2025-05-05 07:12:05,538 - INFO - User profile loaded: Age=25, ActivityLevel=moderate, Goal=stay_fit, BMI=25.83, HealthConditions={'has_diabetes': False, 'has_hypertension': False, 'is_menopausal': False}
+2025-05-05 07:12:05,546 - INFO - Day 1 (Monday, May 05, 2025): Dominant workout type=strength, Max Calories=15.96
+2025-05-05 07:12:05,547 - INFO - Generated meal for Day 1 (Monday, May 05, 2025): Calories=1644.5, Carbs=185.0g, Protein=143.9g, Fat=36.5g, Sleep=8.0h, Water=2.4L, Tags=['Iron-Rich Focus', 'Anti-Inflammatory Meals']
+2025-05-05 07:12:05,549 - INFO - Day 2 (Tuesday, May 06, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 07:12:05,550 - INFO - Generated meal for Day 2 (Tuesday, May 06, 2025): Calories=1644.5, Carbs=185.0g, Protein=143.9g, Fat=36.5g, Sleep=8.0h, Water=2.4L, Tags=['Iron-Rich Focus', 'Anti-Inflammatory Meals']
+2025-05-05 07:12:05,557 - INFO - Day 3 (Wednesday, May 07, 2025): No workouts, using dominant type 'rest'
+2025-05-05 07:12:05,560 - INFO - Generated meal for Day 3 (Wednesday, May 07, 2025): Calories=1644.5, Carbs=205.6g, Protein=102.8g, Fat=45.7g, Sleep=8.0h, Water=2.4L, Tags=['Iron-Rich Focus', 'Anti-Inflammatory Meals']
+2025-05-05 07:12:05,562 - INFO - Day 4 (Thursday, May 08, 2025): Dominant workout type=cardio, Max Calories=14.7
+2025-05-05 07:12:05,565 - INFO - Generated meal for Day 4 (Thursday, May 08, 2025): Calories=1644.5, Carbs=246.7g, Protein=82.2g, Fat=36.5g, Sleep=8.0h, Water=2.4L, Tags=['Iron-Rich Focus', 'Anti-Inflammatory Meals']
+2025-05-05 07:12:05,566 - INFO - Day 5 (Friday, May 09, 2025): Dominant workout type=rest, Max Calories=12.6
+2025-05-05 07:12:05,568 - INFO - Generated meal for Day 5 (Friday, May 09, 2025): Calories=1787.5, Carbs=178.8g, Protein=156.4g, Fat=49.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,569 - INFO - Day 6 (Saturday, May 10, 2025): Dominant workout type=cardio, Max Calories=16.8
+2025-05-05 07:12:05,571 - INFO - Generated meal for Day 6 (Saturday, May 10, 2025): Calories=1787.5, Carbs=223.4g, Protein=134.1g, Fat=39.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,572 - INFO - Day 7 (Sunday, May 11, 2025): Dominant workout type=rest, Max Calories=1.99
+2025-05-05 07:12:05,583 - INFO - Generated meal for Day 7 (Sunday, May 11, 2025): Calories=1787.5, Carbs=178.8g, Protein=156.4g, Fat=49.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,585 - INFO - Day 8 (Monday, May 12, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 07:12:05,586 - INFO - Generated meal for Day 8 (Monday, May 12, 2025): Calories=1787.5, Carbs=156.4g, Protein=201.1g, Fat=39.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,586 - INFO - Day 9 (Tuesday, May 13, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 07:12:05,587 - INFO - Generated meal for Day 9 (Tuesday, May 13, 2025): Calories=1787.5, Carbs=156.4g, Protein=201.1g, Fat=39.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,590 - INFO - Day 10 (Wednesday, May 14, 2025): No workouts, using dominant type 'rest'
+2025-05-05 07:12:05,597 - INFO - Generated meal for Day 10 (Wednesday, May 14, 2025): Calories=1787.5, Carbs=178.8g, Protein=156.4g, Fat=49.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,602 - INFO - Day 11 (Thursday, May 15, 2025): Dominant workout type=cardio, Max Calories=23.1
+2025-05-05 07:12:05,603 - INFO - Generated meal for Day 11 (Thursday, May 15, 2025): Calories=1787.5, Carbs=223.4g, Protein=134.1g, Fat=39.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,606 - INFO - Day 12 (Friday, May 16, 2025): Dominant workout type=rest, Max Calories=14.7
+2025-05-05 07:12:05,609 - INFO - Generated meal for Day 12 (Friday, May 16, 2025): Calories=1787.5, Carbs=178.8g, Protein=156.4g, Fat=49.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,612 - INFO - Day 13 (Saturday, May 17, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 07:12:05,614 - INFO - Generated meal for Day 13 (Saturday, May 17, 2025): Calories=1787.5, Carbs=223.4g, Protein=134.1g, Fat=39.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,615 - INFO - Day 14 (Sunday, May 18, 2025): Dominant workout type=rest, Max Calories=2.89
+2025-05-05 07:12:05,615 - INFO - Generated meal for Day 14 (Sunday, May 18, 2025): Calories=1787.5, Carbs=178.8g, Protein=156.4g, Fat=49.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,616 - INFO - Day 15 (Monday, May 19, 2025): Dominant workout type=strength, Max Calories=27.3
+2025-05-05 07:12:05,616 - INFO - Generated meal for Day 15 (Monday, May 19, 2025): Calories=1787.5, Carbs=156.4g, Protein=201.1g, Fat=39.7g, Sleep=8.0h, Water=2.4L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:12:05,617 - INFO - Meal plan generation completed
+2025-05-05 07:12:05,621 - INFO - 192.168.1.7 - - [05/May/2025 07:12:05] "POST /api/generate-plan HTTP/1.1" 200 -
+2025-05-05 07:16:19,614 - INFO - 192.168.1.7 - - [05/May/2025 07:16:19] "POST /api/send-confirmation-email HTTP/1.1" 200 -
+2025-05-05 07:16:30,103 - INFO - 192.168.1.7 - - [05/May/2025 07:16:30] "POST /api/predict-cycle HTTP/1.1" 200 -
+2025-05-05 07:16:30,301 - INFO - Starting workout plan generation
+2025-05-05 07:16:30,302 - INFO - Loading user profile
+2025-05-05 07:16:30,302 - INFO - Converting activity level slider value 66
+2025-05-05 07:16:30,303 - INFO - Mapping age 29 to age group
+2025-05-05 07:16:30,303 - INFO - User profile loaded: Age=29, ActivityLevel=moderate, Goal=stay_fit
+2025-05-05 07:16:30,303 - INFO - Loading workouts CSV from D:\FA21-BSE-027\7th Semester\Mobile Application Development\ProjectWork\AIBackend\app\..\data\workouts.csv
+2025-05-05 07:16:30,317 - INFO - Replacing NaN values in workouts DataFrame
+2025-05-05 07:16:30,346 - INFO - Loaded 326 workout entries
+2025-05-05 07:16:30,348 - INFO - Getting recommendations for age 29 and activity level moderate
+2025-05-05 07:16:30,349 - INFO - Recommendations: MET=['low', 'moderate'], Difficulty=['Beginner', 'Intermediate']
+2025-05-05 07:16:30,350 - INFO - Filtering workouts based on MET and difficulty recommendations
+2025-05-05 07:16:30,352 - INFO - Filtered workouts: 273 entries
+2025-05-05 07:16:30,364 - INFO - Generating workout plan for goal=stay_fit, duration=15 days, rest day=Wednesday
+2025-05-05 07:16:30,365 - INFO - Day 1 (Monday, May 05, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:16:30,366 - INFO - Day 2 (Tuesday, May 06, 2025): Assigned focus Lower Body Strength
+2025-05-05 07:16:30,367 - INFO - Day 3 (Wednesday, May 07, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 07:16:30,367 - INFO - Day 4 (Thursday, May 08, 2025): Assigned focus Light Endurance
+2025-05-05 07:16:30,368 - INFO - Day 5 (Friday, May 09, 2025): Assigned focus Core + Abs
+2025-05-05 07:16:30,369 - INFO - Day 6 (Saturday, May 10, 2025): Assigned focus Light Endurance
+2025-05-05 07:16:30,369 - INFO - Day 7 (Sunday, May 11, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 07:16:30,372 - INFO - Day 8 (Monday, May 12, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:16:30,381 - INFO - Day 9 (Tuesday, May 13, 2025): Assigned focus Lower Body Strength
+2025-05-05 07:16:30,381 - INFO - Day 10 (Wednesday, May 14, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 07:16:30,382 - INFO - Day 11 (Thursday, May 15, 2025): Assigned focus Light Endurance
+2025-05-05 07:16:30,385 - INFO - Day 12 (Friday, May 16, 2025): Assigned focus Core + Abs
+2025-05-05 07:16:30,387 - INFO - Day 13 (Saturday, May 17, 2025): Assigned focus Light Endurance
+2025-05-05 07:16:30,387 - INFO - Day 14 (Sunday, May 18, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 07:16:30,388 - INFO - Day 15 (Monday, May 19, 2025): Assigned focus Upper Body Strength
+2025-05-05 07:16:30,393 - INFO - Generated initial plan with 15 days
+2025-05-05 07:16:30,396 - INFO - Workout parameters: Exercises=4, Sets=3, Reps=15, RepTime=4, RestTime=30
+2025-05-05 07:16:30,397 - INFO - Determined workout intensity: moderate
+2025-05-05 07:16:30,398 - INFO - Generating workouts for focus Upper Body Strength on Day 1 (Monday, May 05, 2025)
+2025-05-05 07:16:30,399 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 07:16:30,401 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:16:30,410 - INFO - Generating workouts for focus Lower Body Strength on Day 2 (Tuesday, May 06, 2025)
+2025-05-05 07:16:30,412 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 07:16:30,415 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 07:16:30,418 - INFO - Day 3 (Wednesday, May 07, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 07:16:30,420 - INFO - Generating workouts for focus Light Endurance on Day 4 (Thursday, May 08, 2025)
+2025-05-05 07:16:30,421 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 07:16:30,428 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:16:30,433 - INFO - Generating workouts for focus Core + Abs on Day 5 (Friday, May 09, 2025)
+2025-05-05 07:16:30,433 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 07:16:30,436 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 07:16:30,447 - INFO - Generating workouts for focus Light Endurance on Day 6 (Saturday, May 10, 2025)
+2025-05-05 07:16:30,496 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 07:16:30,500 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:16:30,504 - INFO - Day 7 (Sunday, May 11, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 07:16:30,648 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 07:16:30,668 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 07:16:30,687 - INFO - Generating workouts for focus Upper Body Strength on Day 8 (Monday, May 12, 2025)
+2025-05-05 07:16:30,695 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 07:16:30,698 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:16:30,700 - INFO - Generating workouts for focus Lower Body Strength on Day 9 (Tuesday, May 13, 2025)
+2025-05-05 07:16:30,703 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 07:16:30,709 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 07:16:30,713 - INFO - Day 10 (Wednesday, May 14, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 07:16:30,714 - INFO - Generating workouts for focus Light Endurance on Day 11 (Thursday, May 15, 2025)
+2025-05-05 07:16:30,715 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 07:16:30,719 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:16:30,728 - INFO - Generating workouts for focus Core + Abs on Day 12 (Friday, May 16, 2025)
+2025-05-05 07:16:30,730 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 07:16:30,733 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 07:16:30,737 - INFO - Generating workouts for focus Light Endurance on Day 13 (Saturday, May 17, 2025)
+2025-05-05 07:16:30,738 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 07:16:30,747 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 07:16:30,750 - INFO - Day 14 (Sunday, May 18, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 07:16:30,761 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 07:16:30,763 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 07:16:30,770 - INFO - Generating workouts for focus Upper Body Strength on Day 15 (Monday, May 19, 2025)
+2025-05-05 07:16:30,779 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 07:16:30,783 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 07:16:30,785 - INFO - Workout plan generation completed
+2025-05-05 07:16:30,788 - INFO - Starting meal plan generation
+2025-05-05 07:16:30,792 - INFO - Loading user profile for meal plan
+2025-05-05 07:16:30,795 - INFO - Converting activity level slider value 66
+2025-05-05 07:16:30,796 - INFO - Mapping age 29 to age group
+2025-05-05 07:16:30,797 - INFO - User profile loaded: Age=29, ActivityLevel=moderate, Goal=stay_fit, BMI=24.83, HealthConditions={'has_diabetes': False, 'has_hypertension': False, 'is_menopausal': False}
+2025-05-05 07:16:30,798 - INFO - Day 1 (Monday, May 05, 2025): Dominant workout type=strength, Max Calories=15.96
+2025-05-05 07:16:30,798 - INFO - Generated meal for Day 1 (Monday, May 05, 2025): Calories=1618.3, Carbs=182.1g, Protein=141.6g, Fat=36.0g, Sleep=7.5h, Water=2.1L, Tags=['Iron-Rich Focus', 'Anti-Inflammatory Meals']
+2025-05-05 07:16:30,799 - INFO - Day 2 (Tuesday, May 06, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 07:16:30,811 - INFO - Generated meal for Day 2 (Tuesday, May 06, 2025): Calories=1618.3, Carbs=182.1g, Protein=141.6g, Fat=36.0g, Sleep=7.5h, Water=2.1L, Tags=['Iron-Rich Focus', 'Anti-Inflammatory Meals']
+2025-05-05 07:16:30,812 - INFO - Day 3 (Wednesday, May 07, 2025): No workouts, using dominant type 'rest'
+2025-05-05 07:16:30,813 - INFO - Generated meal for Day 3 (Wednesday, May 07, 2025): Calories=1618.3, Carbs=202.3g, Protein=101.1g, Fat=45.0g, Sleep=7.5h, Water=2.1L, Tags=['Iron-Rich Focus', 'Anti-Inflammatory Meals']
+2025-05-05 07:16:30,816 - INFO - Day 4 (Thursday, May 08, 2025): Dominant workout type=cardio, Max Calories=14.7
+2025-05-05 07:16:30,817 - INFO - Generated meal for Day 4 (Thursday, May 08, 2025): Calories=1618.3, Carbs=242.7g, Protein=80.9g, Fat=36.0g, Sleep=7.5h, Water=2.1L, Tags=['Iron-Rich Focus', 'Anti-Inflammatory Meals']
+2025-05-05 07:16:30,818 - INFO - Day 5 (Friday, May 09, 2025): Dominant workout type=rest, Max Calories=12.6
+2025-05-05 07:16:30,819 - INFO - Generated meal for Day 5 (Friday, May 09, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,820 - INFO - Day 6 (Saturday, May 10, 2025): Dominant workout type=cardio, Max Calories=16.8
+2025-05-05 07:16:30,820 - INFO - Generated meal for Day 6 (Saturday, May 10, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,831 - INFO - Day 7 (Sunday, May 11, 2025): Dominant workout type=rest, Max Calories=1.99
+2025-05-05 07:16:30,832 - INFO - Generated meal for Day 7 (Sunday, May 11, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,836 - INFO - Day 8 (Monday, May 12, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 07:16:30,837 - INFO - Generated meal for Day 8 (Monday, May 12, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,838 - INFO - Day 9 (Tuesday, May 13, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 07:16:30,846 - INFO - Generated meal for Day 9 (Tuesday, May 13, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,847 - INFO - Day 10 (Wednesday, May 14, 2025): No workouts, using dominant type 'rest'
+2025-05-05 07:16:30,848 - INFO - Generated meal for Day 10 (Wednesday, May 14, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,849 - INFO - Day 11 (Thursday, May 15, 2025): Dominant workout type=cardio, Max Calories=23.1
+2025-05-05 07:16:30,853 - INFO - Generated meal for Day 11 (Thursday, May 15, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,854 - INFO - Day 12 (Friday, May 16, 2025): Dominant workout type=rest, Max Calories=14.7
+2025-05-05 07:16:30,867 - INFO - Generated meal for Day 12 (Friday, May 16, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,868 - INFO - Day 13 (Saturday, May 17, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 07:16:30,869 - INFO - Generated meal for Day 13 (Saturday, May 17, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 07:16:30,869 - INFO - Day 14 (Sunday, May 18, 2025): Dominant workout type=rest, Max Calories=1.84
+2025-05-05 07:16:30,870 - INFO - Generated meal for Day 14 (Sunday, May 18, 2025): Calories=1847.0, Carbs=207.8g, Protein=161.6g, Fat=41.0g, Sleep=7.5h, Water=2.1L, Tags=['Hormone-Balancing Nutrients', 'Fertility-Optimized Foods']
+2025-05-05 07:16:30,870 - INFO - Day 15 (Monday, May 19, 2025): Dominant workout type=strength, Max Calories=27.3
+2025-05-05 07:16:30,871 - INFO - Generated meal for Day 15 (Monday, May 19, 2025): Calories=1847.0, Carbs=184.7g, Protein=207.8g, Fat=30.8g, Sleep=7.5h, Water=2.1L, Tags=['Hormone-Balancing Nutrients', 'Fertility-Optimized Foods']
+2025-05-05 07:16:30,883 - INFO - Meal plan generation completed
+2025-05-05 07:16:30,886 - INFO - 192.168.1.7 - - [05/May/2025 07:16:30] "POST /api/generate-plan HTTP/1.1" 200 -
+2025-05-05 08:29:22,401 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.3:5000
+2025-05-05 08:29:22,402 - INFO - [33mPress CTRL+C to quit[0m
+2025-05-05 08:29:22,412 - INFO -  * Restarting with stat
+2025-05-05 08:29:29,867 - WARNING -  * Debugger is active!
+2025-05-05 08:29:29,881 - INFO -  * Debugger PIN: 777-118-048
+2025-05-05 08:33:38,802 - INFO - 192.168.1.4 - - [05/May/2025 08:33:38] "[35m[1mPOST /api/predict-cycle HTTP/1.1[0m" 500 -
+2025-05-05 08:36:20,167 - INFO - 192.168.1.4 - - [05/May/2025 08:36:20] "POST /api/predict-cycle HTTP/1.1" 200 -
+2025-05-05 08:36:21,209 - INFO - Starting workout plan generation
+2025-05-05 08:36:21,209 - INFO - Loading user profile
+2025-05-05 08:36:21,212 - INFO - Converting activity level slider value 50
+2025-05-05 08:36:21,213 - INFO - Mapping age 29 to age group
+2025-05-05 08:36:21,213 - INFO - User profile loaded: Age=29, ActivityLevel=moderate, Goal=stay_fit
+2025-05-05 08:36:21,214 - INFO - Loading workouts CSV from D:\FA21-BSE-027\7th Semester\Mobile Application Development\ProjectWork\AIBackend\app\..\data\workouts.csv
+2025-05-05 08:36:21,231 - INFO - Replacing NaN values in workouts DataFrame
+2025-05-05 08:36:21,235 - INFO - Loaded 326 workout entries
+2025-05-05 08:36:21,235 - INFO - Getting recommendations for age 29 and activity level moderate
+2025-05-05 08:36:21,237 - INFO - Recommendations: MET=['low', 'moderate'], Difficulty=['Beginner', 'Intermediate']
+2025-05-05 08:36:21,238 - INFO - Filtering workouts based on MET and difficulty recommendations
+2025-05-05 08:36:21,241 - INFO - Filtered workouts: 273 entries
+2025-05-05 08:36:21,242 - INFO - Generating workout plan for goal=stay_fit, duration=30 days, rest day=Sunday
+2025-05-05 08:36:21,249 - INFO - Day 1 (Monday, May 05, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:36:21,251 - INFO - Day 2 (Tuesday, May 06, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:36:21,253 - INFO - Day 3 (Wednesday, May 07, 2025): Assigned focus Light Endurance
+2025-05-05 08:36:21,253 - INFO - Day 4 (Thursday, May 08, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:36:21,254 - INFO - Day 5 (Friday, May 09, 2025): Assigned focus Core + Abs
+2025-05-05 08:36:21,266 - INFO - Day 6 (Saturday, May 10, 2025): Assigned focus Light Endurance
+2025-05-05 08:36:21,267 - INFO - Day 7 (Sunday, May 11, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:36:21,268 - INFO - Day 8 (Monday, May 12, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:36:21,268 - INFO - Day 9 (Tuesday, May 13, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:36:21,269 - INFO - Day 10 (Wednesday, May 14, 2025): Assigned focus Light Endurance
+2025-05-05 08:36:21,269 - INFO - Day 11 (Thursday, May 15, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:36:21,270 - INFO - Day 12 (Friday, May 16, 2025): Assigned focus Core + Abs
+2025-05-05 08:36:21,271 - INFO - Day 13 (Saturday, May 17, 2025): Assigned focus Light Endurance
+2025-05-05 08:36:21,274 - INFO - Day 14 (Sunday, May 18, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:36:21,275 - INFO - Day 15 (Monday, May 19, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:36:21,276 - INFO - Day 16 (Tuesday, May 20, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:36:21,282 - INFO - Day 17 (Wednesday, May 21, 2025): Assigned focus Light Endurance
+2025-05-05 08:36:21,282 - INFO - Day 18 (Thursday, May 22, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:36:21,283 - INFO - Day 19 (Friday, May 23, 2025): Assigned focus Core + Abs
+2025-05-05 08:36:21,284 - INFO - Day 20 (Saturday, May 24, 2025): Assigned focus Light Endurance
+2025-05-05 08:36:21,284 - INFO - Day 21 (Sunday, May 25, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:36:21,285 - INFO - Day 22 (Monday, May 26, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:36:21,285 - INFO - Day 23 (Tuesday, May 27, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:36:21,286 - INFO - Day 24 (Wednesday, May 28, 2025): Assigned focus Light Endurance
+2025-05-05 08:36:21,286 - INFO - Day 25 (Thursday, May 29, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:36:21,290 - INFO - Day 26 (Friday, May 30, 2025): Assigned focus Core + Abs
+2025-05-05 08:36:21,291 - INFO - Day 27 (Saturday, May 31, 2025): Assigned focus Light Endurance
+2025-05-05 08:36:21,292 - INFO - Day 28 (Sunday, June 01, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:36:21,292 - INFO - Day 29 (Monday, June 02, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:36:21,293 - INFO - Day 30 (Tuesday, June 03, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:36:21,303 - INFO - Generated initial plan with 30 days
+2025-05-05 08:36:21,303 - INFO - Workout parameters: Exercises=4, Sets=3, Reps=15, RepTime=4, RestTime=30
+2025-05-05 08:36:21,304 - INFO - Determined workout intensity: moderate
+2025-05-05 08:36:21,305 - INFO - Generating workouts for focus Upper Body Strength on Day 1 (Monday, May 05, 2025)
+2025-05-05 08:36:21,306 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:36:21,321 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:36:21,326 - INFO - Generating workouts for focus Lower Body Strength on Day 2 (Tuesday, May 06, 2025)
+2025-05-05 08:36:21,331 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:36:21,334 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:36:21,337 - INFO - Generating workouts for focus Light Endurance on Day 3 (Wednesday, May 07, 2025)
+2025-05-05 08:36:21,338 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:36:21,342 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:36:21,354 - INFO - Day 4 (Thursday, May 08, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:36:21,355 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:36:21,358 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:36:21,372 - INFO - Generating workouts for focus Core + Abs on Day 5 (Friday, May 09, 2025)
+2025-05-05 08:36:21,374 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:36:21,379 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:36:21,383 - INFO - Generating workouts for focus Light Endurance on Day 6 (Saturday, May 10, 2025)
+2025-05-05 08:36:21,384 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:36:21,389 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:36:21,391 - INFO - Day 7 (Sunday, May 11, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:36:21,396 - INFO - Generating workouts for focus Upper Body Strength on Day 8 (Monday, May 12, 2025)
+2025-05-05 08:36:21,398 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:36:21,401 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:36:21,403 - INFO - Generating workouts for focus Lower Body Strength on Day 9 (Tuesday, May 13, 2025)
+2025-05-05 08:36:21,406 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:36:21,409 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:36:21,416 - INFO - Generating workouts for focus Light Endurance on Day 10 (Wednesday, May 14, 2025)
+2025-05-05 08:36:21,416 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:36:21,419 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:36:21,422 - INFO - Day 11 (Thursday, May 15, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:36:21,425 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:36:21,433 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:36:21,440 - INFO - Generating workouts for focus Core + Abs on Day 12 (Friday, May 16, 2025)
+2025-05-05 08:36:21,441 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:36:21,456 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:36:21,459 - INFO - Generating workouts for focus Light Endurance on Day 13 (Saturday, May 17, 2025)
+2025-05-05 08:36:21,466 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:36:21,470 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:36:21,473 - INFO - Day 14 (Sunday, May 18, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:36:21,479 - INFO - Generating workouts for focus Upper Body Strength on Day 15 (Monday, May 19, 2025)
+2025-05-05 08:36:21,480 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:36:21,483 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:36:21,489 - INFO - Generating workouts for focus Lower Body Strength on Day 16 (Tuesday, May 20, 2025)
+2025-05-05 08:36:21,490 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:36:21,500 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:36:21,502 - INFO - Generating workouts for focus Light Endurance on Day 17 (Wednesday, May 21, 2025)
+2025-05-05 08:36:21,503 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:36:21,508 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:36:21,514 - INFO - Day 18 (Thursday, May 22, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:36:21,515 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:36:21,519 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:36:21,525 - INFO - Generating workouts for focus Core + Abs on Day 19 (Friday, May 23, 2025)
+2025-05-05 08:36:21,529 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:36:21,533 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:36:21,536 - INFO - Generating workouts for focus Light Endurance on Day 20 (Saturday, May 24, 2025)
+2025-05-05 08:36:21,539 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:36:21,548 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:36:21,568 - INFO - Day 21 (Sunday, May 25, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:36:21,569 - INFO - Generating workouts for focus Upper Body Strength on Day 22 (Monday, May 26, 2025)
+2025-05-05 08:36:21,570 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:36:21,573 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:36:21,580 - INFO - Generating workouts for focus Lower Body Strength on Day 23 (Tuesday, May 27, 2025)
+2025-05-05 08:36:21,583 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:36:21,585 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:36:21,588 - INFO - Generating workouts for focus Light Endurance on Day 24 (Wednesday, May 28, 2025)
+2025-05-05 08:36:21,589 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:36:21,598 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:36:21,602 - INFO - Day 25 (Thursday, May 29, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:36:21,603 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:36:21,605 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:36:21,616 - INFO - Generating workouts for focus Core + Abs on Day 26 (Friday, May 30, 2025)
+2025-05-05 08:36:21,618 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:36:21,622 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:36:21,626 - INFO - Generating workouts for focus Light Endurance on Day 27 (Saturday, May 31, 2025)
+2025-05-05 08:36:21,629 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:36:21,634 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:36:21,636 - INFO - Day 28 (Sunday, June 01, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:36:21,638 - INFO - Generating workouts for focus Upper Body Strength on Day 29 (Monday, June 02, 2025)
+2025-05-05 08:36:21,642 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:36:21,649 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:36:21,651 - INFO - Generating workouts for focus Lower Body Strength on Day 30 (Tuesday, June 03, 2025)
+2025-05-05 08:36:21,652 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:36:21,657 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:36:21,670 - INFO - Workout plan generation completed
+2025-05-05 08:36:21,671 - INFO - Starting meal plan generation
+2025-05-05 08:36:21,671 - INFO - Loading user profile for meal plan
+2025-05-05 08:36:21,672 - INFO - Converting activity level slider value 50
+2025-05-05 08:36:21,672 - INFO - Mapping age 29 to age group
+2025-05-05 08:36:21,673 - INFO - User profile loaded: Age=29, ActivityLevel=moderate, Goal=stay_fit, BMI=24.83, HealthConditions={'has_diabetes': False, 'has_hypertension': False, 'is_menopausal': False}
+2025-05-05 08:36:21,674 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,681 - INFO - Day 1 (Monday, May 05, 2025): Dominant workout type=strength, Max Calories=15.96
+2025-05-05 08:36:21,684 - INFO - Generated meal for Day 1 (Monday, May 05, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,685 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,686 - INFO - Day 2 (Tuesday, May 06, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 08:36:21,686 - INFO - Generated meal for Day 2 (Tuesday, May 06, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,687 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,688 - INFO - Day 3 (Wednesday, May 07, 2025): Dominant workout type=cardio, Max Calories=14.7
+2025-05-05 08:36:21,688 - INFO - Generated meal for Day 3 (Wednesday, May 07, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,691 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,697 - INFO - Day 4 (Thursday, May 08, 2025): Dominant workout type=rest, Max Calories=1.31
+2025-05-05 08:36:21,701 - INFO - Generated meal for Day 4 (Thursday, May 08, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,702 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,703 - INFO - Day 5 (Friday, May 09, 2025): Dominant workout type=rest, Max Calories=12.6
+2025-05-05 08:36:21,704 - INFO - Generated meal for Day 5 (Friday, May 09, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,704 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,705 - INFO - Day 6 (Saturday, May 10, 2025): Dominant workout type=cardio, Max Calories=16.8
+2025-05-05 08:36:21,705 - INFO - Generated meal for Day 6 (Saturday, May 10, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,706 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,707 - INFO - Day 7 (Sunday, May 11, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:36:21,715 - INFO - Generated meal for Day 7 (Sunday, May 11, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,718 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,718 - INFO - Day 8 (Monday, May 12, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:36:21,719 - INFO - Generated meal for Day 8 (Monday, May 12, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,720 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,721 - INFO - Day 9 (Tuesday, May 13, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 08:36:21,724 - INFO - Generated meal for Day 9 (Tuesday, May 13, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,725 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,726 - INFO - Day 10 (Wednesday, May 14, 2025): Dominant workout type=cardio, Max Calories=23.1
+2025-05-05 08:36:21,731 - INFO - Generated meal for Day 10 (Wednesday, May 14, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,733 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,734 - INFO - Day 11 (Thursday, May 15, 2025): Dominant workout type=rest, Max Calories=2.62
+2025-05-05 08:36:21,735 - INFO - Generated meal for Day 11 (Thursday, May 15, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,735 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,736 - INFO - Day 12 (Friday, May 16, 2025): Dominant workout type=rest, Max Calories=14.7
+2025-05-05 08:36:21,736 - INFO - Generated meal for Day 12 (Friday, May 16, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,737 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,740 - INFO - Day 13 (Saturday, May 17, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:36:21,741 - INFO - Generated meal for Day 13 (Saturday, May 17, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,741 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,742 - INFO - Day 14 (Sunday, May 18, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:36:21,745 - INFO - Generated meal for Day 14 (Sunday, May 18, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,753 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,756 - INFO - Day 15 (Monday, May 19, 2025): Dominant workout type=strength, Max Calories=27.3
+2025-05-05 08:36:21,757 - INFO - Generated meal for Day 15 (Monday, May 19, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,757 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,758 - INFO - Day 16 (Tuesday, May 20, 2025): Dominant workout type=strength, Max Calories=16.8
+2025-05-05 08:36:21,765 - INFO - Generated meal for Day 16 (Tuesday, May 20, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,768 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,768 - INFO - Day 17 (Wednesday, May 21, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:36:21,769 - INFO - Generated meal for Day 17 (Wednesday, May 21, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,770 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,770 - INFO - Day 18 (Thursday, May 22, 2025): Dominant workout type=rest, Max Calories=1.31
+2025-05-05 08:36:21,771 - INFO - Generated meal for Day 18 (Thursday, May 22, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,771 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,771 - INFO - Day 19 (Friday, May 23, 2025): Dominant workout type=rest, Max Calories=14.7
+2025-05-05 08:36:21,772 - INFO - Generated meal for Day 19 (Friday, May 23, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,772 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,772 - INFO - Day 20 (Saturday, May 24, 2025): Dominant workout type=cardio, Max Calories=16.8
+2025-05-05 08:36:21,773 - INFO - Generated meal for Day 20 (Saturday, May 24, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,773 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,773 - INFO - Day 21 (Sunday, May 25, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:36:21,773 - INFO - Generated meal for Day 21 (Sunday, May 25, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,774 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,774 - INFO - Day 22 (Monday, May 26, 2025): Dominant workout type=strength, Max Calories=27.3
+2025-05-05 08:36:21,781 - INFO - Generated meal for Day 22 (Monday, May 26, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,782 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,782 - INFO - Day 23 (Tuesday, May 27, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:36:21,783 - INFO - Generated meal for Day 23 (Tuesday, May 27, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,784 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,787 - INFO - Day 24 (Wednesday, May 28, 2025): Dominant workout type=cardio, Max Calories=18.9
+2025-05-05 08:36:21,788 - INFO - Generated meal for Day 24 (Wednesday, May 28, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,789 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,789 - INFO - Day 25 (Thursday, May 29, 2025): Dominant workout type=rest, Max Calories=1.31
+2025-05-05 08:36:21,790 - INFO - Generated meal for Day 25 (Thursday, May 29, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,790 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,791 - INFO - Day 26 (Friday, May 30, 2025): Dominant workout type=rest, Max Calories=15.96
+2025-05-05 08:36:21,792 - INFO - Generated meal for Day 26 (Friday, May 30, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,802 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,803 - INFO - Day 27 (Saturday, May 31, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:36:21,804 - INFO - Generated meal for Day 27 (Saturday, May 31, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,806 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,808 - INFO - Day 28 (Sunday, June 01, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:36:21,809 - INFO - Generated meal for Day 28 (Sunday, June 01, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,822 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,823 - INFO - Day 29 (Monday, June 02, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:36:21,824 - INFO - Generated meal for Day 29 (Monday, June 02, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,834 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:36:21,835 - INFO - Day 30 (Tuesday, June 03, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:36:21,835 - INFO - Generated meal for Day 30 (Tuesday, June 03, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:36:21,836 - INFO - Meal plan generation completed
+2025-05-05 08:36:21,841 - INFO - 192.168.1.4 - - [05/May/2025 08:36:21] "POST /api/update-plan HTTP/1.1" 200 -
+2025-05-05 08:37:10,507 - INFO - 192.168.1.4 - - [05/May/2025 08:37:10] "POST /api/predict-cycle HTTP/1.1" 200 -
+2025-05-05 08:37:11,467 - INFO - Starting workout plan generation
+2025-05-05 08:37:11,468 - INFO - Loading user profile
+2025-05-05 08:37:11,478 - INFO - Converting activity level slider value 50
+2025-05-05 08:37:11,479 - INFO - Mapping age 29 to age group
+2025-05-05 08:37:11,479 - INFO - User profile loaded: Age=29, ActivityLevel=moderate, Goal=stay_fit
+2025-05-05 08:37:11,481 - INFO - Loading workouts CSV from D:\FA21-BSE-027\7th Semester\Mobile Application Development\ProjectWork\AIBackend\app\..\data\workouts.csv
+2025-05-05 08:37:11,490 - INFO - Replacing NaN values in workouts DataFrame
+2025-05-05 08:37:11,497 - INFO - Loaded 326 workout entries
+2025-05-05 08:37:11,507 - INFO - Getting recommendations for age 29 and activity level moderate
+2025-05-05 08:37:11,517 - INFO - Recommendations: MET=['low', 'moderate'], Difficulty=['Beginner', 'Intermediate']
+2025-05-05 08:37:11,518 - INFO - Filtering workouts based on MET and difficulty recommendations
+2025-05-05 08:37:11,527 - INFO - Filtered workouts: 273 entries
+2025-05-05 08:37:11,528 - INFO - Generating workout plan for goal=stay_fit, duration=30 days, rest day=Sunday
+2025-05-05 08:37:11,528 - INFO - Day 1 (Monday, May 05, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:37:11,529 - INFO - Day 2 (Tuesday, May 06, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:37:11,529 - INFO - Day 3 (Wednesday, May 07, 2025): Assigned focus Light Endurance
+2025-05-05 08:37:11,530 - INFO - Day 4 (Thursday, May 08, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:37:11,531 - INFO - Day 5 (Friday, May 09, 2025): Assigned focus Core + Abs
+2025-05-05 08:37:11,531 - INFO - Day 6 (Saturday, May 10, 2025): Assigned focus Light Endurance
+2025-05-05 08:37:11,532 - INFO - Day 7 (Sunday, May 11, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:37:11,533 - INFO - Day 8 (Monday, May 12, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:37:11,534 - INFO - Day 9 (Tuesday, May 13, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:37:11,534 - INFO - Day 10 (Wednesday, May 14, 2025): Assigned focus Light Endurance
+2025-05-05 08:37:11,535 - INFO - Day 11 (Thursday, May 15, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:37:11,539 - INFO - Day 12 (Friday, May 16, 2025): Assigned focus Core + Abs
+2025-05-05 08:37:11,539 - INFO - Day 13 (Saturday, May 17, 2025): Assigned focus Light Endurance
+2025-05-05 08:37:11,544 - INFO - Day 14 (Sunday, May 18, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:37:11,545 - INFO - Day 15 (Monday, May 19, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:37:11,548 - INFO - Day 16 (Tuesday, May 20, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:37:11,549 - INFO - Day 17 (Wednesday, May 21, 2025): Assigned focus Light Endurance
+2025-05-05 08:37:11,559 - INFO - Day 18 (Thursday, May 22, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:37:11,561 - INFO - Day 19 (Friday, May 23, 2025): Assigned focus Core + Abs
+2025-05-05 08:37:11,562 - INFO - Day 20 (Saturday, May 24, 2025): Assigned focus Light Endurance
+2025-05-05 08:37:11,562 - INFO - Day 21 (Sunday, May 25, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:37:11,563 - INFO - Day 22 (Monday, May 26, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:37:11,564 - INFO - Day 23 (Tuesday, May 27, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:37:11,567 - INFO - Day 24 (Wednesday, May 28, 2025): Assigned focus Light Endurance
+2025-05-05 08:37:11,568 - INFO - Day 25 (Thursday, May 29, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:37:11,576 - INFO - Day 26 (Friday, May 30, 2025): Assigned focus Core + Abs
+2025-05-05 08:37:11,580 - INFO - Day 27 (Saturday, May 31, 2025): Assigned focus Light Endurance
+2025-05-05 08:37:11,580 - INFO - Day 28 (Sunday, June 01, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:37:11,581 - INFO - Day 29 (Monday, June 02, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:37:11,583 - INFO - Day 30 (Tuesday, June 03, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:37:11,584 - INFO - Generated initial plan with 30 days
+2025-05-05 08:37:11,593 - INFO - Workout parameters: Exercises=4, Sets=3, Reps=15, RepTime=4, RestTime=30
+2025-05-05 08:37:11,595 - INFO - Determined workout intensity: moderate
+2025-05-05 08:37:11,596 - INFO - Generating workouts for focus Upper Body Strength on Day 1 (Monday, May 05, 2025)
+2025-05-05 08:37:11,597 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:37:11,599 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:37:11,604 - INFO - Generating workouts for focus Lower Body Strength on Day 2 (Tuesday, May 06, 2025)
+2025-05-05 08:37:11,611 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:37:11,618 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:37:11,628 - INFO - Generating workouts for focus Light Endurance on Day 3 (Wednesday, May 07, 2025)
+2025-05-05 08:37:11,629 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:37:11,632 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:37:11,644 - INFO - Day 4 (Thursday, May 08, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:37:11,645 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:37:11,648 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:37:11,662 - INFO - Generating workouts for focus Core + Abs on Day 5 (Friday, May 09, 2025)
+2025-05-05 08:37:11,663 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:37:11,666 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:37:11,673 - INFO - Generating workouts for focus Light Endurance on Day 6 (Saturday, May 10, 2025)
+2025-05-05 08:37:11,674 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:37:11,679 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:37:11,682 - INFO - Day 7 (Sunday, May 11, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:37:11,685 - INFO - Generating workouts for focus Upper Body Strength on Day 8 (Monday, May 12, 2025)
+2025-05-05 08:37:11,694 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:37:11,697 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:37:11,700 - INFO - Generating workouts for focus Lower Body Strength on Day 9 (Tuesday, May 13, 2025)
+2025-05-05 08:37:11,706 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:37:11,708 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:37:11,714 - INFO - Generating workouts for focus Light Endurance on Day 10 (Wednesday, May 14, 2025)
+2025-05-05 08:37:11,715 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:37:11,725 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:37:11,727 - INFO - Day 11 (Thursday, May 15, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:37:11,728 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:37:11,731 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:37:11,746 - INFO - Generating workouts for focus Core + Abs on Day 12 (Friday, May 16, 2025)
+2025-05-05 08:37:11,747 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:37:11,762 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:37:11,765 - INFO - Generating workouts for focus Light Endurance on Day 13 (Saturday, May 17, 2025)
+2025-05-05 08:37:11,767 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:37:11,775 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:37:11,780 - INFO - Day 14 (Sunday, May 18, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:37:11,781 - INFO - Generating workouts for focus Upper Body Strength on Day 15 (Monday, May 19, 2025)
+2025-05-05 08:37:11,782 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:37:11,841 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:37:11,844 - INFO - Generating workouts for focus Lower Body Strength on Day 16 (Tuesday, May 20, 2025)
+2025-05-05 08:37:11,845 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:37:11,848 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:37:11,855 - INFO - Generating workouts for focus Light Endurance on Day 17 (Wednesday, May 21, 2025)
+2025-05-05 08:37:11,864 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:37:11,868 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:37:11,877 - INFO - Day 18 (Thursday, May 22, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:37:11,878 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:37:11,880 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:37:11,890 - INFO - Generating workouts for focus Core + Abs on Day 19 (Friday, May 23, 2025)
+2025-05-05 08:37:11,892 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:37:11,894 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:37:11,899 - INFO - Generating workouts for focus Light Endurance on Day 20 (Saturday, May 24, 2025)
+2025-05-05 08:37:11,900 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:37:11,909 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:37:11,914 - INFO - Day 21 (Sunday, May 25, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:37:11,915 - INFO - Generating workouts for focus Upper Body Strength on Day 22 (Monday, May 26, 2025)
+2025-05-05 08:37:11,916 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:37:11,923 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:37:11,926 - INFO - Generating workouts for focus Lower Body Strength on Day 23 (Tuesday, May 27, 2025)
+2025-05-05 08:37:11,928 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:37:11,931 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:37:11,934 - INFO - Generating workouts for focus Light Endurance on Day 24 (Wednesday, May 28, 2025)
+2025-05-05 08:37:11,940 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:37:11,944 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:37:11,950 - INFO - Day 25 (Thursday, May 29, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:37:11,963 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:37:11,973 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:37:11,979 - INFO - Generating workouts for focus Core + Abs on Day 26 (Friday, May 30, 2025)
+2025-05-05 08:37:11,980 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:37:11,984 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:37:11,994 - INFO - Generating workouts for focus Light Endurance on Day 27 (Saturday, May 31, 2025)
+2025-05-05 08:37:11,994 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:37:11,999 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:37:12,006 - INFO - Day 28 (Sunday, June 01, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:37:12,007 - INFO - Generating workouts for focus Upper Body Strength on Day 29 (Monday, June 02, 2025)
+2025-05-05 08:37:12,008 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:37:12,011 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:37:12,015 - INFO - Generating workouts for focus Lower Body Strength on Day 30 (Tuesday, June 03, 2025)
+2025-05-05 08:37:12,015 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:37:12,022 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:37:12,026 - INFO - Workout plan generation completed
+2025-05-05 08:37:12,027 - INFO - Starting meal plan generation
+2025-05-05 08:37:12,028 - INFO - Loading user profile for meal plan
+2025-05-05 08:37:12,029 - INFO - Converting activity level slider value 50
+2025-05-05 08:37:12,031 - INFO - Mapping age 29 to age group
+2025-05-05 08:37:12,032 - INFO - User profile loaded: Age=29, ActivityLevel=moderate, Goal=stay_fit, BMI=24.83, HealthConditions={'has_diabetes': False, 'has_hypertension': False, 'is_menopausal': False}
+2025-05-05 08:37:12,032 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,034 - INFO - Day 1 (Monday, May 05, 2025): Dominant workout type=strength, Max Calories=15.96
+2025-05-05 08:37:12,041 - INFO - Generated meal for Day 1 (Monday, May 05, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,043 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,044 - INFO - Day 2 (Tuesday, May 06, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 08:37:12,044 - INFO - Generated meal for Day 2 (Tuesday, May 06, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,048 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,050 - INFO - Day 3 (Wednesday, May 07, 2025): Dominant workout type=cardio, Max Calories=14.7
+2025-05-05 08:37:12,050 - INFO - Generated meal for Day 3 (Wednesday, May 07, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,051 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,051 - INFO - Day 4 (Thursday, May 08, 2025): Dominant workout type=rest, Max Calories=1.31
+2025-05-05 08:37:12,057 - INFO - Generated meal for Day 4 (Thursday, May 08, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,067 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,067 - INFO - Day 5 (Friday, May 09, 2025): Dominant workout type=rest, Max Calories=12.6
+2025-05-05 08:37:12,071 - INFO - Generated meal for Day 5 (Friday, May 09, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,075 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,078 - INFO - Day 6 (Saturday, May 10, 2025): Dominant workout type=cardio, Max Calories=16.8
+2025-05-05 08:37:12,078 - INFO - Generated meal for Day 6 (Saturday, May 10, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,079 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,080 - INFO - Day 7 (Sunday, May 11, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:37:12,084 - INFO - Generated meal for Day 7 (Sunday, May 11, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,090 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,091 - INFO - Day 8 (Monday, May 12, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:37:12,091 - INFO - Generated meal for Day 8 (Monday, May 12, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,092 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,093 - INFO - Day 9 (Tuesday, May 13, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 08:37:12,094 - INFO - Generated meal for Day 9 (Tuesday, May 13, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,095 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,098 - INFO - Day 10 (Wednesday, May 14, 2025): Dominant workout type=cardio, Max Calories=23.1
+2025-05-05 08:37:12,099 - INFO - Generated meal for Day 10 (Wednesday, May 14, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,100 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,100 - INFO - Day 11 (Thursday, May 15, 2025): Dominant workout type=rest, Max Calories=1.84
+2025-05-05 08:37:12,106 - INFO - Generated meal for Day 11 (Thursday, May 15, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,110 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,121 - INFO - Day 12 (Friday, May 16, 2025): Dominant workout type=rest, Max Calories=14.7
+2025-05-05 08:37:12,122 - INFO - Generated meal for Day 12 (Friday, May 16, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,123 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,124 - INFO - Day 13 (Saturday, May 17, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:37:12,125 - INFO - Generated meal for Day 13 (Saturday, May 17, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,129 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,130 - INFO - Day 14 (Sunday, May 18, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:37:12,131 - INFO - Generated meal for Day 14 (Sunday, May 18, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,133 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,134 - INFO - Day 15 (Monday, May 19, 2025): Dominant workout type=strength, Max Calories=27.3
+2025-05-05 08:37:12,142 - INFO - Generated meal for Day 15 (Monday, May 19, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,143 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,144 - INFO - Day 16 (Tuesday, May 20, 2025): Dominant workout type=strength, Max Calories=16.8
+2025-05-05 08:37:12,144 - INFO - Generated meal for Day 16 (Tuesday, May 20, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,145 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,149 - INFO - Day 17 (Wednesday, May 21, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:37:12,149 - INFO - Generated meal for Day 17 (Wednesday, May 21, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,150 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,151 - INFO - Day 18 (Thursday, May 22, 2025): Dominant workout type=rest, Max Calories=2.1
+2025-05-05 08:37:12,162 - INFO - Generated meal for Day 18 (Thursday, May 22, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,163 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,164 - INFO - Day 19 (Friday, May 23, 2025): Dominant workout type=rest, Max Calories=14.7
+2025-05-05 08:37:12,164 - INFO - Generated meal for Day 19 (Friday, May 23, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,165 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,166 - INFO - Day 20 (Saturday, May 24, 2025): Dominant workout type=cardio, Max Calories=16.8
+2025-05-05 08:37:12,176 - INFO - Generated meal for Day 20 (Saturday, May 24, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,177 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,178 - INFO - Day 21 (Sunday, May 25, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:37:12,178 - INFO - Generated meal for Day 21 (Sunday, May 25, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,179 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,180 - INFO - Day 22 (Monday, May 26, 2025): Dominant workout type=strength, Max Calories=27.3
+2025-05-05 08:37:12,184 - INFO - Generated meal for Day 22 (Monday, May 26, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,193 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,193 - INFO - Day 23 (Tuesday, May 27, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:37:12,194 - INFO - Generated meal for Day 23 (Tuesday, May 27, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,195 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,195 - INFO - Day 24 (Wednesday, May 28, 2025): Dominant workout type=cardio, Max Calories=18.9
+2025-05-05 08:37:12,196 - INFO - Generated meal for Day 24 (Wednesday, May 28, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,211 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,233 - INFO - Day 25 (Thursday, May 29, 2025): Dominant workout type=rest, Max Calories=1.31
+2025-05-05 08:37:12,241 - INFO - Generated meal for Day 25 (Thursday, May 29, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,242 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,243 - INFO - Day 26 (Friday, May 30, 2025): Dominant workout type=rest, Max Calories=15.96
+2025-05-05 08:37:12,244 - INFO - Generated meal for Day 26 (Friday, May 30, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,244 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,245 - INFO - Day 27 (Saturday, May 31, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:37:12,249 - INFO - Generated meal for Day 27 (Saturday, May 31, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,250 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,251 - INFO - Day 28 (Sunday, June 01, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:37:12,266 - INFO - Generated meal for Day 28 (Sunday, June 01, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,272 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,273 - INFO - Day 29 (Monday, June 02, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:37:12,274 - INFO - Generated meal for Day 29 (Monday, June 02, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,274 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:37:12,278 - INFO - Day 30 (Tuesday, June 03, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:37:12,279 - INFO - Generated meal for Day 30 (Tuesday, June 03, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:37:12,280 - INFO - Meal plan generation completed
+2025-05-05 08:37:12,290 - INFO - 192.168.1.4 - - [05/May/2025 08:37:12] "POST /api/update-plan HTTP/1.1" 200 -
+2025-05-05 08:38:01,813 - INFO - 192.168.1.4 - - [05/May/2025 08:38:01] "[35m[1mPOST /api/predict-cycle HTTP/1.1[0m" 500 -
+2025-05-05 08:40:44,132 - INFO - 192.168.1.4 - - [05/May/2025 08:40:44] "POST /api/predict-cycle HTTP/1.1" 200 -
+2025-05-05 08:40:44,769 - INFO - Starting workout plan generation
+2025-05-05 08:40:44,769 - INFO - Loading user profile
+2025-05-05 08:40:44,770 - INFO - Converting activity level slider value 50
+2025-05-05 08:40:44,770 - INFO - Mapping age 29 to age group
+2025-05-05 08:40:44,770 - INFO - User profile loaded: Age=29, ActivityLevel=moderate, Goal=stay_fit
+2025-05-05 08:40:44,770 - INFO - Loading workouts CSV from D:\FA21-BSE-027\7th Semester\Mobile Application Development\ProjectWork\AIBackend\app\..\data\workouts.csv
+2025-05-05 08:40:44,780 - INFO - Replacing NaN values in workouts DataFrame
+2025-05-05 08:40:44,783 - INFO - Loaded 326 workout entries
+2025-05-05 08:40:44,785 - INFO - Getting recommendations for age 29 and activity level moderate
+2025-05-05 08:40:44,786 - INFO - Recommendations: MET=['low', 'moderate'], Difficulty=['Beginner', 'Intermediate']
+2025-05-05 08:40:44,786 - INFO - Filtering workouts based on MET and difficulty recommendations
+2025-05-05 08:40:44,789 - INFO - Filtered workouts: 273 entries
+2025-05-05 08:40:44,791 - INFO - Generating workout plan for goal=stay_fit, duration=30 days, rest day=Sunday
+2025-05-05 08:40:44,792 - INFO - Day 1 (Monday, May 05, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:40:44,792 - INFO - Day 2 (Tuesday, May 06, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:40:44,792 - INFO - Day 3 (Wednesday, May 07, 2025): Assigned focus Light Endurance
+2025-05-05 08:40:44,796 - INFO - Day 4 (Thursday, May 08, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:40:44,797 - INFO - Day 5 (Friday, May 09, 2025): Assigned focus Core + Abs
+2025-05-05 08:40:44,799 - INFO - Day 6 (Saturday, May 10, 2025): Assigned focus Light Endurance
+2025-05-05 08:40:44,799 - INFO - Day 7 (Sunday, May 11, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:40:44,800 - INFO - Day 8 (Monday, May 12, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:40:44,800 - INFO - Day 9 (Tuesday, May 13, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:40:44,800 - INFO - Day 10 (Wednesday, May 14, 2025): Assigned focus Light Endurance
+2025-05-05 08:40:44,801 - INFO - Day 11 (Thursday, May 15, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:40:44,801 - INFO - Day 12 (Friday, May 16, 2025): Assigned focus Core + Abs
+2025-05-05 08:40:44,801 - INFO - Day 13 (Saturday, May 17, 2025): Assigned focus Light Endurance
+2025-05-05 08:40:44,802 - INFO - Day 14 (Sunday, May 18, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:40:44,802 - INFO - Day 15 (Monday, May 19, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:40:44,802 - INFO - Day 16 (Tuesday, May 20, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:40:44,803 - INFO - Day 17 (Wednesday, May 21, 2025): Assigned focus Light Endurance
+2025-05-05 08:40:44,803 - INFO - Day 18 (Thursday, May 22, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:40:44,803 - INFO - Day 19 (Friday, May 23, 2025): Assigned focus Core + Abs
+2025-05-05 08:40:44,807 - INFO - Day 20 (Saturday, May 24, 2025): Assigned focus Light Endurance
+2025-05-05 08:40:44,807 - INFO - Day 21 (Sunday, May 25, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:40:44,808 - INFO - Day 22 (Monday, May 26, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:40:44,808 - INFO - Day 23 (Tuesday, May 27, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:40:44,808 - INFO - Day 24 (Wednesday, May 28, 2025): Assigned focus Light Endurance
+2025-05-05 08:40:44,809 - INFO - Day 25 (Thursday, May 29, 2025): Set as Active Rest Day due to workout streak >= 3
+2025-05-05 08:40:44,809 - INFO - Day 26 (Friday, May 30, 2025): Assigned focus Core + Abs
+2025-05-05 08:40:44,814 - INFO - Day 27 (Saturday, May 31, 2025): Assigned focus Light Endurance
+2025-05-05 08:40:44,814 - INFO - Day 28 (Sunday, June 01, 2025): Set as Complete Rest Day due to preferred rest day
+2025-05-05 08:40:44,815 - INFO - Day 29 (Monday, June 02, 2025): Assigned focus Upper Body Strength
+2025-05-05 08:40:44,815 - INFO - Day 30 (Tuesday, June 03, 2025): Assigned focus Lower Body Strength
+2025-05-05 08:40:44,816 - INFO - Generated initial plan with 30 days
+2025-05-05 08:40:44,816 - INFO - Workout parameters: Exercises=4, Sets=3, Reps=15, RepTime=4, RestTime=30
+2025-05-05 08:40:44,817 - INFO - Determined workout intensity: moderate
+2025-05-05 08:40:44,817 - INFO - Generating workouts for focus Upper Body Strength on Day 1 (Monday, May 05, 2025)
+2025-05-05 08:40:44,820 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:40:44,823 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:40:44,825 - INFO - Generating workouts for focus Lower Body Strength on Day 2 (Tuesday, May 06, 2025)
+2025-05-05 08:40:44,825 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:40:44,831 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:40:44,834 - INFO - Generating workouts for focus Light Endurance on Day 3 (Wednesday, May 07, 2025)
+2025-05-05 08:40:44,834 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:40:44,837 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:40:44,841 - INFO - Day 4 (Thursday, May 08, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:40:44,842 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:40:44,848 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:40:44,854 - INFO - Generating workouts for focus Core + Abs on Day 5 (Friday, May 09, 2025)
+2025-05-05 08:40:44,855 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:40:44,858 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:40:44,871 - INFO - Generating workouts for focus Light Endurance on Day 6 (Saturday, May 10, 2025)
+2025-05-05 08:40:44,872 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:40:44,875 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:40:44,881 - INFO - Day 7 (Sunday, May 11, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:40:44,882 - INFO - Generating workouts for focus Upper Body Strength on Day 8 (Monday, May 12, 2025)
+2025-05-05 08:40:44,883 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:40:44,885 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:40:44,887 - INFO - Generating workouts for focus Lower Body Strength on Day 9 (Tuesday, May 13, 2025)
+2025-05-05 08:40:44,888 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:40:44,897 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:40:44,901 - INFO - Generating workouts for focus Light Endurance on Day 10 (Wednesday, May 14, 2025)
+2025-05-05 08:40:44,901 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:40:44,905 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:40:44,909 - INFO - Day 11 (Thursday, May 15, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:40:44,912 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:40:44,916 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:40:44,921 - INFO - Generating workouts for focus Core + Abs on Day 12 (Friday, May 16, 2025)
+2025-05-05 08:40:44,921 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:40:44,926 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:40:44,932 - INFO - Generating workouts for focus Light Endurance on Day 13 (Saturday, May 17, 2025)
+2025-05-05 08:40:44,933 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:40:44,936 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:40:44,940 - INFO - Day 14 (Sunday, May 18, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:40:44,941 - INFO - Generating workouts for focus Upper Body Strength on Day 15 (Monday, May 19, 2025)
+2025-05-05 08:40:44,942 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:40:44,946 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:40:44,949 - INFO - Generating workouts for focus Lower Body Strength on Day 16 (Tuesday, May 20, 2025)
+2025-05-05 08:40:44,950 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:40:44,952 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:40:44,963 - INFO - Generating workouts for focus Light Endurance on Day 17 (Wednesday, May 21, 2025)
+2025-05-05 08:40:44,963 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:40:44,967 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:40:44,970 - INFO - Day 18 (Thursday, May 22, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:40:44,971 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:40:44,975 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:40:44,988 - INFO - Generating workouts for focus Core + Abs on Day 19 (Friday, May 23, 2025)
+2025-05-05 08:40:44,989 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:40:44,997 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:40:44,999 - INFO - Generating workouts for focus Light Endurance on Day 20 (Saturday, May 24, 2025)
+2025-05-05 08:40:45,000 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:40:45,004 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:40:45,007 - INFO - Day 21 (Sunday, May 25, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:40:45,008 - INFO - Generating workouts for focus Upper Body Strength on Day 22 (Monday, May 26, 2025)
+2025-05-05 08:40:45,008 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:40:45,013 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:40:45,017 - INFO - Generating workouts for focus Lower Body Strength on Day 23 (Tuesday, May 27, 2025)
+2025-05-05 08:40:45,018 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:40:45,021 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:40:45,025 - INFO - Generating workouts for focus Light Endurance on Day 24 (Wednesday, May 28, 2025)
+2025-05-05 08:40:45,025 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:40:45,035 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:40:45,037 - INFO - Day 25 (Thursday, May 29, 2025): Active Rest Day, assigning Mobility/Stretching exercises
+2025-05-05 08:40:45,037 - INFO - Getting workouts for focus area Active Rest Day and activity level moderate
+2025-05-05 08:40:45,041 - INFO - Found 93 primary workouts for focus Active Rest Day
+2025-05-05 08:40:45,054 - INFO - Generating workouts for focus Core + Abs on Day 26 (Friday, May 30, 2025)
+2025-05-05 08:40:45,057 - INFO - Getting workouts for focus area Core + Abs and activity level moderate
+2025-05-05 08:40:45,059 - INFO - Found 85 primary workouts for focus Core + Abs
+2025-05-05 08:40:45,067 - INFO - Generating workouts for focus Light Endurance on Day 27 (Saturday, May 31, 2025)
+2025-05-05 08:40:45,068 - INFO - Getting workouts for focus area Light Endurance and activity level moderate
+2025-05-05 08:40:45,071 - INFO - Found 18 primary workouts for focus Light Endurance
+2025-05-05 08:40:45,081 - INFO - Day 28 (Sunday, June 01, 2025): Complete Rest Day, no workouts assigned
+2025-05-05 08:40:45,082 - INFO - Generating workouts for focus Upper Body Strength on Day 29 (Monday, June 02, 2025)
+2025-05-05 08:40:45,082 - INFO - Getting workouts for focus area Upper Body Strength and activity level moderate
+2025-05-05 08:40:45,085 - INFO - Found 14 primary workouts for focus Upper Body Strength
+2025-05-05 08:40:45,087 - INFO - Generating workouts for focus Lower Body Strength on Day 30 (Tuesday, June 03, 2025)
+2025-05-05 08:40:45,087 - INFO - Getting workouts for focus area Lower Body Strength and activity level moderate
+2025-05-05 08:40:45,091 - INFO - Found 32 primary workouts for focus Lower Body Strength
+2025-05-05 08:40:45,097 - INFO - Workout plan generation completed
+2025-05-05 08:40:45,098 - INFO - Starting meal plan generation
+2025-05-05 08:40:45,098 - INFO - Loading user profile for meal plan
+2025-05-05 08:40:45,099 - INFO - Converting activity level slider value 50
+2025-05-05 08:40:45,099 - INFO - Mapping age 29 to age group
+2025-05-05 08:40:45,100 - INFO - User profile loaded: Age=29, ActivityLevel=moderate, Goal=stay_fit, BMI=24.83, HealthConditions={'has_diabetes': False, 'has_hypertension': False, 'is_menopausal': False}
+2025-05-05 08:40:45,100 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,100 - INFO - Day 1 (Monday, May 05, 2025): Dominant workout type=strength, Max Calories=15.96
+2025-05-05 08:40:45,101 - INFO - Generated meal for Day 1 (Monday, May 05, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,101 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,102 - INFO - Day 2 (Tuesday, May 06, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 08:40:45,102 - INFO - Generated meal for Day 2 (Tuesday, May 06, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,103 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,105 - INFO - Day 3 (Wednesday, May 07, 2025): Dominant workout type=cardio, Max Calories=14.7
+2025-05-05 08:40:45,106 - INFO - Generated meal for Day 3 (Wednesday, May 07, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,106 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,106 - INFO - Day 4 (Thursday, May 08, 2025): Dominant workout type=rest, Max Calories=1.31
+2025-05-05 08:40:45,107 - INFO - Generated meal for Day 4 (Thursday, May 08, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,107 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,108 - INFO - Day 5 (Friday, May 09, 2025): Dominant workout type=rest, Max Calories=12.6
+2025-05-05 08:40:45,108 - INFO - Generated meal for Day 5 (Friday, May 09, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,109 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,115 - INFO - Day 6 (Saturday, May 10, 2025): Dominant workout type=cardio, Max Calories=16.8
+2025-05-05 08:40:45,115 - INFO - Generated meal for Day 6 (Saturday, May 10, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,116 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,116 - INFO - Day 7 (Sunday, May 11, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:40:45,117 - INFO - Generated meal for Day 7 (Sunday, May 11, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,117 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,117 - INFO - Day 8 (Monday, May 12, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:40:45,118 - INFO - Generated meal for Day 8 (Monday, May 12, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,118 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,120 - INFO - Day 9 (Tuesday, May 13, 2025): Dominant workout type=strength, Max Calories=14.7
+2025-05-05 08:40:45,121 - INFO - Generated meal for Day 9 (Tuesday, May 13, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,121 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,122 - INFO - Day 10 (Wednesday, May 14, 2025): Dominant workout type=cardio, Max Calories=23.1
+2025-05-05 08:40:45,122 - INFO - Generated meal for Day 10 (Wednesday, May 14, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,123 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,123 - INFO - Day 11 (Thursday, May 15, 2025): Dominant workout type=rest, Max Calories=1.84
+2025-05-05 08:40:45,124 - INFO - Generated meal for Day 11 (Thursday, May 15, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,124 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,124 - INFO - Day 12 (Friday, May 16, 2025): Dominant workout type=rest, Max Calories=14.7
+2025-05-05 08:40:45,132 - INFO - Generated meal for Day 12 (Friday, May 16, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,132 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,132 - INFO - Day 13 (Saturday, May 17, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:40:45,135 - INFO - Generated meal for Day 13 (Saturday, May 17, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,136 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,136 - INFO - Day 14 (Sunday, May 18, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:40:45,137 - INFO - Generated meal for Day 14 (Sunday, May 18, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,137 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,141 - INFO - Day 15 (Monday, May 19, 2025): Dominant workout type=strength, Max Calories=27.3
+2025-05-05 08:40:45,145 - INFO - Generated meal for Day 15 (Monday, May 19, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,146 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,149 - INFO - Day 16 (Tuesday, May 20, 2025): Dominant workout type=strength, Max Calories=16.8
+2025-05-05 08:40:45,150 - INFO - Generated meal for Day 16 (Tuesday, May 20, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,150 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,151 - INFO - Day 17 (Wednesday, May 21, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:40:45,152 - INFO - Generated meal for Day 17 (Wednesday, May 21, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,153 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,153 - INFO - Day 18 (Thursday, May 22, 2025): Dominant workout type=rest, Max Calories=1.84
+2025-05-05 08:40:45,154 - INFO - Generated meal for Day 18 (Thursday, May 22, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,165 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,165 - INFO - Day 19 (Friday, May 23, 2025): Dominant workout type=rest, Max Calories=14.7
+2025-05-05 08:40:45,166 - INFO - Generated meal for Day 19 (Friday, May 23, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,167 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,168 - INFO - Day 20 (Saturday, May 24, 2025): Dominant workout type=cardio, Max Calories=16.8
+2025-05-05 08:40:45,171 - INFO - Generated meal for Day 20 (Saturday, May 24, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,172 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,172 - INFO - Day 21 (Sunday, May 25, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:40:45,174 - INFO - Generated meal for Day 21 (Sunday, May 25, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,174 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,175 - INFO - Day 22 (Monday, May 26, 2025): Dominant workout type=strength, Max Calories=27.3
+2025-05-05 08:40:45,181 - INFO - Generated meal for Day 22 (Monday, May 26, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,182 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,183 - INFO - Day 23 (Tuesday, May 27, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:40:45,184 - INFO - Generated meal for Day 23 (Tuesday, May 27, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,185 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,185 - INFO - Day 24 (Wednesday, May 28, 2025): Dominant workout type=cardio, Max Calories=18.9
+2025-05-05 08:40:45,186 - INFO - Generated meal for Day 24 (Wednesday, May 28, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,186 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,186 - INFO - Day 25 (Thursday, May 29, 2025): Dominant workout type=rest, Max Calories=1.31
+2025-05-05 08:40:45,187 - INFO - Generated meal for Day 25 (Thursday, May 29, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,187 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,189 - INFO - Day 26 (Friday, May 30, 2025): Dominant workout type=rest, Max Calories=15.96
+2025-05-05 08:40:45,190 - INFO - Generated meal for Day 26 (Friday, May 30, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,191 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,191 - INFO - Day 27 (Saturday, May 31, 2025): Dominant workout type=cardio, Max Calories=25.2
+2025-05-05 08:40:45,192 - INFO - Generated meal for Day 27 (Saturday, May 31, 2025): Calories=1759.1, Carbs=219.9g, Protein=131.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,192 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,194 - INFO - Day 28 (Sunday, June 01, 2025): No workouts, using dominant type 'rest'
+2025-05-05 08:40:45,196 - INFO - Generated meal for Day 28 (Sunday, June 01, 2025): Calories=1759.1, Carbs=175.9g, Protein=153.9g, Fat=48.9g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,196 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,196 - INFO - Day 29 (Monday, June 02, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:40:45,197 - INFO - Generated meal for Day 29 (Monday, June 02, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,197 - WARNING - No cycle phases provided, defaulting to 'follicular'
+2025-05-05 08:40:45,198 - INFO - Day 30 (Tuesday, June 03, 2025): Dominant workout type=strength, Max Calories=18.9
+2025-05-05 08:40:45,198 - INFO - Generated meal for Day 30 (Tuesday, June 03, 2025): Calories=1759.1, Carbs=153.9g, Protein=197.9g, Fat=39.1g, Sleep=7.5h, Water=2.1L, Tags=['High-Energy Meals', 'Muscle Repair Support']
+2025-05-05 08:40:45,199 - INFO - Meal plan generation completed
+2025-05-05 08:40:45,203 - INFO - 192.168.1.4 - - [05/May/2025 08:40:45] "POST /api/update-plan HTTP/1.1" 200 -

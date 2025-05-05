@@ -13,9 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 const MessageScreen: React.FC = () => {
   return (
     <ImageBackground
-      source={{
-        uri: '../../assets/images/3.jpg',
-      }}
+      source={require('../../assets/images/3.jpg')}
       style={styles.background}
       resizeMode="cover"
     >

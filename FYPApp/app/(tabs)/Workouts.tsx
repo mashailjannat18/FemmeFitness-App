@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, RefreshControl } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -20,102 +20,109 @@ type DailyWorkout = {
 
 export default function Workouts() {
   const [dailyWorkouts, setDailyWorkouts] = useState<DailyWorkout[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
   const { user } = useUserAuth();
 
-  useEffect(() => {
+  const fetchWorkoutPlan = useCallback(async () => {
     if (!user || !user.id) {
       router.push('/Login');
       return;
     }
 
-    const fetchWorkoutPlan = async () => {
-      try {
-        // Step 1: Fetch the active workout plan
-        const { data: planData, error: planError } = await supabase
-          .from('WorkoutPlans')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .single();
+    try {
+      // Step 1: Fetch the active workout plan
+      const { data: planData, error: planError } = await supabase
+        .from('WorkoutPlans')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
 
-        if (planError || !planData) {
-          throw new Error('No active workout plan found');
-        }
-
-        // Step 2: Fetch daily workouts
-        const { data: dailyData, error: dailyError } = await supabase
-          .from('DailyWorkouts')
-          .select('id, day_name, day_number, daily_workout_date, focus, total_calories_burned, total_duration_min')
-          .eq('workout_plan_id', planData.id)
-          .order('day_number', { ascending: true });
-
-        if (dailyError) {
-          throw new Error('Error fetching daily workouts: ' + dailyError.message);
-        }
-
-        if (!dailyData || dailyData.length === 0) {
-          setDailyWorkouts([]);
-          return;
-        }
-
-        // Step 3: Fetch total exercises per day from Workouts table
-        const dailyWorkoutIds = dailyData.map((day) => day.id);
-        const { data: workoutsData, error: workoutsError } = await supabase
-          .from('Workouts')
-          .select('daily_workout_id, id')
-          .in('daily_workout_id', dailyWorkoutIds);
-
-        if (workoutsError) {
-          throw new Error('Error fetching workouts: ' + workoutsError.message);
-        }
-
-        // Count total exercises per day
-        const totalExercisesPerDay: { [key: string]: number } = {};
-        workoutsData.forEach((workout) => {
-          const dailyWorkoutId = workout.daily_workout_id.toString();
-          totalExercisesPerDay[dailyWorkoutId] = (totalExercisesPerDay[dailyWorkoutId] || 0) + 1;
-        });
-
-        // Step 4: Fetch completed/skipped exercises from ExerciseCompletions table
-        const { data: completionsData, error: completionsError } = await supabase
-          .from('ExerciseCompletions')
-          .select('daily_workout_id, status')
-          .in('daily_workout_id', dailyWorkoutIds)
-          .in('status', ['completed', 'skipped']);
-
-        if (completionsError) {
-          throw new Error('Error fetching exercise completions: ' + completionsError.message);
-        }
-
-        // Count completed/skipped exercises per day
-        const completedExercisesPerDay: { [key: string]: number } = {};
-        completionsData.forEach((completion) => {
-          const dailyWorkoutId = completion.daily_workout_id.toString();
-          completedExercisesPerDay[dailyWorkoutId] = (completedExercisesPerDay[dailyWorkoutId] || 0) + 1;
-        });
-
-        // Step 5: Add isAllCompletedOrSkipped field to each daily workout
-        const updatedDailyWorkouts = dailyData.map((day) => {
-          const dailyWorkoutId = day.id.toString();
-          const totalExercises = totalExercisesPerDay[dailyWorkoutId] || 0;
-          const completedExercises = completedExercisesPerDay[dailyWorkoutId] || 0;
-          const isAllCompletedOrSkipped = totalExercises > 0 && completedExercises === totalExercises;
-          return {
-            ...day,
-            isAllCompletedOrSkipped,
-          };
-        });
-
-        setDailyWorkouts(updatedDailyWorkouts);
-      } catch (error: any) {
-        console.error('Error fetching workout plan:', error.message);
-        setDailyWorkouts([]);
+      if (planError || !planData) {
+        throw new Error('No active workout plan found');
       }
-    };
 
-    fetchWorkoutPlan();
+      // Step 2: Fetch daily workouts
+      const { data: dailyData, error: dailyError } = await supabase
+        .from('DailyWorkouts')
+        .select('id, day_name, day_number, daily_workout_date, focus, total_calories_burned, total_duration_min')
+        .eq('workout_plan_id', planData.id)
+        .order('day_number', { ascending: true });
+
+      if (dailyError) {
+        throw new Error('Error fetching daily workouts: ' + dailyError.message);
+      }
+
+      if (!dailyData || dailyData.length === 0) {
+        setDailyWorkouts([]);
+        return;
+      }
+
+      // Step 3: Fetch total exercises per day from Workouts table
+      const dailyWorkoutIds = dailyData.map((day) => day.id);
+      const { data: workoutsData, error: workoutsError } = await supabase
+        .from('Workouts')
+        .select('daily_workout_id, id')
+        .in('daily_workout_id', dailyWorkoutIds);
+
+      if (workoutsError) {
+        throw new Error('Error fetching workouts: ' + workoutsError.message);
+      }
+
+      // Count total exercises per day
+      const totalExercisesPerDay: { [key: string]: number } = {};
+      workoutsData.forEach((workout) => {
+        const dailyWorkoutId = workout.daily_workout_id.toString();
+        totalExercisesPerDay[dailyWorkoutId] = (totalExercisesPerDay[dailyWorkoutId] || 0) + 1;
+      });
+
+      // Step 4: Fetch completed/skipped exercises from ExerciseCompletions table
+      const { data: completionsData, error: completionsError } = await supabase
+        .from('ExerciseCompletions')
+        .select('daily_workout_id, status')
+        .in('daily_workout_id', dailyWorkoutIds)
+        .in('status', ['completed', 'skipped']);
+
+      if (completionsError) {
+        throw new Error('Error fetching exercise completions: ' + completionsError.message);
+      }
+
+      // Count completed/skipped exercises per day
+      const completedExercisesPerDay: { [key: string]: number } = {};
+      completionsData.forEach((completion) => {
+        const dailyWorkoutId = completion.daily_workout_id.toString();
+        completedExercisesPerDay[dailyWorkoutId] = (completedExercisesPerDay[dailyWorkoutId] || 0) + 1;
+      });
+
+      // Step 5: Add isAllCompletedOrSkipped field to each daily workout
+      const updatedDailyWorkouts = dailyData.map((day) => {
+        const dailyWorkoutId = day.id.toString();
+        const totalExercises = totalExercisesPerDay[dailyWorkoutId] || 0;
+        const completedExercises = completedExercisesPerDay[dailyWorkoutId] || 0;
+        const isAllCompletedOrSkipped = totalExercises > 0 && completedExercises === totalExercises;
+        return {
+          ...day,
+          isAllCompletedOrSkipped,
+        };
+      });
+
+      setDailyWorkouts(updatedDailyWorkouts);
+    } catch (error: any) {
+      console.error('Error fetching workout plan:', error.message);
+      setDailyWorkouts([]);
+    }
   }, [user, router]);
+
+  useEffect(() => {
+    fetchWorkoutPlan();
+  }, [fetchWorkoutPlan]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchWorkoutPlan();
+    setRefreshing(false);
+  }, [fetchWorkoutPlan]);
 
   const navigateToExercises = (dayName: string) => {
     router.push({
@@ -148,7 +155,17 @@ export default function Workouts() {
         <Text style={styles.usernameText}>{user.username || 'User'}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#EC4899"
+            colors={['#EC4899']}
+          />
+        }
+      >
         <View style={styles.imageContainer}>
           <Image source={require('../../assets/images/2.jpg')} style={styles.image} />
         </View>

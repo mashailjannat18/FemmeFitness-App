@@ -144,13 +144,13 @@ export default function Screen() {
         }} 
       />
       <Stack.Screen 
-        name="Periods" 
+        name="PeriodsCalendar" 
         options={{ 
           headerShown: false, 
         }} 
       />
       <Stack.Screen 
-        name="PeriodsHistory" 
+        name="PeriodsLog" 
         options={{ 
           headerShown: false, 
         }} 

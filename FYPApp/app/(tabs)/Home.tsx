@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, ScrollView, BackHandler, Modal, TextInput, Button, RefreshControl } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import Svg, { Circle, LinearGradient, Defs, Stop, Path, Rect } from 'react-native-svg';
@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useUserAuth } from '@/context/UserAuthContext';
 import { Calendar } from 'react-native-calendars';
 import Logo from '@/assets/images/Logo.png';
+import Water from '@/assets/images/4.png';
 import type { Channel } from '@supabase/supabase-js';
 
 type Exercise = {
@@ -131,7 +132,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
                 gradientId === 'caloriesBurntGradient'
                   ? '#FF4040'
                   : gradientId === 'caloriesGainedGradient'
-                  ? '#FF69B4'
+                  ? '#ff1297'
                   : '#BA55D3',
             }}
           >
@@ -151,51 +152,15 @@ interface WaterGlassProps {
   onLogPress: () => void;
 }
 
-const WaterGlass: React.FC<WaterGlassProps> = ({ progress, size = 120, actualLiters, expectedLiters, onLogPress }): JSX.Element => {
-  const glassWidth = size * 0.7;
-  const glassHeight = size * 1.2;
-  const glassX = (size - glassWidth) / 2;
-  const glassBottomY = size - 15;
-  const glassTopY = 15;
-  const waterMaxHeight = glassHeight - 40;
-  const waterHeight = waterMaxHeight / 1.7;
-  const waterY = glassBottomY - waterHeight;
-
-  const glassPath = `
-    M ${glassX + 10},${glassTopY} 
-    C ${glassX},${glassTopY + 20} ${glassX},${glassTopY + 40} ${glassX + 5},${glassTopY + 60} 
-    L ${glassX + 15},${glassBottomY - 20} 
-    C ${glassX + 10},${glassBottomY} ${glassX + glassWidth - 10},${glassBottomY} ${glassX + glassWidth - 15},${glassBottomY - 20} 
-    L ${glassX + glassWidth - 5},${glassTopY + 60} 
-    C ${glassX + glassWidth},${glassTopY + 40} ${glassX + glassWidth},${glassTopY + 20} ${glassX + glassWidth - 10},${glassTopY} 
-    Z
-  `;
-
-  const waterPath = `
-    M ${glassX + 15},${glassBottomY - 20} 
-    C ${glassX + 10},${glassBottomY} ${glassX + glassWidth - 10},${glassBottomY} ${glassX + glassWidth - 15},${glassBottomY - 20} 
-    L ${glassX + glassWidth - 5},${glassTopY + 60} 
-    L ${glassX + glassWidth - 5},${waterY} 
-    L ${glassX + 5},${waterY} 
-    L ${glassX + 5},${glassTopY + 60} 
-    Z
-  `;
-
+const WaterGlass: React.FC<WaterGlassProps> = ({ actualLiters, expectedLiters, onLogPress }): JSX.Element => {
   return (
-    <View style={{ alignItems: 'center', height: 180 }}>
-      <Svg width={size} height={size}>
-        <Defs>
-          <LinearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <Stop offset="0%" stopColor="#E0F7FA" stopOpacity={0.6} />
-            <Stop offset="50%" stopColor="#81D4FA" stopOpacity={0.8} />
-            <Stop offset="100%" stopColor="#0288D1" stopOpacity={0.9} />
-          </LinearGradient>
-        </Defs>
-        <Path d={glassPath} stroke="#B0B0B0" strokeWidth={1.5} fill="rgba(255, 255, 261, 0.1)" />
-        <Path d={waterPath} fill="url(#waterGradient)" />
-      </Svg>
-      <Text style={[styles.progressText, { marginTop: 4 }]}>{actualLiters.toFixed(1)}/{expectedLiters.toFixed(1)} L</Text>
-      <TouchableOpacity style={[styles.logButton, { marginTop: 4 }]} onPress={onLogPress}>
+    <View style={{ height: 200, alignItems: 'center' }}>
+      <Text style={styles.progressText}>{actualLiters.toFixed(1)}/{expectedLiters.toFixed(1)} L</Text>
+      <Image
+        source={Water}
+        style={styles.water}
+      />
+      <TouchableOpacity style={styles.logButton1} onPress={onLogPress}>
         <Text style={styles.logButtonText}>Log Water</Text>
       </TouchableOpacity>
     </View>
@@ -227,7 +192,7 @@ const SleepCard: React.FC<SleepCardProps> = ({ progress, expectedHours, onLogPre
           {progress.toFixed(1)}/{expectedHours.toFixed(1)} hrs
         </Text>
         <TouchableOpacity style={styles.logButton} onPress={onLogPress}>
-          <Text style={styles.logButtonText}>Log Sleep</Text>
+          <Text style={styles.logButtonText1}>Log Sleep</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -281,17 +246,19 @@ export default function Home() {
   const [actualWaterLiters, setActualWaterLiters] = useState<number>(0);
   const [expectedWaterLiters, setExpectedWaterLiters] = useState<number>(0);
   const [streak, setStreak] = useState(0);
-  const [markedDates, setMarkedDates] = useState<{ [key: string]: { marked: boolean; color: string; textColor?: string } }>({});
+  const [markedDates, setMarkedDates] = useState<{ [key: string]: { marked: boolean; dotColor?: string; selected?: boolean; selectedColor?: string } }>({});
   const [renderKey, setRenderKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
   const { user } = useUserAuth();
+  const schedulerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!user || !user.id) {
       router.push('/Login');
       return;
     }
+    fetchStreakAndCompletions();
   }, [user, router]);
 
   useEffect(() => {
@@ -319,6 +286,44 @@ export default function Home() {
     }, [user])
   );
 
+  useEffect(() => {
+    const scheduleStreakReset = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(0, 0, 0, 0);
+      midnight.setDate(midnight.getDate() + 1);
+
+      const timeUntilMidnight = midnight.getTime() - now.getTime();
+      console.log('Time until next midnight:', timeUntilMidnight / (1000 * 60), 'minutes');
+
+      const resetStreak = async () => {
+        if (!user?.id) return;
+        const localDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+        const { error } = await supabase.rpc('reset_streak_local', { current_local_date: localDate });
+        if (error) console.error('Error resetting streak:', error.message);
+        else await fetchStreakAndCompletions();
+      };
+
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        resetStreak();
+      }
+
+      schedulerIntervalRef.current = setTimeout(() => {
+        resetStreak();
+        schedulerIntervalRef.current = setInterval(resetStreak, 24 * 60 * 60 * 1000);
+      }, timeUntilMidnight);
+
+      return () => {
+        if (schedulerIntervalRef.current) {
+          clearTimeout(schedulerIntervalRef.current);
+          clearInterval(schedulerIntervalRef.current);
+        }
+      };
+    };
+
+    scheduleStreakReset();
+  }, [user]);
+
   const fetchStreakAndCompletions = async () => {
     if (!user?.id) return;
 
@@ -345,29 +350,74 @@ export default function Home() {
         setStreak(0);
       }
 
+      const { data: dailyWorkouts, error: dailyWorkoutsError } = await supabase
+        .from('DailyWorkouts')
+        .select('id, daily_workout_date')
+        .eq('workout_plan_id', (await supabase
+          .from('WorkoutPlans')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single()).data?.id);
+
+      if (dailyWorkoutsError) {
+        console.error('Error fetching daily workouts:', dailyWorkoutsError.message);
+        return;
+      }
+
+      const dailyWorkoutIds = dailyWorkouts.map(dw => dw.id);
+      const { data: exercises, error: exercisesError } = await supabase
+        .from('Workouts')
+        .select('id, daily_workout_id')
+        .in('daily_workout_id', dailyWorkoutIds);
+
+      if (exercisesError) {
+        console.error('Error fetching exercises:', exercisesError.message);
+        return;
+      }
+
+      const exercisesByDailyWorkout: { [key: string]: number } = {};
+      exercises.forEach(ex => {
+        exercisesByDailyWorkout[ex.daily_workout_id] = (exercisesByDailyWorkout[ex.daily_workout_id] || 0) + 1;
+      });
+
       const { data: completions, error: completionsError } = await supabase
         .from('ExerciseCompletions')
-        .select('completion_date')
+        .select('daily_workout_id, completion_date, status')
         .eq('user_id', user.id)
-        .eq('status', 'completed');
+        .in('status', ['completed', 'skipped']);
 
       if (completionsError) {
         console.error('Error fetching completions for calendar:', completionsError.message);
         return;
       }
 
-      const today = getTodayDate();
-      const newMarkedDates: { [key: string]: { marked: boolean; color: string; textColor?: string } } = {};
-      completions.forEach((completion: any) => {
-        const date = new Date(completion.completion_date).toISOString().split('T')[0];
-        newMarkedDates[date] = { marked: true, color: '#FFA500' }; // Orange for completed streak days
+      const completionsByDailyWorkout: { [key: string]: number } = {};
+      completions.forEach(comp => {
+        if (comp.status === 'completed' || comp.status === 'skipped') {
+          completionsByDailyWorkout[comp.daily_workout_id] = (completionsByDailyWorkout[comp.daily_workout_id] || 0) + 1;
+        }
       });
 
-      // Highlight current day in pink, or orange if it matches a completed date
-      if (!newMarkedDates[today]) {
-        newMarkedDates[today] = { marked: true, color: '#EC4899' }; // Pink for current day
-      } else {
-        newMarkedDates[today].color = '#FFA500'; // Orange if completed today
+      const completedOrSkippedDays: Set<string> = new Set();
+      dailyWorkouts.forEach(dw => {
+        const totalExercises = exercisesByDailyWorkout[dw.id] || 0;
+        const completedOrSkippedExercises = completionsByDailyWorkout[dw.id] || 0;
+        if (totalExercises > 0 && totalExercises === completedOrSkippedExercises) {
+          const date = new Date(dw.daily_workout_date).toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+          completedOrSkippedDays.add(date);
+        }
+      });
+
+      const today = getTodayDate();
+      const newMarkedDates: { [key: string]: { marked: boolean; dotColor?: string; selected?: boolean; selectedColor?: string } } = {};
+
+      completedOrSkippedDays.forEach(date => {
+        newMarkedDates[date] = { marked: true, dotColor: '#FFA500', selected: true, selectedColor: '#FFA500' };
+      });
+
+      if (!completedOrSkippedDays.has(today)) {
+        newMarkedDates[today] = { marked: true, dotColor: '#EC4899', selected: true, selectedColor: '#EC4899' };
       }
 
       setMarkedDates(newMarkedDates);
@@ -405,8 +455,8 @@ export default function Home() {
       setWorkoutDays(days);
 
       const today = getTodayDate();
-      const startOfDay = `${today}T00:00:00.000Z`;
-      const endOfDay = `${today}T23:59:59.999Z`;
+      const startOfDay = `${today} 00:00:00`;
+      const endOfDay = `${today} 23:59:59`;
 
       console.log('Real-time Date (today):', today);
 
@@ -448,7 +498,7 @@ export default function Home() {
 
           const { data: completionData, error: completionError } = await supabase
             .from('ExerciseCompletions')
-            .select('workout_id, calories_burned')
+            .select('workout_id, calories_burned, status')
             .eq('user_id', user.id)
             .eq('daily_workout_id', dailyData.id)
             .gte('completion_date', startOfDay)
@@ -460,11 +510,11 @@ export default function Home() {
           setCaloriesBurnedToday(burnedCalories);
 
           const totalExercises = exerciseData?.length || 1;
-          const completedExercises = completionData?.length || 0;
-          const calculatedPercentage = Math.round((completedExercises / totalExercises) * 100);
+          const completedOrSkippedExercises = completionData?.filter(comp => comp.status === 'completed' || comp.status === 'skipped').length || 0;
+          console.log(`Exercises for today (${today}): ${completedOrSkippedExercises} out of ${totalExercises} completed or skipped`);
+          const calculatedPercentage = Math.round((completedOrSkippedExercises / totalExercises) * 100);
 
           setProgressPercentage(calculatedPercentage);
-
           setDailyWorkout({
             id: dailyData.id,
             day_name: dailyData.day_name,
@@ -488,12 +538,12 @@ export default function Home() {
               async (payload) => {
                 console.log('ExerciseCompletions change received:', payload);
                 const currentToday = getTodayDate();
-                const currentStartOfDay = `${currentToday}T00:00:00.000Z`;
-                const currentEndOfDay = `${currentToday}T23:59:59.999Z`;
+                const currentStartOfDay = `${currentToday} 00:00:00`;
+                const currentEndOfDay = `${currentToday} 23:59:59`;
 
                 const { data: updatedCompletions, error: updatedError } = await supabase
                   .from('ExerciseCompletions')
-                  .select('workout_id, calories_burned, completion_date')
+                  .select('workout_id, calories_burned, status')
                   .eq('user_id', user.id)
                   .eq('daily_workout_id', dailyData.id)
                   .gte('completion_date', currentStartOfDay)
@@ -505,17 +555,12 @@ export default function Home() {
                 }
 
                 const updatedBurnedCalories = updatedCompletions?.reduce((sum: number, completion: any) => sum + (completion.calories_burned || 0), 0) || 0;
-                setCaloriesBurnedToday((prev) => {
-                  console.log('Updating caloriesBurnedToday:', prev, '->', updatedBurnedCalories);
-                  return updatedBurnedCalories;
-                });
+                setCaloriesBurnedToday(updatedBurnedCalories);
 
-                const updatedCompletedExercises = updatedCompletions?.length || 0;
-                const updatedPercentage = Math.round((updatedCompletedExercises / totalExercises) * 100);
-                setProgressPercentage((prev) => {
-                  console.log('Updating progressPercentage:', prev, '->', updatedPercentage);
-                  return updatedPercentage;
-                });
+                const updatedCompletedOrSkippedExercises = updatedCompletions?.filter(comp => comp.status === 'completed' || comp.status === 'skipped').length || 0;
+                console.log(`Updated exercises for today (${currentToday}): ${updatedCompletedOrSkippedExercises} out of ${totalExercises} completed or skipped`);
+                const updatedPercentage = Math.round((updatedCompletedOrSkippedExercises / totalExercises) * 100);
+                setProgressPercentage(updatedPercentage);
 
                 await fetchStreakAndCompletions();
 
@@ -570,21 +615,9 @@ export default function Home() {
                   return;
                 }
 
-                setActualCaloriesGained((prev) => {
-                  const newValue = updatedMeal.calories_intake || 0;
-                  console.log('Updating actualCaloriesGained:', prev, '->', newValue);
-                  return newValue;
-                });
-                setExpectedWaterLiters((prev) => {
-                  const newValue = updatedMeal.water_litres || 0;
-                  console.log('Updating expectedWaterLiters:', prev, '->', newValue);
-                  return newValue;
-                });
-                setExpectedSleepHours((prev) => {
-                  const newValue = updatedMeal.sleep_hours || 0;
-                  console.log('Updating expectedSleepHours:', prev, '->', newValue);
-                  return newValue;
-                });
+                setActualCaloriesGained(updatedMeal.calories_intake || 0);
+                setExpectedWaterLiters(updatedMeal.water_litres || 0);
+                setExpectedSleepHours(updatedMeal.sleep_hours || 0);
 
                 setRenderKey((prev) => prev + 1);
               }
@@ -679,6 +712,8 @@ export default function Home() {
         setExpectedSleepHours(0);
         setActualWaterLiters(0);
         setExpectedWaterLiters(0);
+        setStreak(0);
+        setMarkedDates({});
       }
     } catch (error: any) {
       console.error('Error fetching data:', error.message);
@@ -714,10 +749,7 @@ export default function Home() {
       }
 
       const newSleepHours = sleepData && sleepData.sleep_hours !== null ? sleepData.sleep_hours : 0;
-      setSleepHours((prev) => {
-        console.log('Updating sleepHours:', prev, '->', newSleepHours);
-        return newSleepHours;
-      });
+      setSleepHours(newSleepHours);
     } catch (error) {
       console.error('Error fetching sleep hours:', error);
       setSleepHours(0);
@@ -739,10 +771,7 @@ export default function Home() {
       }
 
       const newWaterLiters = waterData && waterData.water_liters !== null ? waterData.water_liters : 0;
-      setActualWaterLiters((prev) => {
-        console.log('Updating actualWaterLiters:', prev, '->', newWaterLiters);
-        return newWaterLiters;
-      });
+      setActualWaterLiters(newWaterLiters);
     } catch (error) {
       console.error('Error fetching water intake:', error);
       setActualWaterLiters(0);
@@ -923,7 +952,6 @@ export default function Home() {
         <Text style={styles.headerText}>Home</Text>
         <Text style={styles.usernameText}>{user.username || 'User'}</Text>
       </View>
-
       <ScrollView
         style={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -945,18 +973,19 @@ export default function Home() {
           </View>
           <View style={styles.calendarText}>
             <Text style={styles.month}>{currentMonth}</Text>
-            <Text style={[styles.streakDays, { color: '#FFA500' }]}>{streak} days</Text>
+            <Text style={[styles.streakDays, { color: '#FFA500' }]}>{streak} day(s)</Text>
           </View>
-
           {showCalendar ? (
             <Calendar
               style={styles.calendar}
               theme={{
                 calendarBackground: '#FFF',
                 textSectionTitleColor: '#000',
-                todayTextColor: '#EC4899',
+                todayTextColor: '#000',
                 dayTextColor: '#000',
                 arrowColor: '#EC4899',
+                selectedDayBackgroundColor: 'transparent',
+                dotColor: '#FFA500',
               }}
               markedDates={markedDates}
             />
@@ -967,24 +996,26 @@ export default function Home() {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.dateList}
-              renderItem={({ item, index }) => {
+              renderItem={({ item }) => {
                 const today = getTodayDate();
-                const isCompleted = markedDates[item.date]?.color === '#FFA500';
+                const isCompletedOrSkipped = markedDates[item.date]?.dotColor === '#FFA500';
                 const isCurrentDate = item.date === today;
-                const backgroundColor = isCompleted ? '#FFA500' : isCurrentDate ? '#EC4899' : '#F3F4F6';
-                const textColor = isCompleted || isCurrentDate ? '#FFFFFF' : '#1F2937';
+                const backgroundColor = isCompletedOrSkipped ? '#FFA500' : isCurrentDate ? '#ff1297' : '#F3F4F6';
+                const textColor = isCompletedOrSkipped || isCurrentDate ? '#FFFFFF' : '#1F2937';
 
                 return (
                   <View
                     style={[
                       styles.dateItem,
                       { backgroundColor },
-                      (isCompleted || isCurrentDate) && { width: 48, height: 72 },
+                      (isCompletedOrSkipped || isCurrentDate) && { width: 48, height: 72 },
                     ]}
                   >
-                    <Text style={[styles.dateDay, { color: textColor }]}>{['S', 'M', 'T', 'W', 'T', 'F', 'S'][index % 7]}</Text>
+                    <Text style={[styles.dateDay, { color: textColor }]}>
+                      {item.date.split('-')[2]}
+                    </Text>
                     <Text style={[styles.dateText, { color: textColor }]}>{item.day_number}</Text>
-                    {isCurrentDate && !isCompleted && <View style={styles.currentDayIndicator} />}
+                    {isCurrentDate && !isCompletedOrSkipped && <View style={styles.currentDayIndicator} />}
                   </View>
                 );
               }}
@@ -1271,7 +1302,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: '#FFFFFF',
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#ff77c3',
     paddingVertical: 4,
     paddingHorizontal: 9,
     borderRadius: 20,
@@ -1311,19 +1342,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  currentDateItem: {
-    width: 48,
-    height: 72,
-    backgroundColor: '#EC4899',
-    borderColor: '#EC4899',
-  },
   dateDay: {
     fontSize: 12,
     color: '#6B7280',
     marginBottom: 4,
-  },
-  currentDateText: {
-    color: '#FFFFFF',
   },
   dateText: {
     fontSize: 16,
@@ -1398,14 +1420,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#4B5563',
-    marginBottom: 12,
+    marginBottom: 8,
     textAlign: 'center',
   },
   progressText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 8,
+  },
+  water: {
+    width: 50,
+    height: 80,
   },
   sleepContainer: {
     borderRadius: 16,
@@ -1423,7 +1449,7 @@ const styles = StyleSheet.create({
   },
   sleepContent: {
     position: 'relative',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
     padding: 16,
@@ -1441,7 +1467,7 @@ const styles = StyleSheet.create({
   },
   sleepProgressText: {
     color: '#FFF',
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '600',
     marginTop: 8,
     marginBottom: 8,
@@ -1452,9 +1478,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
   },
+  logButton1: {
+    backgroundColor: '#5bc6ff',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  logButtonText1: {
+    color: '#9C27B0',
+    fontSize: 10,
+    fontWeight: '600',
+  },
   logButtonText: {
-    color: '#0288D1',
-    fontSize: 14,
+    color: 'white',
+    fontSize: 10,
     fontWeight: '600',
   },
   workoutCard: {
@@ -1464,12 +1502,6 @@ const styles = StyleSheet.create({
   workoutRow: {
     flexDirection: 'row',
     padding: 16,
-  },
-  workoutImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    marginRight: 16,
   },
   workoutInfo: {
     flex: 1,
@@ -1584,4 +1616,4 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
   },
-});
+}); 

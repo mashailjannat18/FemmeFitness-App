@@ -145,7 +145,7 @@ const GoalSetting = () => {
         workoutPlanId: workoutPlanData.id,
       };
 
-      const response = await fetch('http://192.168.1.8:5000/api/update-plan', {
+      const response = await fetch('http://192.168.1.3:5000/api/update-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

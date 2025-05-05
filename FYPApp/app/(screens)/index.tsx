@@ -12,9 +12,7 @@ import { Link } from 'expo-router';
 const IntroMessageScreen: React.FC = () => {
   return (
     <ImageBackground
-      source={{
-        uri: 'https://png.pngtree.com/thumb_back/fw800/background/20190319/pngtree-pink-gradient-white-spot-star-background-image_90157.jpg',
-      }}
+      source={require('../../assets/images/3.jpg')}
       style={styles.background}
       resizeMode="cover"
     >
@@ -65,6 +63,7 @@ const styles = StyleSheet.create({
     top: 20,
     right: 20,
     zIndex: 10,
+    borderRadius: 70,
   },
   skipText: {
     color: '#555',
@@ -72,7 +71,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     padding: 8,
     backgroundColor: '#eee',
-    borderRadius: 6,
+    borderRadius: 10,
   },
   content: {
     flex: 1,
@@ -82,7 +81,7 @@ const styles = StyleSheet.create({
   mainText: {
     color: '#d63384',
     fontSize: 36,
-    fontWeight: '900',
+    fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 15,
     letterSpacing: 1,

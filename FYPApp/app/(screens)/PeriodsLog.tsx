@@ -1,13 +1,51 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { router } from 'expo-router'; // Import Expo Router's router
-import { Calendar } from 'react-native-calendars'; // Import a calendar component
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity
+} from 'react-native';
+import { Calendar } from 'react-native-calendars';
+import { useRouter } from 'expo-router';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-export default function PeriodsLog() {
-  // Function to go back to the previous screen
-  const handleGoBack = () => {
-    router.back(); // Navigate back to the previous screen
+function PeriodsLog() {
+  const router = useRouter();
+
+  const getPastMonths = () => {
+    const months = [];
+    const currentDate = new Date();
+    for (let i = 0; i < 5; i++) {
+      const pastDate = new Date(currentDate);
+      pastDate.setMonth(currentDate.getMonth() - i);
+      const year = pastDate.getFullYear();
+      const month = String(pastDate.getMonth() + 1).padStart(2, '0');
+      months.push(`${year}-${month}`);
+    }
+    return months;
+  };
+
+  const pastMonths = getPastMonths();
+
+  // Example function to generate marked dates for each month
+  const getMarkedDatesForMonth = (month: string) => {
+    const markedDates: { [key: string]: any } = {};
+    const [year, monthNum] = month.split('-').map(Number);
+    
+    // Example: Mark the 10th to 14th of each month as period days
+    // Replace this with your actual period data logic
+    for (let day = 10; day <= 14; day++) {
+      const date = `${year}-${monthNum.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+      markedDates[date] = {
+        selected: true,
+        marked: true,
+        dotColor: '#FF69B4',
+        selectedColor: '#FF69B4',
+      };
+    }
+    
+    return markedDates;
   };
 
   return (
@@ -18,66 +56,46 @@ export default function PeriodsLog() {
         </TouchableOpacity>
         <Text style={styles.headerHeading}>Periods Log</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.container}>
-          {/* Calendar for the current month */}
-          <View style={styles.calendarContainer}>
+
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.subHeading}>Track your cycle with ease</Text>
+        </View>
+
+        {pastMonths.map((month, index) => (
+          <View key={index} style={styles.calendarContainer}>
+            <Text style={styles.monthHeader}>
+              {new Date(month).toLocaleString('default', { month: 'long', year: 'numeric' })}
+            </Text>
             <Calendar
-              style={styles.calendar}
-              current={new Date().toISOString().split('T')[0]} // Set current date
+              current={month}
               hideExtraDays={true}
-              enableSwipeMonths={true}
+              firstDay={1}
+              disableMonthChange={true}
+              enableSwipeMonths={false}
+              hideArrows={true}
+              markedDates={getMarkedDatesForMonth(month)}
               theme={{
                 backgroundColor: '#ffffff',
                 calendarBackground: '#ffffff',
-                textSectionTitleColor: '#ff69b4',  // Color for the section title (month)
-                selectedDayBackgroundColor: '#ff69b4',
-                selectedDayTextColor: '#ffffff',
-                todayTextColor: '#ff69b4',
-                dayTextColor: '#333333',
-                textDisabledColor: '#d9d9d9',
-                arrowColor: '#ff69b4',
-                textMonthFontWeight: 'bold', // Make the month header bold
-                textDayFontWeight: 'normal', // Changed to 'normal' to remove bold from dates
-                monthTextColor: '#ff69b4',  // Set the same color as days for the month name
+                monthTextColor: '#FF69B4',
+                dayTextColor: '#333',
+                textDayFontWeight: 'bold',
+                textMonthFontWeight: 'bold',
+                textDayHeaderFontWeight: 'bold',
+                selectedDayBackgroundColor: '#FF69B4',
+                selectedDayTextColor: '#fff',
+                todayTextColor: '#FF69B4',
+                arrowColor: '#FF69B4',
+                textSectionTitleColor: '#FF69B4',
+                textDisabledColor: '#d3d3d3',
+                dotColor: '#FF69B4',
+                selectedDotColor: '#fff',
               }}
+              style={styles.calendar}
             />
           </View>
-
-          {/* Symbols Section with Light Background */}
-          <View style={styles.symbolsContainer}>
-            <Text style={styles.symbolsHeading}>Symbols</Text>
-
-            {/* Circle 1: Ovulation Window */}
-            <View style={styles.symbolContainer}>
-              <View style={[styles.circle, styles.ovulationCircle]} />
-              <Text style={styles.symbolText}>Ovulation Window</Text>
-            </View>
-
-            {/* Circle 2: Luteal Phase (Dotted Circle) */}
-            <View style={styles.symbolContainer}>
-              <View style={[styles.circle, styles.lutealCircle]} />
-              <Text style={styles.symbolText}>Luteal Phase</Text>
-            </View>
-
-            {/* Circle 3: Menstrual Phase */}
-            <View style={styles.symbolContainer}>
-              <View style={[styles.circle, steps.menstrualCircle]} />
-              <Text style={styles.symbolText}>Menstrual Phase</Text>
-            </View>
-
-            {/* Circle 4: Follicular Phase */}
-            <View style={styles.symbolContainer}>
-              <View style={[styles.circle, styles.follicularCircle]} />
-              <Text style={styles.symbolText}>Follicular Phase</Text>
-            </View>
-          </View>
-
-          {/* Button to go back */}
-          <TouchableOpacity onPress={handleGoBack} style={styles.button}>
-            <Text style={styles.buttonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
       </ScrollView>
     </View>
   );
@@ -86,7 +104,7 @@ export default function PeriodsLog() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: '#ffffff', // White background
+    backgroundColor: '#ffffff',
   },
   headerContainer: {
     flexDirection: 'row',
@@ -102,101 +120,52 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    backgroundColor: '#fff', // White background for the entire screen
-  },
   container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    padding: 20,
+    flexGrow: 1,
+    paddingBottom: 40,
+    paddingTop: 20,
   },
-  message: {
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  heading: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FF1493', // Pink color
-    marginBottom: 20,
+    color: '#FF69B4',
+  },
+  subHeading: {
+    fontSize: 14,
+    color: '#FF69B4',
+    marginTop: 4,
   },
   calendarContainer: {
-    width: '100%',
+    width: '90%',
+    alignSelf: 'center',
     marginBottom: 30,
-    borderRadius: 10,
-    overflow: 'hidden',
-    elevation: 3, // Add shadow for Android
-    shadowColor: '#000', // Add shadow for iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 15,
+    shadowColor: '#FF69B4',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#FFB6C1',
+  },
+  monthHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FF69B4',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   calendar: {
-    borderRadius: 10,
-  },
-  symbolsContainer: {
+    borderWidth: 1,
+    borderColor: '#FFB6C1',
+    borderRadius: 12,
     width: '100%',
-    backgroundColor: '#f8e3f5', // Light pastel pink background for symbols section
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 30,
-    elevation: 3, // Add shadow for Android
-    shadowColor: '#000', // Add shadow for iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  symbolsHeading: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 20,
-  },
-  symbolContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-    width: '100%',
-  },
-  circle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginRight: 15,
-  },
-  ovulationCircle: {
-    backgroundColor: '#ff69b4', // Pink
-  },
-  lutealCircle: {
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: '#ff69b4', // Pink dashed border
-    backgroundColor: 'transparent',
-  },
-  menstrualCircle: {
-    backgroundColor: 'red', // Red
-  },
-  follicularCircle: {
-    backgroundColor: 'magenta', // Magenta
-  },
-  symbolText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  button: {
-    backgroundColor: '#ff69b4', // Pink color for the button
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-    marginTop: 20,
-    elevation: 3, // Add shadow for Android
-    shadowColor: '#000', // Add shadow for iOS
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  buttonText: {
-    fontSize: 16,
-    color: 'white', // White text color
-    fontWeight: 'bold',
   },
 });
 

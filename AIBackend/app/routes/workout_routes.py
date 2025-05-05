@@ -30,8 +30,11 @@ def generate_plan():
         # Generate workout plan and get intensity
         workout_plan, intensity = generate_workout_plan(data)
 
-        # Generate meal plan based on workout plan
-        meal_plan = generate_meal_plan((workout_plan, intensity), data)
+        # Extract cycle phases from the payload
+        cycle_phases = data.get('cyclePhases', [])
+
+        # Generate meal plan, passing cycle phases
+        meal_plan = generate_meal_plan((workout_plan, intensity), data, cycle_phases)
 
         # Clean the plans to ensure no NaN values
         cleaned_workout_plan = clean_json_data(workout_plan)

@@ -398,12 +398,14 @@ const ExercisePlayback: React.FC = () => {
       return;
     }
 
+    const localTimestamp = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+
     try {
       const { error, data } = await supabase.from('ExerciseCompletions').insert({
         user_id: user.id,
         workout_id: exercise.id,
         daily_workout_id: effectiveDailyWorkoutId,
-        completion_date: new Date().toISOString(),
+        completion_date: localTimestamp,
         time_spent_seconds: Math.round(timeSpent),
         calories_burned: status === 'completed' ? exercise.calories_burned : 0,
         created_at: new Date().toISOString(),

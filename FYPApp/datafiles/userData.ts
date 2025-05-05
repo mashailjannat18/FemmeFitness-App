@@ -46,7 +46,7 @@ const defaultUserData: UserData = {
 
 export let userData: UserData = { ...defaultUserData };
 
-export const setUserData = (screenKey: keyof UserData, data: number | string | string[] | any[] | Date | null): void => {
+export const setUserData = (screenKey: keyof UserData, data: number | string | string[] | any[] | Date | null | boolean): void => {
   userData = { ...userData, [screenKey]: data };
 };
 
@@ -107,7 +107,45 @@ export const addUserToSupabase = async (
 
     const startDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
 
-    // Generate workout and meal plans
+    // Generate menstrual cycle prediction first if applicable
+    let cyclePhases: any[] = [];
+    if (userData.lastPeriodDate && userData.cycleLength && userData.bleedingDays) {
+      const cyclePayload = {
+        lastPeriodDate: userData.lastPeriodDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-'),
+        cycleLength: Number(userData.cycleLength),
+        bleedingDays: Number(userData.bleedingDays),
+        age: Number(userData.age),
+        weight: Number(userData.weight),
+        height: Number(userData.height),
+      };
+      console.log('Sending payload to backend for cycle prediction:', cyclePayload);
+
+      const cycleResponse = await fetch('http://192.168.1.3:5000/api/predict-cycle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cyclePayload),
+      });
+
+      if (!cycleResponse.ok) {
+        const errorText = await cycleResponse.text();
+        console.error('Backend response error for cycle prediction:', errorText);
+        throw new Error(`Failed to predict cycle: ${cycleResponse.status} - ${errorText || 'No error message'}`);
+      }
+
+      const cycleResult = await cycleResponse.json();
+      console.log('Cycle phases generated:', cycleResult);
+
+      if (!cycleResult.cycle_phases || !Array.isArray(cycleResult.cycle_phases)) {
+        console.error('Invalid cycle phases structure:', cycleResult.cycle_phases);
+        throw new Error('Cycle phases must be a non-empty array');
+      }
+
+      cyclePhases = cycleResult.cycle_phases;
+      setUserData('cyclePhases', cyclePhases);
+      console.log('Stored cycle phases in userData:', userData.cyclePhases);
+    }
+
+    // Generate workout and meal plans, passing cycle phases
     const payload = {
       age: Number(userData.age),
       activityLevel: Number(userData.activityLevel),
@@ -116,10 +154,12 @@ export const addUserToSupabase = async (
       challengeDays: Number(userData.challengeDays),
       preferredRestDay: userData.restDay,
       height: Number(userData.height),
+      diseases: userData.diseases,  // Pass the diseases array
+      cyclePhases: cyclePhases.length > 0 ? cyclePhases : null,
     };
     console.log('Sending payload to backend for workout and meal plans:', payload);
 
-    const workoutResponse = await fetch('http://192.168.1.8:5000/api/generate-plan', {
+    const workoutResponse = await fetch('http://192.168.1.3:5000/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -153,44 +193,6 @@ export const addUserToSupabase = async (
     setUserData('mealPlan', result.meal_plan);
     setUserData('intensity', result.intensity);
     console.log('Stored plans and intensity in userData:', { workoutPlan: userData.workoutPlan, mealPlan: userData.mealPlan, intensity: userData.intensity });
-
-    // Generate menstrual cycle prediction if applicable
-    let cyclePhases = [];
-    if (userData.lastPeriodDate && userData.cycleLength && userData.bleedingDays) {
-      const cyclePayload = {
-        lastPeriodDate: userData.lastPeriodDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-'),
-        cycleLength: Number(userData.cycleLength),
-        bleedingDays: Number(userData.bleedingDays),
-        age: Number(userData.age),
-        weight: Number(userData.weight),
-        height: Number(userData.height),
-      };
-      console.log('Sending payload to backend for cycle prediction:', cyclePayload);
-
-      const cycleResponse = await fetch('http://192.168.1.8:5000/api/predict-cycle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cyclePayload),
-      });
-
-      if (!cycleResponse.ok) {
-        const errorText = await cycleResponse.text();
-        console.error('Backend response error for cycle prediction:', errorText);
-        throw new Error(`Failed to predict cycle: ${cycleResponse.status} - ${errorText || 'No error message'}`);
-      }
-
-      const cycleResult = await cycleResponse.json();
-      console.log('Cycle phases generated:', cycleResult);
-
-      if (!cycleResult.cycle_phases || !Array.isArray(cycleResult.cycle_phases)) {
-        console.error('Invalid cycle phases structure:', cycleResult.cycle_phases);
-        throw new Error('Cycle phases must be a non-empty array');
-      }
-
-      cyclePhases = cycleResult.cycle_phases;
-      setUserData('cyclePhases', cyclePhases);
-      console.log('Stored cycle phases in userData:', userData.cyclePhases); // Verify phases here
-    }
 
     const rpcPayload = {
       p_username: userData.username,
