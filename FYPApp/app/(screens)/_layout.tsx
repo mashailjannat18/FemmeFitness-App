@@ -197,6 +197,18 @@ export default function Screen() {
           headerShown: false,
         }}
       />
+      <Stack.Screen 
+        name="VerifyCurrentEmail"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen 
+        name="VerifyNewEmail"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

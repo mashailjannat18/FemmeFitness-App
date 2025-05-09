@@ -106,9 +106,8 @@ const PersonalInformation = () => {
 
   const handleEdit = (key: keyof UserData, currentValue: string) => {
     setEditMode(key);
-    // For weight and activityLevel, extract numbers (including decimals for weight)
     if (key === 'weight' || key === 'activityLevel') {
-      setEditValue(currentValue.replace(/[^0-9.]/g, '')); // Allow numbers and decimal point
+      setEditValue(currentValue.replace(/[^0-9.]/g, ''));
     }
   };
 
@@ -118,7 +117,6 @@ const PersonalInformation = () => {
   };
 
   const handleSave = async (key: keyof UserData) => {
-    // Validate input is a number and allow decimals for weight
     const numericValue = parseFloat(editValue);
     if (isNaN(numericValue)) {
       Alert.alert('Error', 'Please enter a valid number.');
@@ -146,11 +144,6 @@ const PersonalInformation = () => {
     }
 
     await updateUserAndPlan(updatePayload);
-  };
-
-  const formatDateToDDMMYYYY = (dateStr: string) => {
-    const [year, month, day] = dateStr.split('-');
-    return `${day}-${month}-${year}`;
   };
 
   const updateUserAndPlan = async (updatePayload: { weight?: number; activityLevel?: number; challengeDays?: number }) => {
@@ -185,9 +178,6 @@ const PersonalInformation = () => {
         return;
       }
 
-      const formattedLastPeriodDate = userData.last_period_date ? formatDateToDDMMYYYY(userData.last_period_date) : null;
-
-      // Prepare payload for generating new plan
       const payload = {
         age: userData.age,
         activityLevel: updatePayload.activityLevel ?? userData.activity_level,
@@ -201,7 +191,6 @@ const PersonalInformation = () => {
         workoutPlanId: workoutPlanData.id,
       };
 
-      // Call the backend to generate new plans for the remaining days
       const response = await fetch('http://192.168.1.8:5000/api/update-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -214,15 +203,11 @@ const PersonalInformation = () => {
       }
 
       const result = await response.json();
-      console.log('Plans updated:', result);
 
-      // Validate the intensity returned by the backend
       if (!result.intensity || !['low', 'moderate', 'high'].includes(result.intensity)) {
-        console.error('Invalid updated intensity value:', result.intensity);
         throw new Error('Updated intensity must be one of "low", "moderate", or "high"');
       }
 
-      // Call Supabase function to update user and workout plan, including intensity
       const { data, error: rpcError } = await supabase.rpc('update_user_and_workout_plan', {
         p_user_id: userData.id,
         p_weight: updatePayload.weight ?? userData.weight,
@@ -230,8 +215,8 @@ const PersonalInformation = () => {
         p_challenge_days: updatePayload.challengeDays ?? userData.challenge_days,
         p_workout_plan: result.workout_plan,
         p_meal_plan: result.meal_plan,
-        p_start_date: currentDate.toISOString().split('T')[0], // Current date as the start date for new plan entries
-        p_intensity: result.intensity, // Pass the intensity to the RPC call
+        p_start_date: currentDate.toLocaleDateString().split('T')[0],
+        p_intensity: result.intensity,
         p_last_period_date: userData.last_period_date,
         p_cycle_length: userData.cycle_length,
         p_bleeding_days: userData.bleeding_days,
@@ -242,7 +227,6 @@ const PersonalInformation = () => {
         throw new Error(`Failed to update user and workout plan: ${rpcError.message}`);
       }
 
-      // Update local state
       setUserData((prev) => ({
         ...prev,
         weight: `${updatePayload.weight ?? userData.weight} kg`,

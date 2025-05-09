@@ -47,14 +47,6 @@ const GoalSetting = () => {
     },
   ];
 
-  // Mapping of displayed goals to API-expected goal values
-  const goalToApiFormat: { [key: string]: string } = {
-    'Lose Weight': 'lose_weight',
-    'Gain Weight': 'gain_weight',
-    'Muscle Build': 'build_muscle',
-    'Stay Fit': 'stay_fit',
-  };
-
   const scaleAnimations = goals.map(() => new Animated.Value(1));
 
   useEffect(() => {
@@ -96,11 +88,6 @@ const GoalSetting = () => {
     ]).start();
 
     setSelectedGoal(goal);
-  };
-
-  const formatDateToDDMMYYYY = (dateStr: string) => {
-    const [year, month, day] = dateStr.split('-');
-    return `${day}-${month}-${year}`;
   };
 
   const handleSave = async () => {
@@ -145,12 +132,10 @@ const GoalSetting = () => {
         return;
       }
 
-      const formattedLastPeriodDate = userData.last_period_date ? formatDateToDDMMYYYY(userData.last_period_date) : null;
-
       const payload = {
         age: userData.age,
         activityLevel: userData.activity_level,
-        goal: goalToApiFormat[selectedGoal], // Transform goal to API-expected format
+        goal: selectedGoal,
         weight: userData.weight,
         challengeDays: userData.challenge_days,
         preferredRestDay: userData.preferred_rest_days,
@@ -158,10 +143,7 @@ const GoalSetting = () => {
         currentDay: daysElapsed,
         userId: userData.id,
         workoutPlanId: workoutPlanData.id,
-        lastPeriodDate: formattedLastPeriodDate,
       };
-
-      console.log('Sending payload:', payload); // Debug log
 
       const response = await fetch('http://192.168.1.8:5000/api/update-plan', {
         method: 'POST',
@@ -171,7 +153,6 @@ const GoalSetting = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API error response:', errorText); // Debug log
         throw new Error(`Failed to update plans: ${errorText}`);
       }
 
@@ -184,9 +165,9 @@ const GoalSetting = () => {
         p_challenge_days: userData.challenge_days,
         p_workout_plan: result.workout_plan,
         p_meal_plan: result.meal_plan,
-        p_start_date: currentDate.toISOString().split('T')[0], // Fixed date format for Supabase
+        p_start_date: currentDate.toLocaleDateString().split('T')[0],
         p_intensity: result.intensity,
-        p_goal: selectedGoal, // Keep original format for Supabase
+        p_goal: selectedGoal,
         p_last_period_date: userData.last_period_date,
         p_cycle_length: userData.cycle_length,
         p_bleeding_days: userData.bleeding_days,
@@ -202,7 +183,7 @@ const GoalSetting = () => {
       setInitialGoal(selectedGoal);
     } catch (err: any) {
       console.error('Error updating goal and plans:', err.message);
-      Alert.alert('Error', `Failed to update your goal and plans: ${err.message}`);
+      Alert.alert('Error', 'Failed to update your goal and plans.');
     }
   };
 

@@ -771,7 +771,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     alignItems: 'center',
     width: '100%',
-    maxWidth: 300,
     marginBottom: 20,
   },
   buttonText: {

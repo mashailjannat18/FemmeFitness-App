@@ -1,5 +1,5 @@
-const NUTRITIONIX_APP_ID = '';
-const NUTRITIONIX_APP_KEY = '';
+const NUTRITIONIX_APP_ID = 'af25b1a8';
+const NUTRITIONIX_APP_KEY = '1902c21626133aa332a2856f0d10eeab';
 
 export const searchDishes = async (query: string) => {
   try {

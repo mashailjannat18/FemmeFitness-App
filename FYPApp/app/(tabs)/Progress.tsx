@@ -1,14 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Text, View, Dimensions, ScrollView, Image } from 'react-native';
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  Dimensions, 
+  ScrollView, 
+  Image,
+  Animated,
+  Easing,
+  TouchableOpacity,
+  Pressable
+} from 'react-native';
+import { FontAwesome, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { useUserAuth } from '@/context/UserAuthContext';
 import { supabase } from '@/lib/supabase';
 import { Calendar } from 'react-native-calendars';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Logo from '@/assets/images/Logo.png';
+import * as Haptics from 'expo-haptics';
 
-const screenWidth = Dimensions.get('window').width;
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface Metrics {
   totalWorkouts: number;
@@ -44,10 +56,13 @@ export default function Progress() {
   const [markedDates, setMarkedDates] = useState<MarkedDate>({});
   const [caloriesData, setCaloriesData] = useState<any>(null);
   const [sleepData, setSleepData] = useState<any>(null);
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(30))[0];
 
   const fetchData = useCallback(async () => {
     if (!user?.id) {
       console.log('No user logged in, cannot fetch data');
+      router.push('/Login');
       return;
     }
 
@@ -300,10 +315,25 @@ export default function Progress() {
         });
       }
       setMarkedDates(marked);
+
+      // Animate on successful load
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
     } catch (err) {
       console.error('Unexpected error fetching data:', err);
     }
-  }, [user?.id]);
+  }, [user?.id, router]);
 
   // Reload data when the screen comes into focus
   useFocusEffect(
@@ -378,100 +408,144 @@ export default function Progress() {
   }, [user?.id, fetchData]);
 
   const handleDayPress = (day: { dateString: string }) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({
       pathname: '/DailyProgress',
       params: { selectedDate: day.dateString },
     });
   };
 
+  const handleBackPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/(tabs)/Home');
+  };
+
   const chartWidth = caloriesData
-    ? Math.max(screenWidth - 60, caloriesData.labels.length * 60)
-    : screenWidth - 60;
+    ? Math.max(SCREEN_WIDTH - 60, caloriesData.labels.length * 60)
+    : SCREEN_WIDTH - 60;
   const chartHeight = 200;
 
   const sleepChartWidth = sleepData
-    ? Math.max(screenWidth - 80, sleepData.labels.length * 60)
-    : screenWidth - 80;
+    ? Math.max(SCREEN_WIDTH - 80, sleepData.labels.length * 60)
+    : SCREEN_WIDTH - 80;
   const sleepChartHeight = 220;
+
+  if (!user || !user.id) {
+    return (
+      <View style={styles.container}>
+        {/* Custom Header */}
+        <Animated.View style={[styles.headerContainer, {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }]}>
+          <Text style={styles.headerText}>Progres</Text>
+          <Text style={styles.usernameText}>{user.username || 'User'}</Text>
+        </Animated.View>
+
+        <View style={styles.errorContainer}>
+          <MaterialCommunityIcons 
+            name="account-alert" 
+            size={SCREEN_WIDTH * 0.15} 
+            color="#e45ea9" 
+          />
+          <Text style={styles.errorText}>Please log in to view your progress</Text>
+          <TouchableOpacity
+            style={styles.backButton1}
+            onPress={() => router.push('/Login')}
+          >
+            <Text style={styles.backButtonText}>Go to Login</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Image source={Logo} style={styles.logo} />
+      {/* Custom Header */}
+      <Animated.View style={[styles.headerContainer, {
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }]
+      }]}>
+        <Image
+          source={Logo}
+          style={styles.logo}
+        />
         <Text style={styles.headerText}>Progress</Text>
-        <Text style={styles.usernameText}>{user?.username || 'User'}</Text>
-      </View>
+        <Text style={styles.usernameText}>{user.username || 'User'}</Text>
+      </Animated.View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.row}>
-          <View style={styles.item}>
-            <FontAwesome name="heartbeat" size={24} color="#FF0000" />
-            <Text style={styles.itemText}>Workouts</Text>
-            <View style={styles.metricContainer}>
-              <Text style={styles.animatedText}>{metrics.totalWorkouts.toFixed(0)}</Text>
-              <Text style={styles.metricText}> workouts</Text>
+      {/* Main Content */}
+      <ScrollView 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }}>
+          {/* Metrics Cards */}
+          <View style={styles.metricsContainer}>
+            <View style={styles.metricCard}>
+              <FontAwesome name="heartbeat" size={SCREEN_WIDTH * 0.08} color="#FF0000" />
+              <Text style={styles.metricLabel}>Workouts</Text>
+              <Text style={styles.metricValue}>{metrics.totalWorkouts.toFixed(0)}</Text>
+            </View>
+            <View style={styles.metricCard}>
+              <MaterialIcons name="local-fire-department" size={SCREEN_WIDTH * 0.08} color="#FFA500" />
+              <Text style={styles.metricLabel}>Calories</Text>
+              <Text style={styles.metricValue}>{metrics.totalCalories.toFixed(0)}</Text>
+            </View>
+            <View style={styles.metricCard}>
+              <FontAwesome name="clock-o" size={SCREEN_WIDTH * 0.08} color="#00008B" />
+              <Text style={styles.metricLabel}>Minutes</Text>
+              <Text style={styles.metricValue}>{metrics.totalDuration.toFixed(0)}</Text>
             </View>
           </View>
-          <View style={styles.item}>
-            <MaterialIcons name="local-fire-department" size={24} color="#FFA500" />
-            <Text style={styles.itemText}>Calories</Text>
-            <View style={styles.metricContainer}>
-              <Text style={styles.animatedText}>{metrics.totalCalories.toFixed(1)}</Text>
-              <Text style={styles.metricText}> calories</Text>
+
+          {/* Calendar Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Workout History</Text>
+            <View style={styles.calendarWrapper}>
+              {signupMonth ? (
+                <Calendar
+                  current={signupMonth}
+                  markedDates={markedDates}
+                  onDayPress={handleDayPress}
+                  theme={{
+                    calendarBackground: '#fff',
+                    textSectionTitleColor: '#333',
+                    selectedDayBackgroundColor: '#e45ea9',
+                    selectedDayTextColor: '#fff',
+                    todayTextColor: '#e45ea9',
+                    dayTextColor: '#333',
+                    textDisabledColor: '#d9e1e8',
+                    dotColor: '#00FF00',
+                    selectedDotColor: '#fff',
+                    arrowColor: '#e45ea9',
+                    monthTextColor: '#333',
+                    textDayFontWeight: '400',
+                    textMonthFontWeight: 'bold',
+                    textDayHeaderFontWeight: '600',
+                  }}
+                  style={styles.calendar}
+                />
+              ) : (
+                <View style={styles.noDataContainer}>
+                  <Text style={styles.noDataText}>No workout history available</Text>
+                </View>
+              )}
             </View>
           </View>
-          <View style={styles.item}>
-            <FontAwesome name="clock-o" size={24} color="#00008B" />
-            <Text style={styles.itemText}>Duration</Text>
-            <View style={styles.metricContainer}>
-              <Text style={styles.animatedText}>{metrics.totalDuration.toFixed(1)}</Text>
-              <Text style={styles.metricText}> minutes</Text>
-            </View>
-          </View>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionHeading}>History</Text>
-          <View style={styles.calendarContainer}>
-            {signupMonth ? (
-              <Calendar
-                current={signupMonth}
-                markedDates={markedDates}
-                onDayPress={handleDayPress}
-                theme={{
-                  calendarBackground: 'transparent',
-                  textSectionTitleColor: '#333',
-                  selectedDayBackgroundColor: '#d63384',
-                  selectedDayTextColor: '#fff',
-                  todayTextColor: '#00adf5',
-                  dayTextColor: '#333',
-                  textDisabledColor: '#d9e1e8',
-                  dotColor: '#00FF00',
-                  selectedDotColor: '#fff',
-                  arrowColor: '#d63384',
-                  monthTextColor: '#333',
-                  textDayFontWeight: '400',
-                  textMonthFontWeight: 'bold',
-                  textDayHeaderFontWeight: '600',
-                }}
-              />
-            ) : (
-              <Text style={styles.noDataText}>No workout history available.</Text>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionHeading}>Calories Gained vs Burned</Text>
-          <View style={styles.chartContainer}>
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={true}
-              style={{ flexGrow: 0 }}
-            >
+          {/* Calories Chart */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Calories Gained vs Burned</Text>
+            <View style={styles.chartWrapper}>
               <ScrollView
-                showsVerticalScrollIndicator={true}
-                style={{ height: chartHeight + 20 }}
+                horizontal={true}
+                showsHorizontalScrollIndicator={true}
+                style={{ flexGrow: 0 }}
               >
                 {caloriesData && (
                   <LineChart
@@ -506,36 +580,31 @@ export default function Progress() {
                       fillShadowGradientOpacity: 0,
                     }}
                     bezier
-                    style={styles.chartStyle}
-                    formatXLabel={(label) => label}
+                    style={styles.chart}
                   />
                 )}
               </ScrollView>
-            </ScrollView>
-          </View>
-          <View style={styles.chartLegend}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: '#6a5acd' }]} />
-              <Text style={styles.legendText}>Gained</Text>
+              <View style={styles.legendContainer}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendColor, { backgroundColor: '#6a5acd' }]} />
+                  <Text style={styles.legendText}>Gained</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendColor, { backgroundColor: '#483d8b' }]} />
+                  <Text style={styles.legendText}>Burned</Text>
+                </View>
+              </View>
             </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: '#483d8b' }]} />
-              <Text style={styles.legendText}>Burned</Text>
-            </View>
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionHeading}>Sleep Track</Text>
-          <View style={styles.chartContainer}>
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={true}
-              style={{ flexGrow: 0 }}
-            >
+          {/* Sleep Chart */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Sleep Track</Text>
+            <View style={styles.chartWrapper}>
               <ScrollView
-                showsVerticalScrollIndicator={true}
-                style={{ height: sleepChartHeight + 20 }}
+                horizontal={true}
+                showsHorizontalScrollIndicator={true}
+                style={{ flexGrow: 0 }}
               >
                 {sleepData && (
                   <BarChart
@@ -556,13 +625,13 @@ export default function Progress() {
                       },
                       barPercentage: 0.9,
                     }}
-                    style={styles.chartStyle}
+                    style={styles.chart}
                   />
                 )}
               </ScrollView>
-            </ScrollView>
+            </View>
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -571,143 +640,190 @@ export default function Progress() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F9F9F9',
   },
+  // Header Styles
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#ff1297',
-    elevation: 4,
+    paddingHorizontal: SCREEN_WIDTH * 0.043,
+    paddingVertical: SCREEN_HEIGHT * 0.015,
+    backgroundColor: '#e45ea9',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  logo: {
-    width: 50,
-    height: 50,
-    borderRadius: 20,
-    marginRight: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 10,
   },
   headerText: {
-    fontSize: 20,
+    fontSize: SCREEN_WIDTH * 0.055,
     fontWeight: 'bold',
     color: '#fff',
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
     flex: 1,
   },
+  logo: {
+    width: SCREEN_WIDTH * 0.14,
+    height: SCREEN_WIDTH * 0.14,
+    borderRadius: SCREEN_WIDTH * 0.05,
+    marginRight: SCREEN_WIDTH * 0.023,
+  },
   usernameText: {
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
     color: '#fff',
     fontWeight: '600',
+    marginLeft: 'auto',
   },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 80,
+  backButton: {
+    padding: SCREEN_WIDTH * 0.02,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  row: {
-    marginTop: 15,
+  // Content Styles
+  contentContainer: {
+    paddingBottom: SCREEN_HEIGHT * 0.04,
+  },
+  // Metrics Cards
+  metricsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 35,
+    justifyContent: 'space-between',
+    paddingHorizontal: SCREEN_WIDTH * 0.04,
+    marginTop: SCREEN_HEIGHT * 0.02,
+    marginBottom: SCREEN_HEIGHT * 0.03,
   },
-  item: {
+  metricCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: SCREEN_WIDTH * 0.04,
+    width: '30%',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  itemText: {
-    marginTop: 5,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2F4F4F',
+  metricLabel: {
+    fontSize: SCREEN_WIDTH * 0.035,
+    color: '#666',
+    marginTop: SCREEN_HEIGHT * 0.01,
+    textAlign: 'center',
   },
-  animatedText: {
-    marginTop: 5,
-    fontSize: 18,
-    fontWeight: 'bold',
+  metricValue: {
+    fontSize: SCREEN_WIDTH * 0.05,
+    fontWeight: '700',
     color: '#333',
+    marginTop: SCREEN_HEIGHT * 0.005,
   },
-  metricContainer: {
-    display: 'flex',
-    flexDirection: "row",
-  },
-  metricText: {
-    fontSize: 12,
-    paddingTop: 12,
-  },
+  // Sections
   section: {
-    marginBottom: 20,
-    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: SCREEN_WIDTH * 0.04,
+    marginHorizontal: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.02,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  sectionHeading: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  sectionTitle: {
+    fontSize: SCREEN_WIDTH * 0.045,
+    fontWeight: '700',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: SCREEN_HEIGHT * 0.02,
+    borderLeftWidth: 4,
+    borderLeftColor: '#e45ea9',
+    paddingLeft: SCREEN_WIDTH * 0.03,
   },
-  calendarContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  // Calendar
+  calendarWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  chartContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  calendar: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEE',
   },
-  chartStyle: {
-    borderRadius: 8,
+  // Charts
+  chartWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  chartLegend: {
+  chart: {
+    borderRadius: 12,
+  },
+  legendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 10,
+    marginTop: SCREEN_HEIGHT * 0.01,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 10,
+    marginHorizontal: SCREEN_WIDTH * 0.03,
   },
   legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 5,
+    width: SCREEN_WIDTH * 0.03,
+    height: SCREEN_WIDTH * 0.03,
+    borderRadius: SCREEN_WIDTH * 0.015,
+    marginRight: SCREEN_WIDTH * 0.01,
   },
   legendText: {
-    fontSize: 12,
+    fontSize: SCREEN_WIDTH * 0.035,
     color: '#555',
   },
-  reportButtonContainer: {
+  // No Data
+  noDataContainer: {
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  reportButton: {
-    backgroundColor: '#FF69B4',
-    padding: 10,
-    borderRadius: 20,
-    alignItems: 'center',
-    width: '50%',
-  },
-  reportButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
+    padding: SCREEN_WIDTH * 0.05,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEE',
   },
   noDataText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: SCREEN_WIDTH * 0.04,
+    color: '#999',
     textAlign: 'center',
+  },
+  // Error Styles
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SCREEN_WIDTH * 0.075,
+    backgroundColor: '#F9F9F9',
+  },
+  errorText: {
+    fontSize: SCREEN_WIDTH * 0.045,
+    color: '#333',
+    textAlign: 'center',
+    marginVertical: SCREEN_HEIGHT * 0.02,
+    lineHeight: SCREEN_WIDTH * 0.065,
+  },
+  backButton1: {
+    backgroundColor: '#e45ea9',
+    paddingVertical: SCREEN_HEIGHT * 0.015,
+    paddingHorizontal: SCREEN_WIDTH * 0.08,
+    borderRadius: 25,
+    marginTop: SCREEN_HEIGHT * 0.02,
+    shadowColor: '#e45ea9',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: SCREEN_WIDTH * 0.04,
+    fontWeight: '600',
   },
 });

@@ -1,9 +1,22 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  Pressable, 
+  Image,
+  Animated,
+  Easing,
+  Dimensions 
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useUserAuth } from '@/context/UserAuthContext';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import Svg, { Circle, LinearGradient, Defs, Stop } from 'react-native-svg';
 
 type StructuredSet = {
   set: number;
@@ -28,6 +41,8 @@ type Exercise = {
   daily_workout_id?: number;
   structuredSets?: StructuredSet[];
 };
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const ExercisePlayback: React.FC = () => {
   const router = useRouter();
@@ -59,15 +74,16 @@ const ExercisePlayback: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [completedExercises, setCompletedExercises] = useState<number[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   // Refs to store timer IDs and prevent re-render issues
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stopwatchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
   const restTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Cache for image URLs to prevent redundant fetches
   const imageCache = useRef<Map<string, string[]>>(new Map());
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(30))[0];
 
   // Memoize currentExercise to prevent reference changes
   const currentExercise = useMemo(() => {
@@ -92,6 +108,23 @@ const ExercisePlayback: React.FC = () => {
     setRestTimer(null);
     setHoldTimer(null);
     setCountdown(3);
+
+    // Animate when exercise changes
+    if (currentExercise) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 500,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
   }, [currentExerciseIndex]);
 
   // Separate useEffect for image fetching with caching
@@ -155,22 +188,16 @@ const ExercisePlayback: React.FC = () => {
     fetchDailyWorkoutId();
   }, [user?.id, day, daily_workout_id]);
 
-  useEffect(() => {
-    console.log('ExercisePlayback params:', { exercisesParam, day, daily_workout_id, startIndex, fetchedDailyWorkoutId });
-  }, [exercisesParam, day, daily_workout_id, startIndex, fetchedDailyWorkoutId]);
-
   // Countdown timer logic using ref
   useEffect(() => {
     if (countdown === null) {
       if (countdownTimerRef.current) {
-        console.log('Clearing countdown timer');
         clearInterval(countdownTimerRef.current);
         countdownTimerRef.current = null;
       }
       return;
     }
 
-    console.log('Countdown started:', countdown);
     countdownTimerRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev === null) return null;
@@ -179,14 +206,12 @@ const ExercisePlayback: React.FC = () => {
           setIsPlaying(true);
           return null;
         }
-        console.log('Countdown ticking:', prev - 1);
         return prev - 1;
       });
     }, 1000);
 
     return () => {
       if (countdownTimerRef.current) {
-        console.log('Cleaning up countdown timer');
         clearInterval(countdownTimerRef.current);
         countdownTimerRef.current = null;
       }
@@ -204,7 +229,6 @@ const ExercisePlayback: React.FC = () => {
 
     return () => {
       if (stopwatchTimerRef.current) {
-        console.log('Cleaning up stopwatch');
         clearInterval(stopwatchTimerRef.current);
         stopwatchTimerRef.current = null;
       }
@@ -216,7 +240,6 @@ const ExercisePlayback: React.FC = () => {
     if (isPlaying && !isNumericReps && holdTimer === null) {
       setHoldTimer(holdSeconds);
       setIsHolding(true);
-      console.log('Starting hold timer for', holdSeconds, 'seconds');
     }
 
     if (holdTimer === null) {
@@ -244,7 +267,6 @@ const ExercisePlayback: React.FC = () => {
 
     return () => {
       if (holdTimerRef.current) {
-        console.log('Cleaning up hold timer');
         clearInterval(holdTimerRef.current);
         holdTimerRef.current = null;
       }
@@ -262,7 +284,6 @@ const ExercisePlayback: React.FC = () => {
       return;
     }
 
-    console.log('Rest timer started:', restTimer);
     restTimerRef.current = setInterval(() => {
       setRestTimer((prev) => {
         if (prev === null) return null;
@@ -287,7 +308,6 @@ const ExercisePlayback: React.FC = () => {
 
     return () => {
       if (restTimerRef.current) {
-        console.log('Cleaning up rest timer');
         clearInterval(restTimerRef.current);
         restTimerRef.current = null;
       }
@@ -401,6 +421,26 @@ const ExercisePlayback: React.FC = () => {
     const localTimestamp = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
 
     try {
+      // Delete existing records with the same user_id, workout_id, and completion_date
+      const { error: deleteError } = await supabase
+        .from('ExerciseCompletions')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('workout_id', exercise.id)
+        .eq('completion_date', localTimestamp);
+
+      if (deleteError) {
+        console.error('Error deleting existing exercise completion:', deleteError.message, deleteError.details);
+        throw deleteError;
+      }
+
+      // Only store completion for hold exercises after hold is done and rest hasn't started
+      if (!isNumericReps && (isHolding || restTimer !== null)) {
+        console.log('Skipping completion storage for hold exercise: hold in progress or rest started');
+        return;
+      }
+
+      // Insert the new completion record
       const { error, data } = await supabase.from('ExerciseCompletions').insert({
         user_id: user.id,
         workout_id: exercise.id,
@@ -433,7 +473,9 @@ const ExercisePlayback: React.FC = () => {
     setTotalExerciseTime(newTotalTime);
     setStopwatch(0);
     if (isLastSet) {
-      storeExerciseCompletion(currentExercise, newTotalTime, 'completed');
+      if (isNumericReps || (!isNumericReps && !isHolding && restTimer === null)) {
+        storeExerciseCompletion(currentExercise, newTotalTime, 'completed');
+      }
       if (isLastExercise) {
         setIsFinished(true);
       } else {
@@ -441,6 +483,9 @@ const ExercisePlayback: React.FC = () => {
         setRestTimer(currentExercise.rest_time_sec || 0);
       }
     } else {
+      if (isNumericReps || (!isNumericReps && !isHolding && restTimer === null)) {
+        storeExerciseCompletion(currentExercise, newTotalTime, 'completed');
+      }
       setIsResting(true);
       setRestTimer(currentExercise.rest_time_sec || 0);
     }
@@ -453,7 +498,9 @@ const ExercisePlayback: React.FC = () => {
     setTotalExerciseTime(newTotalTime);
     setStopwatch(0);
     if (isLastSet) {
-      storeExerciseCompletion(currentExercise, newTotalTime, 'completed');
+      if (isNumericReps || (!isNumericReps && !isHolding && restTimer === null)) {
+        storeExerciseCompletion(currentExercise, newTotalTime, 'completed');
+      }
       if (isLastExercise) {
         setIsFinished(true);
       } else {
@@ -461,6 +508,9 @@ const ExercisePlayback: React.FC = () => {
         setRestTimer(currentExercise.rest_time_sec || 0);
       }
     } else {
+      if (isNumericReps || (!isNumericReps && !isHolding && restTimer === null)) {
+        storeExerciseCompletion(currentExercise, newTotalTime, 'completed');
+      }
       setIsResting(true);
       setRestTimer(currentExercise.rest_time_sec || 0);
     }
@@ -526,7 +576,50 @@ const ExercisePlayback: React.FC = () => {
   };
 
   const handleExitPlayback = async () => {
-    console.log('Exiting playback:', { currentExerciseIndex, currentSet, completedExercises });
+    console.log('Exiting playback:', { currentExerciseIndex, currentSet, completedExercises, isHolding, holdTimer });
+
+    // Clear all timers to prevent them from continuing
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
+    if (stopwatchTimerRef.current) {
+      clearInterval(stopwatchTimerRef.current);
+      stopwatchTimerRef.current = null;
+    }
+    if (restTimerRef.current) {
+      clearInterval(restTimerRef.current);
+      restTimerRef.current = null;
+    }
+    if (holdTimerRef.current) {
+      clearInterval(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+
+    // Reset timer states
+    setCountdown(null);
+    setRestTimer(null);
+    setHoldTimer(null);
+    setIsPlaying(false);
+    setIsResting(false);
+    setIsHolding(false);
+    setStopwatch(0);
+
+    // If the exercise was being held, do not mark it as completed
+    if (isHolding && holdTimer !== null) {
+      console.log('Exercise hold interrupted, not marking as completed:', {
+        exerciseName: currentExercise?.exercise_name,
+        remainingHoldTime: holdTimer,
+      });
+      setTotalExerciseTime(0); // Reset time since the hold wasn't completed
+    } else if (isPlaying && !isResting && !isHolding) {
+      // If in the middle of a numeric reps exercise, mark as incomplete
+      console.log('Exercise interrupted during reps, not marking as completed:', {
+        exerciseName: currentExercise?.exercise_name,
+        stopwatch,
+      });
+    }
+
     router.push({
       pathname: '/(screens)/Exercises',
       params: { day: day || '', source: 'ExercisePlayback' },
@@ -534,21 +627,87 @@ const ExercisePlayback: React.FC = () => {
   };
 
   const handleBackPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({
       pathname: '/(screens)/Exercises',
       params: { day: day || '', source: 'ExercisePlayback' },
     });
   };
 
+  const handleImageScroll = (event: any) => {
+    const contentOffset = event.nativeEvent.contentOffset.x;
+    const viewSize = event.nativeEvent.layoutMeasurement.width;
+    const newIndex = Math.floor(contentOffset / viewSize);
+    if (newIndex !== activeImageIndex) {
+      setActiveImageIndex(newIndex);
+      Haptics.selectionAsync();
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner': return '#4CAF50';
+      case 'intermediate': return '#FFC107';
+      case 'advanced': return '#F44336';
+      default: return '#9E9E9E';
+    }
+  };
+
+  // Timer Circle Progress Component
+  const TimerCircle = ({ timer, maxTime }: { timer: number | null; maxTime: number }) => {
+    const size = SCREEN_WIDTH * 0.32;
+    const strokeWidth = 8;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const progress = timer !== null && maxTime > 0 ? (timer / maxTime) * 100 : 0;
+    const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+    return (
+      <Svg width={size} height={size}>
+        <Defs>
+          <LinearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor="#ff1297" />
+            <Stop offset="100%" stopColor="#EC4899" />
+          </LinearGradient>
+        </Defs>
+        <Circle
+          stroke="#E5E7EB"
+          fill="none"
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          strokeWidth={strokeWidth}
+        />
+        {timer !== null && (
+          <Circle
+            stroke="url(#timerGradient)"
+            fill="none"
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        )}
+      </Svg>
+    );
+  };
+
   if (exercises.length === 0 || !currentExercise) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
+        <Animated.View style={[styles.headerContainer, {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }]}>
           <Pressable onPress={handleBackPress} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="chevron-back" size={SCREEN_WIDTH * 0.06} color="#fff" />
           </Pressable>
           <Text style={styles.headerText}>No Exercises Available</Text>
-        </View>
+        </Animated.View>
         <TouchableOpacity style={styles.exitButton} onPress={handleExitPlayback}>
           <Text style={styles.exitButtonText}>Return to Exercises</Text>
         </TouchableOpacity>
@@ -559,12 +718,15 @@ const ExercisePlayback: React.FC = () => {
   if (isFinished) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
+        <Animated.View style={[styles.headerContainer, {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }]}>
           <Pressable onPress={handleBackPress} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="chevron-back" size={SCREEN_WIDTH * 0.06} color="#fff" />
           </Pressable>
           <Text style={styles.headerText}>Workout Complete!</Text>
-        </View>
+        </Animated.View>
         <TouchableOpacity style={styles.exitButton} onPress={handleExitPlayback}>
           <Text style={styles.exitButtonText}>Return to Exercises</Text>
         </TouchableOpacity>
@@ -575,12 +737,15 @@ const ExercisePlayback: React.FC = () => {
   if (error) {
     return (
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
+        <Animated.View style={[styles.headerContainer, {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }]}>
           <Pressable onPress={handleBackPress} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="chevron-back" size={SCREEN_WIDTH * 0.06} color="#fff" />
           </Pressable>
           <Text style={styles.headerText}>Error Loading Workout</Text>
-        </View>
+        </Animated.View>
         <Text style={styles.subHeader}>{error}</Text>
         <TouchableOpacity style={styles.exitButton} onPress={handleExitPlayback}>
           <Text style={styles.exitButtonText}>Return to Exercises</Text>
@@ -591,138 +756,185 @@ const ExercisePlayback: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Pressable onPress={handleBackPress} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+      <Animated.View style={[styles.headerContainer, {
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }]
+      }]}>
+        <Pressable 
+          onPress={handleBackPress} 
+          style={({ pressed }) => [
+            styles.backButton,
+            { opacity: pressed ? 0.6 : 1 }
+          ]}
+        >
+          <Ionicons name="chevron-back" size={SCREEN_WIDTH * 0.06} color="#fff" />
         </Pressable>
         <Text style={styles.headerText}>{currentExercise.exercise_name}</Text>
-      </View>
+      </Animated.View>
 
       <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={true}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
       >
-        {imageUrls.length > 0 ? (
-          <View style={styles.imageContainer}>
-            {imageUrls.length > 1 && (
-              <View style={styles.sliderIconContainer}>
-                <MaterialCommunityIcons
-                  name="gesture-swipe"
-                  size={20}
-                  color="#EC4899"
-                />
-                <Text style={styles.sliderIconText}>Swipe to view more</Text>
-              </View>
-            )}
-            {imageUrls.length === 1 ? (
-              <View style={styles.singleImageContainer}>
-                <Image
-                  source={{ uri: imageUrls[0] }}
-                  style={styles.image}
-                  resizeMode="contain"
-                  onError={(e) => console.error(`Failed to load image ${imageUrls[0]}:`, e.nativeEvent.error)}
-                />
-              </View>
-            ) : (
+        <Animated.View style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }}>
+          {/* Image Section */}
+          {imageUrls.length > 0 ? (
+            <View style={styles.imageSection}>
               <ScrollView
                 horizontal
+                pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                style={styles.imageScrollView}
-                contentContainerStyle={styles.imageScrollContent}
+                onScroll={handleImageScroll}
+                scrollEventThrottle={16}
+                style={[styles.imageScrollView, { height: SCREEN_HEIGHT * 0.35 }]}
               >
                 {imageUrls.map((url, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: url }}
-                    style={styles.image}
-                    resizeMode="contain"
-                    onError={(e) => console.error(`Failed to load image ${url}:`, e.nativeEvent.error)}
-                  />
+                  <View key={index} style={[styles.imageContainer, { width: SCREEN_WIDTH }]}>
+                    <Image
+                      source={{ uri: url }}
+                      style={styles.image}
+                      resizeMode="contain"
+                    />
+                  </View>
                 ))}
               </ScrollView>
+              
+              {/* Image Pagination */}
+              {imageUrls.length > 1 && (
+                <View style={styles.pagination}>
+                  {imageUrls.map((_, index) => (
+                    <View 
+                      key={index} 
+                      style={[
+                        styles.paginationDot,
+                        index === activeImageIndex && styles.paginationDotActive
+                      ]} 
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={[styles.noImageContainer, { height: SCREEN_HEIGHT * 0.25 }]}>
+              <MaterialCommunityIcons 
+                name="image-off" 
+                size={SCREEN_WIDTH * 0.12} 
+                color="#E0E0E0" 
+              />
+              <Text style={styles.noImageText}>No images available</Text>
+            </View>
+          )}
+
+          {/* Set Info */}
+          <View style={styles.setInfoContainer}>
+            <Text style={styles.setInfoText}>
+              Set {currentSet} of {currentExercise.sets}
+            </Text>
+            {isNumericReps && (
+              <Text style={styles.setInfoText}>
+                Total Reps: {repsCount}
+              </Text>
             )}
           </View>
-        ) : (
-          <View style={styles.noImageContainer}>
-            <Text style={styles.noImageText}>No images available for this exercise.</Text>
+
+          {/* Player Controls Section */}
+          <View style={styles.playerControlsContainer}>
+            {/* Timer Display */}
+            <View style={styles.timerDisplay}>
+              {countdown !== null && (
+                <>
+                  <TimerCircle timer={countdown} maxTime={3} />
+                  <Text style={styles.timerText}>Starting in {countdown}...</Text>
+                </>
+              )}
+              {countdown === null && isResting && (
+                <>
+                  <TimerCircle timer={restTimer} maxTime={currentExercise.rest_time_sec || 0} />
+                  <Text style={styles.timerText}>Rest: {restTimer}s</Text>
+                </>
+              )}
+              {countdown === null && !isResting && isHolding && (
+                <>
+                  <TimerCircle timer={holdTimer} maxTime={holdSeconds} />
+                  <Text style={styles.timerText}>Hold: {holdTimer}s</Text>
+                </>
+              )}
+              {countdown === null && !isResting && !isHolding && isPlaying && (
+                <View style={styles.stopwatchContainer}>
+                  <Text style={styles.timerText}>
+                    {Math.floor(stopwatch / 60)}:{(stopwatch % 60).toString().padStart(2, '0')}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.playerButtonsContainer}>
+              {isNumericReps && isPlaying && (
+                <TouchableOpacity 
+                  style={styles.doneButton} 
+                  onPress={handleDonePress}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="checkmark-circle" size={SCREEN_WIDTH * 0.1} color="#fff" />
+                  <Text style={styles.buttonText}>Done</Text>
+                </TouchableOpacity>
+              )}
+              
+              <TouchableOpacity 
+                style={styles.skipButton} 
+                onPress={handleSkipExercise}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="play-skip-forward-circle" size={SCREEN_WIDTH * 0.1} color="#fff" />
+                <Text style={styles.buttonText}>Skip</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
 
-        <View style={styles.setInfoContainer}>
-          <Text style={styles.setInfoText}>
-            Set {currentSet} of {currentExercise.sets}
-          </Text>
-          {isNumericReps && (
-            <Text style={styles.setInfoText}>
-              Total Reps: {repsCount}
-            </Text>
-          )}
-        </View>
-
-        {countdown !== null && (
-          <View style={styles.timerContainer}>
-            <Text style={styles.timerText}>Starting in {countdown}...</Text>
-          </View>
-        )}
-
-        {countdown === null && isResting && (
-          <View style={styles.timerContainer}>
-            <Text style={styles.timerText}>Rest for {restTimer} seconds</Text>
-          </View>
-        )}
-
-        {countdown === null && !isResting && isHolding && (
-          <View style={styles.timerContainer}>
-            <Text style={styles.timerText}>Hold for {holdTimer} seconds</Text>
-          </View>
-        )}
-
-        {countdown === null && !isResting && !isHolding && isPlaying && (
-          <>
-            <View style={styles.stopwatchContainer}>
-              <Text style={styles.stopwatchText}>
-                Time: {Math.floor(stopwatch / 60)}:{(stopwatch % 60).toString().padStart(2, '0')}
+          {/* Exercise Details */}
+          <View style={styles.detailsSection}>
+            <Text style={styles.sectionTitle}>Exercise Details</Text>
+            
+            <View style={styles.detailRow}>
+              <MaterialCommunityIcons name="target" size={SCREEN_WIDTH * 0.04} color="#ff1297" />
+              <Text style={styles.detailLabel}>Target: </Text>
+              <Text style={styles.detailValue}>{currentExercise.target_muscle}</Text>
+            </View>
+            
+            <View style={styles.detailRow}>
+              <MaterialCommunityIcons name="notebook" size={SCREEN_WIDTH * 0.04} color="#ff1297" />
+              <Text style={styles.detailLabel}>Type: </Text>
+              <Text style={styles.detailValue}>{currentExercise.type}</Text>
+            </View>
+            
+            <View style={styles.detailRow}>
+              <MaterialCommunityIcons name="chart-bar" size={SCREEN_WIDTH * 0.04} color="#ff1297" />
+              <Text style={styles.detailLabel}>Difficulty: </Text>
+              <Text style={[styles.detailValue, { color: getDifficultyColor(currentExercise.difficulty) }]}>
+                {currentExercise.difficulty}
               </Text>
             </View>
-            {isNumericReps && (
-              <TouchableOpacity style={styles.doneButton} onPress={handleDonePress}>
-                <Text style={styles.doneButtonText}>Done</Text>
-              </TouchableOpacity>
-            )}
-          </>
-        )}
-
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkipExercise}>
-          <Text style={styles.skipButtonText}>Skip Exercise</Text>
-        </TouchableOpacity>
-
-        <View style={styles.detailsContainer}>
-          <View style={styles.detailRow}>
-            <MaterialCommunityIcons name="target" size={16} color="#FF6B6B" />
-            <Text style={[styles.detailLabel, { color: '#FF6B6B' }]}>Target: </Text>
-            <Text style={styles.detailValue}>{currentExercise.target_muscle}</Text>
           </View>
-          
-          <View style={styles.detailRow}>
-            <MaterialCommunityIcons name="notebook" size={16} color="#4ECDC4" />
-            <Text style={[styles.detailLabel, { color: '#4ECDC4' }]}>Type: </Text>
-            <Text style={styles.detailValue}>{currentExercise.type}</Text>
-          </View>
-          
-          <View style={styles.detailRow}>
-            <MaterialCommunityIcons name="chart-bar" size={16} color="#FFA07A" />
-            <Text style={[styles.detailLabel, { color: '#FFA07A' }]}>Difficulty: </Text>
-            <Text style={styles.detailValue}>{currentExercise.difficulty}</Text>
-          </View>
-          
-          <Text style={styles.descriptionHeading}>Description</Text>
-          <Text style={styles.descriptionText}>{currentExercise.description}</Text>
-        </View>
 
-        <TouchableOpacity style={styles.exitButton} onPress={handleExitPlayback}>
-          <Text style={styles.exitButtonText}>Exit Playback</Text>
-        </TouchableOpacity>
+          {/* Description */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.descriptionText}>{currentExercise.description}</Text>
+          </View>
+
+          {/* Exit Button */}
+          <TouchableOpacity 
+            style={styles.exitButton} 
+            onPress={handleExitPlayback}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.exitButtonText}>Exit Playback</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -731,191 +943,267 @@ const ExercisePlayback: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#F9F9F9',
   },
+  // Header Styles
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#d63384',
-    elevation: 4,
+    justifyContent: 'space-between',
+    paddingHorizontal: SCREEN_WIDTH * 0.04,
+    paddingVertical: SCREEN_HEIGHT * 0.02,
+    paddingTop: SCREEN_HEIGHT * 0.03,
+    backgroundColor: '#ff1297',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  backButton: {
-    padding: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 10,
   },
   headerText: {
-    fontSize: 20,
+    fontSize: SCREEN_WIDTH * 0.045,
     fontWeight: 'bold',
     color: '#fff',
-    flex: 1,
     textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    flex: 1,
+  },
+  backButton: {
+    padding: SCREEN_WIDTH * 0.02,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   subHeader: {
-    fontSize: 16,
-    color: '#ff4444',
+    fontSize: SCREEN_WIDTH * 0.04,
+    color: '#F44336',
     textAlign: 'center',
-    marginVertical: 20,
-    paddingHorizontal: 20,
+    marginVertical: SCREEN_HEIGHT * 0.02,
+    paddingHorizontal: SCREEN_WIDTH * 0.05,
   },
-  scrollView: {
-    flex: 1,
+  // Content Styles
+  contentContainer: {
+    paddingBottom: SCREEN_HEIGHT * 0.04,
   },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-  imageContainer: {
-    marginTop: 10,
+  // Image Section
+  imageSection: {
+    marginTop: SCREEN_HEIGHT * 0.015,
+    marginBottom: SCREEN_HEIGHT * 0.02,
   },
   imageScrollView: {
-    marginHorizontal: 16,
+    // Height is set dynamically in the component
   },
-  imageScrollContent: {
-    alignItems: 'center',
-  },
-  singleImageContainer: {
-    flex: 1,
-    alignItems: 'center',
+  imageContainer: {
     justifyContent: 'center',
-    marginHorizontal: 16,
+    alignItems: 'center',
+    paddingHorizontal: SCREEN_WIDTH * 0.05,
   },
   image: {
-    width: 200,
-    height: 300,
-    borderRadius: 8,
-    marginHorizontal: 8,
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: SCREEN_HEIGHT * 0.015,
+  },
+  paginationDot: {
+    width: SCREEN_WIDTH * 0.02,
+    height: SCREEN_WIDTH * 0.02,
+    borderRadius: SCREEN_WIDTH * 0.01,
+    backgroundColor: '#D0D0D0',
+    marginHorizontal: SCREEN_WIDTH * 0.01,
+  },
+  paginationDotActive: {
+    width: SCREEN_WIDTH * 0.03,
+    backgroundColor: '#ff1297',
   },
   noImageContainer: {
-    height: 200,
-    marginHorizontal: 16,
-    marginTop: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#e0e0e0',
-    borderRadius: 8,
+    margin: SCREEN_WIDTH * 0.05,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEE',
   },
   noImageText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    fontSize: SCREEN_WIDTH * 0.04,
+    color: '#999',
+    marginTop: SCREEN_HEIGHT * 0.015,
   },
-  sliderIconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  sliderIconText: {
-    fontSize: 12,
-    color: '#EC4899',
-    marginLeft: 8,
-  },
+  // Set Info
   setInfoContainer: {
-    padding: 16,
-    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: SCREEN_WIDTH * 0.04,
+    marginHorizontal: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.02,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   setInfoText: {
-    fontSize: 18,
-    color: '#666',
-    marginBottom: 10,
+    fontSize: SCREEN_WIDTH * 0.045,
+    fontWeight: '600',
+    color: '#333',
     textAlign: 'center',
   },
-  timerContainer: {
-    marginVertical: 20,
-    padding: 20,
-    backgroundColor: '#d63384',
-    borderRadius: 10,
-    alignSelf: 'center',
+  // Player Controls
+  playerControlsContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: SCREEN_WIDTH * 0.06,
+    paddingHorizontal: SCREEN_WIDTH * 0.05,
+    marginHorizontal: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.03,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  timerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
+  timerDisplay: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SCREEN_HEIGHT * 0.03,
   },
   stopwatchContainer: {
-    marginVertical: 10,
+    width: SCREEN_WIDTH * 0.32,
+    height: SCREEN_WIDTH * 0.32,
+    borderRadius: (SCREEN_WIDTH * 0.40) / 2,
+    backgroundColor: 'white',
+    borderColor: '#ff1297',
+    borderWidth: 8,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  stopwatchText: {
-    fontSize: 18,
-    color: '#FF69B4',
+  timerText: {
+    position: 'absolute',
+    fontSize: SCREEN_WIDTH * 0.03,
+    fontWeight: '700',
+    color: '#ff1297',
     textAlign: 'center',
+  },
+  playerButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: SCREEN_WIDTH * 0.06,
   },
   doneButton: {
-    backgroundColor: '#FF69B4',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    marginVertical: 20,
-    alignSelf: 'center',
-  },
-  doneButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    backgroundColor: '#4CAF50',
+    borderRadius: 50,
+    padding: SCREEN_WIDTH * 0.03,
+    alignItems: 'center',
+    shadowColor: '#4CAF50',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   skipButton: {
-    backgroundColor: '#EC4899',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    marginVertical: 10,
-    alignSelf: 'center',
+    backgroundColor: '#F44336',
+    borderRadius: 50,
+    padding: SCREEN_WIDTH * 0.03,
+    alignItems: 'center',
+    shadowColor: '#F44336',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  skipButtonText: {
+  buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontSize: SCREEN_WIDTH * 0.035,
+    fontWeight: '600',
+    marginTop: SCREEN_HEIGHT * 0.005,
   },
-  detailsContainer: {
-    padding: 16,
-    width: '100%',
+  // Sections
+  section: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: SCREEN_WIDTH * 0.05,
+    marginHorizontal: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.02,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
+  detailsSection: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: SCREEN_WIDTH * 0.05,
+    marginHorizontal: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.02,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: SCREEN_WIDTH * 0.05,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: SCREEN_HEIGHT * 0.02,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ff1297',
+    paddingLeft: SCREEN_WIDTH * 0.03,
+  },
+  // Detail Rows
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SCREEN_HEIGHT * 0.015,
   },
   detailLabel: {
-    fontSize: 14,
-    marginLeft: 6,
+    fontSize: SCREEN_WIDTH * 0.038,
+    color: '#666',
+    marginLeft: SCREEN_WIDTH * 0.02,
   },
   detailValue: {
-    fontSize: 14,
-    color: '#777',
-  },
-  descriptionHeading: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: SCREEN_WIDTH * 0.038,
     color: '#333',
-    marginTop: 16,
-    marginBottom: 8,
+    fontWeight: '500',
   },
+  // Description
   descriptionText: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
+    fontSize: SCREEN_WIDTH * 0.04,
+    lineHeight: SCREEN_WIDTH * 0.06,
+    color: '#555',
   },
+  // Exit Button
   exitButton: {
-    backgroundColor: '#FF69B4',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    marginTop: 20,
-    marginBottom: 20,
-    alignSelf: 'center',
+    backgroundColor: '#ff1297',
+    paddingVertical: SCREEN_HEIGHT * 0.015,
+    paddingHorizontal: SCREEN_WIDTH * 0.08,
+    borderRadius: 25,
+    marginTop: SCREEN_HEIGHT * 0.02,
+    marginHorizontal: SCREEN_WIDTH * 0.04,
+    shadowColor: '#ff1297',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   exitButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: SCREEN_WIDTH * 0.04,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

@@ -1,13 +1,37 @@
+declare module '*.png' {
+  const value: any;
+  export default value;
+}
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image, ScrollView, BackHandler, Modal, TextInput, Button, RefreshControl } from 'react-native';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  FlatList, 
+  TouchableOpacity, 
+  Image, 
+  ScrollView, 
+  BackHandler, 
+  Modal, 
+  TextInput, 
+  Dimensions,
+  RefreshControl,
+  Animated,
+  Easing
+} from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import Svg, { Circle, LinearGradient, Defs, Stop, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, LinearGradient, Defs, Stop } from 'react-native-svg';
 import { supabase } from '@/lib/supabase';
 import { useUserAuth } from '@/context/UserAuthContext';
 import { Calendar } from 'react-native-calendars';
 import Logo from '@/assets/images/Logo.png';
 import Water from '@/assets/images/4.png';
-import type { Channel } from '@supabase/supabase-js';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type Exercise = {
   id: string;
@@ -56,12 +80,16 @@ interface CircularProgressProps {
 
 const CircularProgress: React.FC<CircularProgressProps> = ({
   progress,
-  size = 160,
-  strokeWidth = 16,
+  size = 160, // Default size, will be overridden by dynamic calculation
+  strokeWidth = 16, // Default strokeWidth, will be scaled
   gradientId,
   displayText,
 }): JSX.Element => {
-  const radius = (size - strokeWidth) / 2;
+  // Calculate size as 70% of the card width to ensure it fits comfortably
+  const cardWidth = SCREEN_WIDTH * 0.48 - SCREEN_WIDTH * 0.08; // Card width (48%) minus padding (4% each side)
+  const dynamicSize = cardWidth * 0.7; // SVG takes 70% of card width
+  const dynamicStrokeWidth = dynamicSize * 0.1; // Stroke width is 10% of SVG size
+  const radius = (dynamicSize - dynamicStrokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
@@ -82,8 +110,8 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         ];
 
   return (
-    <View style={{ position: 'relative', width: size, height: size }}>
-      <Svg width={size} height={size}>
+    <View style={{ position: 'relative', width: dynamicSize, height: dynamicSize, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={dynamicSize} height={dynamicSize}>
         <Defs>
           <LinearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
             {stops.map((stop, index) => (
@@ -94,22 +122,22 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         <Circle
           stroke="#E5E7EB"
           fill="none"
-          cx={size / 2}
-          cy={size / 2}
+          cx={dynamicSize / 2}
+          cy={dynamicSize / 2}
           r={radius}
           strokeWidth={2}
         />
         <Circle
           stroke={`url(#${gradientId})`}
           fill="none"
-          cx={size / 2}
-          cy={size / 2}
+          cx={dynamicSize / 2}
+          cy={dynamicSize / 2}
           r={radius}
-          strokeWidth={strokeWidth}
+          strokeWidth={dynamicStrokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          transform={`rotate(-90 ${dynamicSize / 2} ${dynamicSize / 2})`}
         />
       </Svg>
       {displayText && (
@@ -126,14 +154,15 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         >
           <Text
             style={{
-              fontSize: 16,
+              fontSize: dynamicSize * 0.10, // Font size is 12% of SVG size for readability
               fontWeight: '600',
               color:
                 gradientId === 'caloriesBurntGradient'
                   ? '#FF4040'
                   : gradientId === 'caloriesGainedGradient'
-                  ? '#ff1297'
+                  ? '#e45ea9'
                   : '#BA55D3',
+              textAlign: 'center',
             }}
           >
             {displayText}
@@ -146,7 +175,6 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
 
 interface WaterGlassProps {
   progress: number;
-  size?: number;
   actualLiters: number;
   expectedLiters: number;
   onLogPress: () => void;
@@ -154,13 +182,9 @@ interface WaterGlassProps {
 
 const WaterGlass: React.FC<WaterGlassProps> = ({ actualLiters, expectedLiters, onLogPress }): JSX.Element => {
   return (
-    <View style={{ height: 200, alignItems: 'center' }}>
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
       <Text style={styles.progressText}>{actualLiters.toFixed(1)}/{expectedLiters.toFixed(1)} L</Text>
-      <Image
-        source={Water}
-        style={styles.water}
-      />
-      <TouchableOpacity style={styles.logButton1} onPress={onLogPress}>
+      <TouchableOpacity style={styles.logButton} onPress={onLogPress}>
         <Text style={styles.logButtonText}>Log Water</Text>
       </TouchableOpacity>
     </View>
@@ -176,23 +200,14 @@ interface SleepCardProps {
 const SleepCard: React.FC<SleepCardProps> = ({ progress, expectedHours, onLogPress }): JSX.Element => {
   return (
     <View style={styles.sleepContainer}>
-      <Svg width="100%" height="100%" style={styles.sleepBackground}>
-        <Defs>
-          <LinearGradient id="sleepGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <Stop offset="0%" stopColor="#9C27B0" />
-            <Stop offset="100%" stopColor="#673AB7" />
-          </LinearGradient>
-        </Defs>
-        <Rect width="100%" height="100%" rx="16" fill="url(#sleepGradient)" />
-      </Svg>
       <View style={styles.sleepContent}>
-        <Text style={styles.sleepIcon}>🌙</Text>
+        <MaterialCommunityIcons name="sleep" size={SCREEN_WIDTH * 0.08} color="#fff" />
         <Text style={styles.sleepTitle}>Sleep</Text>
         <Text style={styles.sleepProgressText}>
           {progress.toFixed(1)}/{expectedHours.toFixed(1)} hrs
         </Text>
-        <TouchableOpacity style={styles.logButton} onPress={onLogPress}>
-          <Text style={styles.logButtonText1}>Log Sleep</Text>
+        <TouchableOpacity style={styles.sleepLogButton} onPress={onLogPress}>
+          <Text style={styles.sleepLogButtonText}>Log Sleep</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -252,6 +267,8 @@ export default function Home() {
   const router = useRouter();
   const { user } = useUserAuth();
   const schedulerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(30))[0];
 
   useEffect(() => {
     if (!user || !user.id) {
@@ -323,6 +340,23 @@ export default function Home() {
 
     scheduleStreakReset();
   }, [user]);
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
 
   const fetchStreakAndCompletions = async () => {
     if (!user?.id) return;
@@ -429,8 +463,8 @@ export default function Home() {
   const fetchWorkoutData = async () => {
     if (!user || !user.id) return;
 
-    let completionSubscription: Channel<any> | null = null;
-    let mealSubscription: Channel<any> | null = null;
+    let completionSubscription: RealtimeChannel | null = null;
+    let mealSubscription: RealtimeChannel | null = null;
 
     try {
       const { data: userData } = await supabase
@@ -470,7 +504,14 @@ export default function Home() {
       console.log('Fetched Daily Workout:', dailyData, 'Error:', dailyError);
 
       if (!dailyError && dailyData) {
-        if (dailyData.focus.toLowerCase().includes('rest')) {
+        const { data: exerciseData, error: exerciseError } = await supabase
+          .from('Workouts')
+          .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
+          .eq('daily_workout_id', dailyData.id);
+
+        if (exerciseError) throw new Error('Error fetching exercises: ' + exerciseError.message);
+
+        if (dailyData.focus.toLowerCase().includes('rest') && (!exerciseData || exerciseData.length === 0)) {
           setDailyWorkout({
             id: dailyData.id,
             day_name: dailyData.day_name,
@@ -486,13 +527,6 @@ export default function Home() {
           setExpectedCaloriesGained(0);
           setActualCaloriesGained(0);
         } else {
-          const { data: exerciseData, error: exerciseError } = await supabase
-            .from('Workouts')
-            .select('id, exercise_name, calories_burned, reps, description, daily_workout_id')
-            .eq('daily_workout_id', dailyData.id);
-
-          if (exerciseError) throw new Error('Error fetching exercises: ' + exerciseError.message);
-
           const totalCalories = exerciseData?.reduce((sum: number, exercise: Exercise) => sum + (exercise.calories_burned || 0), 0) || 0;
           setTotalCaloriesToBurn(totalCalories);
 
@@ -902,6 +936,7 @@ export default function Home() {
   }, []);
 
   const navigateToExercises = (dayName: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({
       pathname: '/(screens)/Exercises',
       params: { day: dayName, source: 'Home' },
@@ -913,6 +948,7 @@ export default function Home() {
       console.warn('Cannot navigate to MealDetail: dailyWorkout or dailyMeal is null');
       return;
     }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({
       pathname: '/(screens)/MealDetail',
       params: {
@@ -923,13 +959,43 @@ export default function Home() {
     });
   };
 
+  const resetStreakOnUpdate = async () => {
+    if (!user?.id) return;
+    const localDate = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+    await supabase.rpc('reset_streak_local', { current_local_date: localDate });
+    await fetchStreakAndCompletions();
+  };
+
+  const handleBackPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/(tabs)/Home');
+  };
+
   if (!user || !user.id) {
     return (
       <View style={styles.container}>
-        <Text style={styles.sectionTitle}>Please Log In</Text>
-        <TouchableOpacity style={styles.seeAllButton} onPress={() => router.push('/Login')}>
-          <Text style={styles.seeAllText}>Go to Login</Text>
-        </TouchableOpacity>
+        <Animated.View style={[styles.headerContainer, {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }]}>
+          <Text style={styles.headerText}>Home</Text>
+          <Text style={styles.usernameText}>{user?.username || 'User'}</Text>
+        </Animated.View>
+
+        <View style={styles.errorContainer}>
+          <MaterialCommunityIcons 
+            name="account-alert" 
+            size={SCREEN_WIDTH * 0.15} 
+            color="#e45ea9" 
+          />
+          <Text style={styles.errorText}>Please log in to view your home</Text>
+          <TouchableOpacity
+            style={styles.backButton1}
+            onPress={() => router.push('/Login')}
+          >
+            <Text style={styles.backButtonText}>Go to Login</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -944,218 +1010,267 @@ export default function Home() {
 
   return (
     <View key={renderKey} style={styles.container}>
-      <View style={styles.headerContainer}>
+      {/* Custom Header */}
+      <Animated.View style={[styles.headerContainer, {
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }]
+      }]}>
         <Image
           source={Logo}
           style={styles.logo}
         />
         <Text style={styles.headerText}>Home</Text>
         <Text style={styles.usernameText}>{user.username || 'User'}</Text>
-      </View>
-      <ScrollView
-        style={styles.contentContainer}
+      </Animated.View>
+
+      {/* Main Content */}
+      <ScrollView 
+        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#EC4899"
-            colors={['#EC4899']}
+            tintColor="#e45ea9"
+            colors={['#e45ea9']}
           />
         }
       >
-        <View style={[styles.card, styles.streakCard]}>
-          <View style={styles.streakHeader}>
-            <Text style={styles.streakTitle}>🔥 Current Streak</Text>
-            <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.calendarButton}>
-              <Text style={styles.calendarLink}>View Calendar</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.calendarText}>
-            <Text style={styles.month}>{currentMonth}</Text>
-            <Text style={[styles.streakDays, { color: '#FFA500' }]}>{streak} day(s)</Text>
-          </View>
-          {showCalendar ? (
-            <Calendar
-              style={styles.calendar}
-              theme={{
-                calendarBackground: '#FFF',
-                textSectionTitleColor: '#000',
-                todayTextColor: '#000',
-                dayTextColor: '#000',
-                arrowColor: '#EC4899',
-                selectedDayBackgroundColor: 'transparent',
-                dotColor: '#FFA500',
-              }}
-              markedDates={markedDates}
-            />
-          ) : (
-            <FlatList
-              data={filteredWorkoutDays}
-              keyExtractor={(item) => item.date}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.dateList}
-              renderItem={({ item }) => {
-                const today = getTodayDate();
-                const isCompletedOrSkipped = markedDates[item.date]?.dotColor === '#FFA500';
-                const isCurrentDate = item.date === today;
-                const backgroundColor = isCompletedOrSkipped ? '#FFA500' : isCurrentDate ? '#ff1297' : '#F3F4F6';
-                const textColor = isCompletedOrSkipped || isCurrentDate ? '#FFFFFF' : '#1F2937';
-
-                return (
-                  <View
-                    style={[
-                      styles.dateItem,
-                      { backgroundColor },
-                      (isCompletedOrSkipped || isCurrentDate) && { width: 48, height: 72 },
-                    ]}
-                  >
-                    <Text style={[styles.dateDay, { color: textColor }]}>
-                      {item.date.split('-')[2]}
-                    </Text>
-                    <Text style={[styles.dateText, { color: textColor }]}>{item.day_number}</Text>
-                    {isCurrentDate && !isCompletedOrSkipped && <View style={styles.currentDayIndicator} />}
-                  </View>
-                );
-              }}
-            />
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Today's Progress</Text>
-          <View style={styles.progressGrid}>
-            <View style={[styles.progressCard, { height: 260 }]}>
-              <Text style={styles.progressIcon}>📈</Text>
-              <Text style={styles.progressTitle}>Calories Gained</Text>
-              <CircularProgress
-                progress={
-                  expectedCaloriesGained > 0
-                    ? Math.min((actualCaloriesGained / expectedCaloriesGained) * 100, 100)
-                    : 0
-                }
-                gradientId="caloriesGainedGradient"
-                displayText={`${actualCaloriesGained.toFixed(1)}/${expectedCaloriesGained.toFixed(1)} cal`}
-              />
-            </View>
-
-            <View style={[styles.progressCard, { height: 260 }]}>
-              <Text style={styles.progressIcon}>🔥</Text>
-              <Text style={styles.progressTitle}>Calories Burnt</Text>
-              <CircularProgress
-                progress={totalCaloriesToBurn > 0 ? (caloriesBurnedToday / totalCaloriesToBurn) * 100 : 0}
-                gradientId="caloriesBurntGradient"
-                displayText={`${caloriesBurnedToday.toFixed(1)}/${totalCaloriesToBurn.toFixed(1)} cal`}
-              />
-            </View>
-
-            <View style={[styles.progressCard, { height: 260 }]}>
-              <SleepCard
-                progress={sleepHours}
-                expectedHours={expectedSleepHours}
-                onLogPress={() => setShowSleepModal(true)}
-              />
-            </View>
-
-            <View style={[styles.progressCard, { height: 260 }]}>
-              <Text style={styles.progressIcon}>💧</Text>
-              <Text style={styles.progressTitle}>Water</Text>
-              <WaterGlass
-                progress={expectedWaterLiters > 0 ? (actualWaterLiters / expectedWaterLiters) * 100 : 0}
-                actualLiters={actualWaterLiters}
-                expectedLiters={expectedWaterLiters}
-                onLogPress={() => setShowWaterModal(true)}
-              />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Today's Workout</Text>
-          </View>
-          {dailyWorkout ? (
-            dailyWorkout.focus.toLowerCase().includes('rest') ? (
-              <View style={[styles.card, styles.workoutCard]}>
-                <Text style={styles.noWorkoutText}>Today is a Rest Day. No exercises scheduled.</Text>
+        <Animated.View style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }}>
+          {/* Streak Card */}
+          <View style={[styles.card, styles.streakCard]}>
+            <View style={styles.streakHeader}>
+              <View style={{ flex: 1, flexDirection: 'row' }}>
+                <MaterialCommunityIcons name="fire" size={SCREEN_WIDTH * 0.07} color="#FFA500" />
+                <Text style={styles.streakTitle}>Current Streak</Text>
               </View>
-            ) : dailyWorkout.exercises.length > 0 ? (
-              <TouchableOpacity
-                style={[styles.card, styles.workoutCard]}
-                onPress={() => navigateToExercises(dailyWorkout.day_name)}
+              <TouchableOpacity 
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setShowCalendar(!showCalendar);
+                }} 
+                style={styles.calendarButton}
               >
-                <View style={styles.workoutRow}>
-                  <View style={styles.workoutInfo}>
-                    <Text style={styles.workoutName}>{dailyWorkout.day_name}</Text>
-                    <View style={styles.workoutStats}>
-                      <View style={styles.workoutStatItem}>
-                        <Text style={styles.workoutStatIcon}>🎯</Text>
-                        <Text style={styles.workoutStatText}>
-                          {dailyWorkout.focus}
-                        </Text>
-                      </View>
-                      <View style={styles.workoutStatItem}>
-                        <Text style={styles.workoutStatIcon}>⏰</Text>
-                        <Text style={styles.workoutStatText}>
-                          {dailyWorkout.total_duration_min} min
-                        </Text>
+                <Text style={styles.calendarLink}>{showCalendar ? 'Hide' : 'View'} Calendar</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.calendarText}>
+              <Text style={styles.month}>{currentMonth}</Text>
+              <Text style={[styles.streakDays, { color: '#FFA500' }]}>{streak} day(s)</Text>
+            </View>
+            {showCalendar ? (
+              <Calendar
+                style={styles.calendar}
+                theme={{
+                  calendarBackground: '#FFF',
+                  textSectionTitleColor: '#000',
+                  todayTextColor: '#000',
+                  dayTextColor: '#000',
+                  arrowColor: '#e45ea9',
+                  selectedDayBackgroundColor: 'transparent',
+                  dotColor: '#FFA500',
+                }}
+                markedDates={markedDates}
+              />
+            ) : (
+              <FlatList
+                data={filteredWorkoutDays}
+                keyExtractor={(item) => item.date}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.dateList}
+                renderItem={({ item }) => {
+                  const today = getTodayDate();
+                  const isCompletedOrSkipped = markedDates[item.date]?.dotColor === '#FFA500';
+                  const isCurrentDate = item.date === today;
+                  const backgroundColor = isCompletedOrSkipped ? '#FFA500' : isCurrentDate ? '#e45ea9' : '#F3F4F6';
+                  const textColor = isCompletedOrSkipped || isCurrentDate ? '#FFFFFF' : '#1F2937';
+
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.dateItem,
+                        { backgroundColor },
+                        (isCompletedOrSkipped || isCurrentDate) && { width: 48, height: 72 },
+                      ]}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      }}
+                    >
+                      <Text style={[styles.dateDay, { color: textColor }]}>
+                        {item.date.split('-')[2]}
+                      </Text>
+                      <Text style={[styles.dateText, { color: textColor }]}>{item.day_number}</Text>
+                      {isCurrentDate && !isCompletedOrSkipped && <View style={styles.currentDayIndicator} />}
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            )}
+          </View>
+
+          {/* Progress Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle1}>Today's Progress</Text>
+            <View style={styles.progressGrid}>
+              <View style={[styles.progressCard, { height: SCREEN_HEIGHT * 0.25 }]}>
+                <MaterialCommunityIcons name="food-apple" size={SCREEN_WIDTH * 0.06} color="#e45ea9" />
+                <Text style={styles.progressTitle}>Calories Gained</Text>
+                <CircularProgress
+                  progress={
+                    expectedCaloriesGained > 0
+                      ? Math.min((actualCaloriesGained / expectedCaloriesGained) * 100, 100)
+                      : 0
+                  }
+                  gradientId="caloriesGainedGradient"
+                  displayText={`${actualCaloriesGained.toFixed(1)}/${expectedCaloriesGained.toFixed(1)} cal`}
+                />
+              </View>
+
+              <View style={[styles.progressCard, { height: SCREEN_HEIGHT * 0.25 }]}>
+                <MaterialCommunityIcons name="fire" size={SCREEN_WIDTH * 0.06} color="#FF4040" />
+                <Text style={styles.progressTitle}>Calories Burnt</Text>
+                <CircularProgress
+                  progress={totalCaloriesToBurn > 0 ? (caloriesBurnedToday / totalCaloriesToBurn) * 100 : 0}
+                  gradientId="caloriesBurntGradient"
+                  displayText={`${caloriesBurnedToday.toFixed(1)}/${totalCaloriesToBurn.toFixed(1)} cal`}
+                />
+              </View>
+
+              <View style={[styles.progressCard, { height: SCREEN_HEIGHT * 0.25 }]}>
+                <SleepCard
+                  progress={sleepHours}
+                  expectedHours={expectedSleepHours}
+                  onLogPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setShowSleepModal(true);
+                  }}
+                />
+              </View>
+
+              <View style={[styles.progressCard, { height: SCREEN_HEIGHT * 0.25, alignItems: 'center', justifyContent: 'center' }]}>
+                <MaterialCommunityIcons name="cup-water" size={SCREEN_WIDTH * 0.06} color="#5bc6ff" />
+                <Text style={styles.progressTitle}>Water</Text>
+                <WaterGlass
+                  progress={expectedWaterLiters > 0 ? (actualWaterLiters / expectedWaterLiters) * 100 : 0}
+                  actualLiters={actualWaterLiters}
+                  expectedLiters={expectedWaterLiters}
+                  onLogPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setShowWaterModal(true);
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Workout Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Today's Workout</Text>
+            </View>
+            {dailyWorkout ? (
+              dailyWorkout.focus.toLowerCase().includes('rest') && dailyWorkout.exercises.length === 0 ? (
+                <View style={[styles.card, styles.workoutCard]}>
+                  <MaterialCommunityIcons name="power-sleep" size={SCREEN_WIDTH * 0.1} color="#9CA3AF" />
+                  <Text style={styles.noWorkoutText}>Today is a Rest Day. No exercises scheduled.</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.card, styles.workoutCard]}
+                  onPress={() => navigateToExercises(dailyWorkout.day_name)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.workoutRow}>
+                    <View style={styles.workoutInfo}>
+                      <Text style={styles.workoutName}>{dailyWorkout.day_name}</Text>
+                      <View style={styles.workoutStats}>
+                        <View style={styles.workoutStatItem}>
+                          <MaterialCommunityIcons name="target" size={SCREEN_WIDTH * 0.04} color="#e45ea9" />
+                          <Text style={styles.workoutStatText}>
+                            {dailyWorkout.focus}
+                          </Text>
+                        </View>
+                        <View style={styles.workoutStatItem}>
+                          <MaterialCommunityIcons name="clock-outline" size={SCREEN_WIDTH * 0.04} color="#e45ea9" />
+                          <Text style={styles.workoutStatText}>
+                            {dailyWorkout.total_duration_min} min
+                          </Text>
+                        </View>
                       </View>
                     </View>
+                    <Ionicons name="chevron-forward" size={SCREEN_WIDTH * 0.05} color="#9CA3AF" />
                   </View>
+                  <View style={styles.workoutProgress}>
+                    <View style={[styles.progressBar, { width: `${progressPercentage}%` }]} />
+                    <Text style={styles.progressLabel}>{progressPercentage}% completed</Text>
+                  </View>
+                </TouchableOpacity>
+              )
+            ) : (
+              <View style={[styles.card, styles.workoutCard]}>
+                <MaterialCommunityIcons name="emoticon-confused" size={SCREEN_WIDTH * 0.1} color="#9CA3AF" />
+                <Text style={styles.noWorkoutText}>No workout scheduled for today.</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Nutrition Section */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Today's Nutrition</Text>
+            </View>
+            {dailyMeal ? (
+              <TouchableOpacity
+                style={[styles.card, styles.mealContainer]}
+                onPress={navigateToMealDetail}
+                activeOpacity={0.8}
+              >
+                <View style={styles.mealHeader}>
+                  <Text style={styles.mealText}>{dailyWorkout?.day_name}</Text>
+                  <Ionicons name="chevron-forward" size={SCREEN_WIDTH * 0.05} color="#9CA3AF" />
                 </View>
-                <View style={styles.workoutProgress}>
-                  <View style={[styles.progressBar, { width: `${progressPercentage}%` }]}>
-                    <View style={styles.progressFill} />
+                <View style={styles.mealDetails}>
+                  <View style={styles.mealDetailItem}>
+                    <MaterialCommunityIcons name="fire" size={SCREEN_WIDTH * 0.04} color="#FF7043" />
+                    <Text style={styles.mealDetailText}>
+                      {dailyMeal.daily_calories.toFixed(1)} cal
+                    </Text>
                   </View>
-                  <Text style={styles.progressLabel}>{progressPercentage}% completed</Text>
+                  <View style={styles.mealDetailItem}>
+                    <MaterialCommunityIcons name="bread-slice" size={SCREEN_WIDTH * 0.04} color="#8BC34A" />
+                    <Text style={styles.mealDetailText}>
+                      {dailyMeal.carbs_grams.toFixed(1)}g carbs
+                    </Text>
+                  </View>
+                  <View style={styles.mealDetailItem}>
+                    <MaterialCommunityIcons name="dumbbell" size={SCREEN_WIDTH * 0.04} color="#2196F3" />
+                    <Text style={styles.mealDetailText}>
+                      {dailyMeal.protein_grams.toFixed(1)}g protein
+                    </Text>
+                  </View>
+                  <View style={styles.mealDetailItem}>
+                    <MaterialCommunityIcons name="food-steak" size={SCREEN_WIDTH * 0.04} color="#795548" />
+                    <Text style={styles.mealDetailText}>
+                      {dailyMeal.fat_grams.toFixed(1)}g fat
+                    </Text>
+                  </View>
                 </View>
               </TouchableOpacity>
             ) : (
-              <View style={[styles.card, styles.workoutCard]}>
-                <Text style={styles.noWorkoutText}>No exercises scheduled for today.</Text>
+              <View style={[styles.card, styles.mealContainer]}>
+                <MaterialCommunityIcons name="food-off" size={SCREEN_WIDTH * 0.1} color="#9CA3AF" />
+                <Text style={styles.noMealText}>No meal plan available for today.</Text>
               </View>
-            )
-          ) : (
-            <View style={[styles.card, styles.workoutCard]}>
-              <Text style={styles.noWorkoutText}>No workout scheduled for today.</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Today's Nutrition</Text>
+            )}
           </View>
-          {dailyMeal ? (
-            <TouchableOpacity
-              style={[styles.card, styles.mealContainer]}
-              onPress={navigateToMealDetail}
-            >
-              <Text style={styles.mealText}>{dailyWorkout?.day_name}</Text>
-              <View style={styles.mealDetails}>
-                <Text style={styles.mealDetailText}>
-                  Calories: {dailyMeal.daily_calories.toFixed(1)} cal
-                </Text>
-                <Text style={styles.mealDetailText}>
-                  Carbs: {dailyMeal.carbs_grams.toFixed(1)}g
-                </Text>
-                <Text style={styles.mealDetailText}>
-                  Protein: {dailyMeal.protein_grams.toFixed(1)}g
-                </Text>
-                <Text style={styles.mealDetailText}>
-                  Fat: {dailyMeal.fat_grams.toFixed(1)}g
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View style={[styles.card, styles.mealContainer]}>
-              <Text style={styles.noMealText}>No meal plan available for today.</Text>
-            </View>
-          )}
-        </View>
+        </Animated.View>
       </ScrollView>
 
+      {/* Sleep Modal */}
       <Modal
         visible={showSleepModal}
         transparent={true}
@@ -1173,24 +1288,28 @@ export default function Home() {
               onChangeText={setInputSleepHours}
             />
             <View style={styles.modalButtonContainer}>
-              <Button
-                title="Cancel"
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setShowSleepModal(false);
                   setInputSleepHours('');
                 }}
-                color="#FF4040"
-              />
-              <Button
-                title="Save"
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
                 onPress={handleLogSleep}
-                color="#10B981"
-              />
+              >
+                <Text style={styles.modalButtonText}>Save</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
+      {/* Water Modal */}
       <Modal
         visible={showWaterModal}
         transparent={true}
@@ -1208,19 +1327,22 @@ export default function Home() {
               onChangeText={setInputWaterLiters}
             />
             <View style={styles.modalButtonContainer}>
-              <Button
-                title="Cancel"
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setShowWaterModal(false);
                   setInputWaterLiters('');
                 }}
-                color="#FF4040"
-              />
-              <Button
-                title="Save"
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
                 onPress={handleLogWater}
-                color="#10B981"
-              />
+              >
+                <Text style={styles.modalButtonText}>Save</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -1232,166 +1354,170 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F9F9F9',
   },
+  // Header Styles
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#ff1297',
-    elevation: 4,
+    justifyContent: 'space-between',
+    paddingHorizontal: SCREEN_WIDTH * 0.043,
+    paddingVertical: SCREEN_HEIGHT * 0.015,
+    backgroundColor: '#e45ea9',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  logo: {
-    width: 50,
-    height: 50,
-    borderRadius: 20,
-    marginRight: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 10,
   },
   headerText: {
-    fontSize: 20,
+    fontSize: SCREEN_WIDTH * 0.055,
     fontWeight: 'bold',
     color: '#fff',
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
     flex: 1,
   },
+  logo: {
+    width: SCREEN_WIDTH * 0.14,
+    height: SCREEN_WIDTH * 0.14,
+    borderRadius: SCREEN_WIDTH * 0.05,
+    marginRight: SCREEN_WIDTH * 0.023,
+  },
   usernameText: {
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
     color: '#fff',
     fontWeight: '600',
   },
-  contentContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
+  backButton: {
+    padding: SCREEN_WIDTH * 0.02,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
+  // Content Styles
+  contentContainer: {
+    paddingBottom: SCREEN_HEIGHT * 0.02,
+    paddingHorizontal: SCREEN_WIDTH * 0.04,
+  },
+  // Cards
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000000',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.02,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    elevation: 2,
   },
   streakCard: {
     borderLeftWidth: 4,
-    borderLeftColor: '#EC4899',
-    paddingLeft: 16,
+    borderLeftColor: '#e45ea9',
+    marginTop: SCREEN_HEIGHT * 0.02,
   },
   streakHeader: {
     flexDirection: 'row',
-    marginBottom: 8,
+    alignItems: 'center',
+    marginBottom: SCREEN_HEIGHT * 0.01,
   },
   streakTitle: {
-    fontSize: 18,
+    fontSize: SCREEN_WIDTH * 0.045,
     fontWeight: '700',
-    color: '#1F2937',
-    marginLeft: -5,
+    color: '#333',
   },
   calendarButton: {
     marginLeft: 'auto',
   },
   calendarLink: {
-    fontSize: 10,
+    fontSize: SCREEN_WIDTH * 0.035,
     fontWeight: '600',
-    color: '#FFFFFF',
-    backgroundColor: '#ff77c3',
-    paddingVertical: 4,
-    paddingHorizontal: 9,
+    color: '#e45ea9',
+    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+    paddingVertical: SCREEN_HEIGHT * 0.005,
+    paddingHorizontal: SCREEN_WIDTH * 0.03,
     borderRadius: 20,
-    textAlign: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
   },
   calendarText: {
-    display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SCREEN_HEIGHT * 0.01,
   },
   month: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 12,
+    fontSize: SCREEN_WIDTH * 0.04,
+    color: '#666',
   },
   streakDays: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontSize: SCREEN_WIDTH * 0.04,
+    fontWeight: '700',
     marginLeft: 'auto',
   },
+  calendar: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEE',
+    marginTop: SCREEN_HEIGHT * 0.01,
+  },
   dateList: {
-    paddingVertical: 8,
+    paddingVertical: SCREEN_HEIGHT * 0.01,
   },
   dateItem: {
-    width: 44,
-    height: 64,
+    width: SCREEN_WIDTH * 0.1,
+    height: SCREEN_WIDTH * 0.17,
     borderRadius: 12,
-    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    marginRight: SCREEN_WIDTH * 0.02,
   },
   dateDay: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 4,
+    fontSize: SCREEN_WIDTH * 0.035,
+    marginBottom: SCREEN_HEIGHT * 0.005,
   },
   dateText: {
-    fontSize: 16,
+    fontSize: SCREEN_WIDTH * 0.04,
     fontWeight: '600',
-    color: '#1F2937',
   },
   currentDayIndicator: {
     position: 'absolute',
-    bottom: 4,
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    bottom: SCREEN_HEIGHT * 0.005,
+    width: SCREEN_WIDTH * 0.015,
+    height: SCREEN_WIDTH * 0.015,
+    borderRadius: SCREEN_WIDTH * 0.0075,
     backgroundColor: '#FFFFFF',
   },
-  calendar: {
-    marginVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
+  // Sections
   section: {
-    marginBottom: 20,
+    marginBottom: SCREEN_HEIGHT * 0.02,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: SCREEN_HEIGHT * 0.015,
+  },
+  sectionTitle1: {
+    fontSize: SCREEN_WIDTH * 0.05,
+    fontWeight: '700',
+    color: '#333',
+    borderLeftWidth: 4,
+    borderLeftColor: '#e45ea9',
+    paddingLeft: SCREEN_WIDTH * 0.03,
+    marginBottom: SCREEN_HEIGHT * 0.015,
+    marginTop: SCREEN_HEIGHT * 0.01,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: SCREEN_WIDTH * 0.05,
     fontWeight: '700',
-    color: '#111827',
+    color: '#333',
+    borderLeftWidth: 4,
+    borderLeftColor: '#e45ea9',
+    paddingLeft: SCREEN_WIDTH * 0.03,
   },
-  seeAllButton: {
-    marginVertical: 20,
-    backgroundColor: '#EC4899',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  seeAllText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#3B82F6',
-  },
+  // Progress Grid
   progressGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1399,190 +1525,184 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000000',
+    borderRadius: 12,
+    padding: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.015,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowRadius: 6,
     elevation: 2,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
-  },
-  progressIcon: {
-    fontSize: 24,
-    marginBottom: 8,
   },
   progressTitle: {
-    fontSize: 13,
+    fontSize: SCREEN_WIDTH * 0.038,
     fontWeight: '600',
-    color: '#4B5563',
-    marginBottom: 8,
+    color: '#666',
+    marginVertical: SCREEN_HEIGHT * 0.01,
     textAlign: 'center',
   },
   progressText: {
-    fontSize: 12,
+    fontSize: SCREEN_WIDTH * 0.04,
     fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
+    color: '#333',
+    marginBottom: SCREEN_HEIGHT * 0.01,
   },
-  water: {
-    width: 50,
-    height: 80,
-  },
-  sleepContainer: {
-    borderRadius: 16,
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  sleepBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  sleepContent: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-    padding: 16,
-  },
-  sleepIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-    color: '#FFF',
-  },
-  sleepTitle: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  sleepProgressText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginTop: 8,
-    marginBottom: 8,
+  waterImage: {
+    width: SCREEN_WIDTH * 0.09,
+    height: SCREEN_WIDTH * 0.1,
+    marginBottom: SCREEN_HEIGHT * 0.01,
   },
   logButton: {
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  logButton1: {
     backgroundColor: '#5bc6ff',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  logButtonText1: {
-    color: '#9C27B0',
-    fontSize: 10,
-    fontWeight: '600',
+    paddingVertical: SCREEN_HEIGHT * 0.01,
+    paddingHorizontal: SCREEN_WIDTH * 0.04,
+    borderRadius: 20,
+    marginTop: SCREEN_HEIGHT * 0.01,
   },
   logButtonText: {
-    color: 'white',
-    fontSize: 10,
+    color: '#fff',
+    fontSize: SCREEN_WIDTH * 0.035,
     fontWeight: '600',
   },
+  // Sleep Card
+  sleepContainer: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    backgroundColor: '#9C27B0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SCREEN_WIDTH * 0.04,
+    paddingVertical: SCREEN_WIDTH * 0.06,
+  },
+  sleepContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sleepTitle: {
+    color: '#fff',
+    fontSize: SCREEN_WIDTH * 0.04,
+    fontWeight: '600',
+    marginTop: SCREEN_HEIGHT * 0.01,
+  },
+  sleepProgressText: {
+    color: '#fff',
+    fontSize: SCREEN_WIDTH * 0.04,
+    fontWeight: '600',
+    marginVertical: SCREEN_HEIGHT * 0.01,
+  },
+  sleepLogButton: {
+    backgroundColor: '#fff',
+    paddingVertical: SCREEN_HEIGHT * 0.01,
+    paddingHorizontal: SCREEN_WIDTH * 0.04,
+    borderRadius: 20,
+    marginTop: SCREEN_HEIGHT * 0.01,
+  },
+  sleepLogButtonText: {
+    color: '#9C27B0',
+    fontSize: SCREEN_WIDTH * 0.035,
+    fontWeight: '600',
+  },
+  // Workout Card
   workoutCard: {
     padding: 0,
     overflow: 'hidden',
   },
   workoutRow: {
     flexDirection: 'row',
-    padding: 16,
+    padding: SCREEN_WIDTH * 0.04,
+    alignItems: 'center',
   },
   workoutInfo: {
     flex: 1,
-    justifyContent: 'center',
   },
   workoutName: {
-    fontSize: 18,
+    fontSize: SCREEN_WIDTH * 0.045,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
+    color: '#333',
+    marginBottom: SCREEN_HEIGHT * 0.01,
   },
   workoutStats: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   workoutStatItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
-  },
-  workoutStatIcon: {
-    marginRight: 4,
+    marginRight: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.005,
   },
   workoutStatText: {
-    fontSize: 14,
-    color: '#4B5563',
+    fontSize: SCREEN_WIDTH * 0.038,
+    color: '#666',
+    marginLeft: SCREEN_WIDTH * 0.015,
   },
   workoutProgress: {
-    padding: 16,
-    paddingTop: 12,
+    padding: SCREEN_WIDTH * 0.04,
+    paddingTop: SCREEN_HEIGHT * 0.01,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
     backgroundColor: '#F9FAFB',
   },
   progressBar: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#E5E7EB',
-    marginBottom: 8,
+    height: SCREEN_HEIGHT * 0.01,
+    borderRadius: SCREEN_HEIGHT * 0.005,
+    backgroundColor: '#e45ea9',
+    marginBottom: SCREEN_HEIGHT * 0.01,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#10B981',
-    borderRadius: 3,
+    borderRadius: SCREEN_HEIGHT * 0.005,
   },
   progressLabel: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: SCREEN_WIDTH * 0.035,
+    color: '#666',
   },
   noWorkoutText: {
-    fontSize: 16,
-    color: '#4B5563',
+    fontSize: SCREEN_WIDTH * 0.04,
+    color: '#666',
     textAlign: 'center',
-    padding: 16,
+    marginTop: SCREEN_HEIGHT * 0.01,
   },
+  // Meal Container
   mealContainer: {
-    padding: 16,
+    padding: SCREEN_WIDTH * 0.04,
+  },
+  mealHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SCREEN_HEIGHT * 0.015,
   },
   mealText: {
-    color: '#111827',
-    fontSize: 18,
+    fontSize: SCREEN_WIDTH * 0.045,
     fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
+    color: '#333',
+    flex: 1,
   },
   mealDetails: {
     width: '100%',
-    alignItems: 'flex-start',
+  },
+  mealDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SCREEN_HEIGHT * 0.01,
   },
   mealDetailText: {
-    color: '#4B5563',
-    fontSize: 14,
-    fontWeight: '500',
-    marginVertical: 2,
+    fontSize: SCREEN_WIDTH * 0.038,
+    color: '#666',
+    marginLeft: SCREEN_WIDTH * 0.015,
   },
   noMealText: {
-    fontSize: 16,
-    color: '#4B5563',
+    fontSize: SCREEN_WIDTH * 0.04,
+    color: '#666',
     textAlign: 'center',
-    padding: 16,
+    marginTop: SCREEN_HEIGHT * 0.01,
   },
+  // Modals
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1590,30 +1710,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: SCREEN_WIDTH * 0.06,
     width: '80%',
-    alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: SCREEN_WIDTH * 0.05,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
+    color: '#333',
+    marginBottom: SCREEN_HEIGHT * 0.02,
+    textAlign: 'center',
   },
   modalInput: {
-    width: '100%',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 16,
-    fontSize: 16,
+    padding: SCREEN_WIDTH * 0.04,
+    marginBottom: SCREEN_HEIGHT * 0.03,
+    fontSize: SCREEN_WIDTH * 0.04,
   },
   modalButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
+  },
+  modalButton: {
+    paddingVertical: SCREEN_HEIGHT * 0.015,
+    paddingHorizontal: SCREEN_WIDTH * 0.06,
+    borderRadius: 8,
+    width: '48%',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#F3F4F6',
+  },
+  saveButton: {
+    backgroundColor: '#e45ea9',
+  },
+  modalButtonText: {
+    fontSize: SCREEN_WIDTH * 0.04,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  // Error Styles
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SCREEN_WIDTH * 0.075,
+    backgroundColor: '#F9F9F9',
+  },
+  errorText: {
+    fontSize: SCREEN_WIDTH * 0.045,
+    color: '#333',
+    textAlign: 'center',
+    marginVertical: SCREEN_HEIGHT * 0.02,
+    lineHeight: SCREEN_WIDTH * 0.065,
+  },
+  backButton1: {
+    backgroundColor: '#e45ea9',
+    paddingVertical: SCREEN_HEIGHT * 0.015,
+    paddingHorizontal: SCREEN_WIDTH * 0.08,
+    borderRadius: 25,
+    marginTop: SCREEN_HEIGHT * 0.02,
+    shadowColor: '#e45ea9',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: SCREEN_WIDTH * 0.04,
+    fontWeight: '600',
   },
 });

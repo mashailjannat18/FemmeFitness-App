@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useUserAuth } from '@/context/UserAuthContext';
 import { supabase } from '@/lib/supabase';
+import { RefreshControl } from 'react-native';
 
 interface CyclePhase {
   date: string;
@@ -91,13 +92,11 @@ export default function PeriodsCalendar() {
     }
   };
 
-  const handleGoBack = () => {
-    router.back();
-  };
-
-  const handleRefresh = () => {
-    fetchCyclePhases();
-  };
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchCyclePhases();
+    setRefreshing(false);
+  }, []);
 
   return (
     <View style={styles.background}>
@@ -106,11 +105,18 @@ export default function PeriodsCalendar() {
           <MaterialIcons name="arrow-back" size={24} color="#FF69B4" />
         </TouchableOpacity>
         <Text style={styles.headerHeading}>Periods Calendar</Text>
-        <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
-          {refreshing ? <ActivityIndicator size="small" color="#FF69B4" /> : <MaterialIcons name="refresh" size={24} color="#FF69B4" />}
-        </TouchableOpacity>
       </View>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#FF69B4"
+            colors={['#FF69B4']}
+          />
+        }
+      >
         <View style={styles.container}>
           <View style={styles.calendarContainer}>
             <Calendar
@@ -160,10 +166,6 @@ export default function PeriodsCalendar() {
               <Text style={styles.symbolText}>Follicular Phase</Text>
             </View>
           </View>
-
-          <TouchableOpacity onPress={handleGoBack} style={styles.button}>
-            <Text style={styles.buttonText}>Go Back</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -197,7 +199,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    padding: 20,
+    paddingTop: 20,
+    paddingRight: 20,
+    paddingLeft: 20,
   },
   calendarContainer: {
     width: '100%',
@@ -261,25 +265,5 @@ const styles = StyleSheet.create({
   symbolText: {
     fontSize: 16,
     color: '#333',
-  },
-  button: {
-    backgroundColor: '#ff69b4',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-    marginTop: 20,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  buttonText: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  refreshButton: {
-    padding: 5,
   },
 });

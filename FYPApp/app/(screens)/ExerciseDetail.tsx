@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Image, View, Text, ScrollView, TouchableOpacity, Alert, Pressable } from 'react-native';
+import { StyleSheet, Image, View, Text, ScrollView, TouchableOpacity, Pressable, Animated, Easing, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useUserAuth } from '@/context/UserAuthContext';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 type WorkoutPlan = {
   id: number;
@@ -23,11 +24,11 @@ type ExerciseDetailType = {
   reps: string;
   calories_burned: number;
   daily_workout_id: number;
-  workout_date: string;
+  workout_date: string | null;
   duration_min: number;
   sets: number;
   rest_time_sec: number;
-  target_muscle: string;
+  target_muscle: string | null;
   type: string;
   difficulty: string;
   caution: string | null;
@@ -39,9 +40,15 @@ export default function ExerciseDetail() {
   const [exerciseDetail, setExerciseDetail] = useState<ExerciseDetailType | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [imageUrls, setImageUrls] = useState<string[]>([]); // State to hold image URLs
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const router = useRouter();
   const { user } = useUserAuth();
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const slideAnim = useState(new Animated.Value(30))[0];
+
+  // Get screen dimensions
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
   useEffect(() => {
     if (!user || !user.id) {
@@ -62,6 +69,19 @@ export default function ExerciseDetail() {
       const fetchData = async () => {
         try {
           await fetchExerciseDetail(exerciseId);
+          Animated.parallel([
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 600,
+              useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+              toValue: 0,
+              duration: 500,
+              easing: Easing.out(Easing.quad),
+              useNativeDriver: true,
+            }),
+          ]).start();
         } catch (err: any) {
           setErrorMessage(err.message || 'Failed to load exercise details.');
         } finally {
@@ -131,75 +151,56 @@ export default function ExerciseDetail() {
       DailyWorkouts: dailyWorkout,
     });
 
-    // Fetch images from the storage bucket
     await fetchImages(data.exercise_name);
   };
 
   const fetchImages = async (exerciseName: string) => {
     try {
-      console.log(`Fetching images for exercise: ${exerciseName}`);
-      
       let allFiles: any[] = [];
       let offset = 0;
       const limit = 100;
       let hasMore = true;
 
-      // Fetch files in batches until all are retrieved
       while (hasMore) {
         const { data: files, error: listError } = await supabase.storage
           .from('workout-images')
           .list('', { limit, offset });
 
-        if (listError) {
-          console.error('Error listing files in workout-images bucket:', listError.message);
-          throw new Error('Failed to list images from storage.');
-        }
+        if (listError) throw new Error('Failed to list images from storage.');
 
         if (!files || files.length === 0) {
-          console.log(`No more files found at offset ${offset}.`);
           hasMore = false;
           break;
         }
 
-        console.log(`Fetched batch at offset ${offset}:`, files.map(f => f.name));
         allFiles = [...allFiles, ...files];
         offset += limit;
 
-        // Stop early if we find matching images
         const matchingFiles = files.filter(file => {
           const fileNameWithoutExtension = file.name.replace(/\.png$/, '');
           return fileNameWithoutExtension === exerciseName || fileNameWithoutExtension.startsWith(`${exerciseName} `);
         });
 
         if (matchingFiles.length > 0) {
-          console.log(`Found matching images in batch at offset ${offset - limit}, stopping fetch.`);
           hasMore = false;
         }
       }
 
       if (allFiles.length === 0) {
-        console.log('No files found in workout-images bucket.');
         setImageUrls([]);
         return;
       }
 
-      console.log('Total files fetched:', allFiles.map(f => f.name));
-
-      // Filter files that exactly match the exercise name
       const matchingFiles = allFiles.filter(file => {
         const fileNameWithoutExtension = file.name.replace(/\.png$/, '');
         return fileNameWithoutExtension === exerciseName || fileNameWithoutExtension.startsWith(`${exerciseName} `);
       });
 
       if (matchingFiles.length === 0) {
-        console.log(`No matching images found for exercise: ${exerciseName}`);
         setImageUrls([]);
         return;
       }
 
-      console.log(`Matching files for ${exerciseName}:`, matchingFiles.map(f => f.name));
-
-      // Generate public URLs for the matching files
       const urls = matchingFiles.map(file => {
         const { data } = supabase.storage
           .from('workout-images')
@@ -207,29 +208,56 @@ export default function ExerciseDetail() {
         return data.publicUrl;
       });
 
-      console.log(`Generated public URLs for ${exerciseName}:`, urls);
       setImageUrls(urls);
-    } catch (err: any) {
-      console.error('Error fetching images:', err.message || err);
+    } catch (err) {
       setImageUrls([]);
     }
   };
 
   const handleBackPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
   };
 
-  const renderDetailRow = (label: string, value: string | number) => (
+  const handleImageScroll = (event: any) => {
+    const contentOffset = event.nativeEvent.contentOffset.x;
+    const viewSize = event.nativeEvent.layoutMeasurement.width;
+    const newIndex = Math.floor(contentOffset / viewSize);
+    if (newIndex !== activeImageIndex) {
+      setActiveImageIndex(newIndex);
+      Haptics.selectionAsync();
+    }
+  };
+
+  const renderDetailRow = (icon: React.ReactNode, label: string, value: string | number) => (
     <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}:</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+      <View style={styles.detailIcon}>{icon}</View>
+      <View style={styles.detailTextContainer}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value}</Text>
+      </View>
     </View>
   );
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner': return '#4CAF50';
+      case 'intermediate': return '#FFC107';
+      case 'advanced': return '#F44336';
+      default: return '#9E9E9E';
+    }
+  };
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading exercise details...</Text>
+        <Animated.View style={[styles.loadingAnimation, { transform: [{ rotate: fadeAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: ['0deg', '360deg']
+        }) }] }]}>
+          <FontAwesome5 name="dumbbell" size={40} color="#ff1297" />
+        </Animated.View>
+        <Text style={styles.loadingText}>Loading your exercise...</Text>
       </View>
     );
   }
@@ -237,15 +265,14 @@ export default function ExerciseDetail() {
   if (errorMessage) {
     return (
       <View style={styles.errorContainer}>
+        <MaterialIcons name="error-outline" size={50} color="#ff1297" />
         <Text style={styles.errorText}>{errorMessage}</Text>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() =>
-            router.push({
-              pathname: '/(screens)/Exercises',
-              params: { day: day || '', source: source || '' },
-            })
-          }
+          onPress={() => router.push({
+            pathname: '/(screens)/Exercises',
+            params: { day: day || '', source: source || '' },
+          })}
         >
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
@@ -256,15 +283,14 @@ export default function ExerciseDetail() {
   if (!exerciseDetail) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Exercise details not found.</Text>
+        <MaterialIcons name="fitness-center" size={50} color="#ff1297" />
+        <Text style={styles.errorText}>Exercise details not found</Text>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() =>
-            router.push({
-              pathname: '/(screens)/Exercises',
-              params: { day: day || '', source: source || '' },
-            })
-          }
+          onPress={() => router.push({
+            pathname: '/(screens)/Exercises',
+            params: { day: day || '', source: source || '' },
+          })}
         >
           <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
@@ -275,88 +301,176 @@ export default function ExerciseDetail() {
   return (
     <View style={styles.container}>
       {/* Custom Header */}
-      <View style={styles.headerContainer}>
-        <Pressable onPress={handleBackPress} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+      <Animated.View style={[styles.headerContainer, {
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }]
+      }]}>
+        <Pressable 
+          onPress={handleBackPress} 
+          style={({ pressed }) => [
+            styles.backButton,
+            { opacity: pressed ? 0.6 : 1 }
+          ]}
+        >
+          <Ionicons name="chevron-back" size={SCREEN_WIDTH * 0.06} color="#fff" />
         </Pressable>
         <Text style={styles.headerText}>{exerciseDetail.exercise_name}</Text>
-      </View>
+        <View style={{ width: SCREEN_WIDTH * 0.05 }} />
+      </Animated.View>
 
       {/* Main Content */}
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <Text style={styles.subHeaderText}>
-          Date: {exerciseDetail.workout_date || 'Not available'}
-        </Text>
+      <ScrollView 
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }}>
+          {/* Date and Muscle Group */}
+          <View style={styles.metaContainer}>
+            <View style={styles.metaItem}>
+              <MaterialCommunityIcons name="calendar" size={SCREEN_WIDTH * 0.04} color="#888" />
+              <Text style={styles.metaText}>
+                {exerciseDetail.workout_date ?? 'No date'}
+              </Text>
+            </View>
+            <View style={styles.metaItem}>
+              <MaterialCommunityIcons name="arm-flex" size={SCREEN_WIDTH * 0.04} color="#888" />
+              <Text style={styles.metaText}>
+                {exerciseDetail.target_muscle ?? 'No muscle group'}
+              </Text>
+            </View>
+          </View>
 
-        {/* Image Section */}
-        {imageUrls.length > 0 ? (
-          <View style={styles.imageContainer}>
-            {/* Slider Icon for Multiple Images */}
-            {imageUrls.length > 1 && (
-              <View style={styles.sliderIconContainer}>
-                <MaterialCommunityIcons
-                  name="gesture-swipe"
-                  size={24}
-                  color="#EC4899"
-                />
-                <Text style={styles.sliderIconText}>Swipe to view more</Text>
-              </View>
-            )}
-            {imageUrls.length === 1 ? (
-              <View style={styles.singleImageContainer}>
-                <Image
-                  source={{ uri: imageUrls[0] }}
-                  style={styles.image}
-                  resizeMode="contain"
-                  onError={(e) => console.error(`Failed to load image ${imageUrls[0]}:`, e.nativeEvent.error)}
-                />
-              </View>
-            ) : (
+          {/* Image Section */}
+          {imageUrls.length > 0 ? (
+            <View style={styles.imageSection}>
               <ScrollView
                 horizontal
+                pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                style={styles.imageScrollView}
-                contentContainerStyle={styles.imageScrollContent}
+                onScroll={handleImageScroll}
+                scrollEventThrottle={16}
+                style={[styles.imageScrollView, { height: SCREEN_HEIGHT * 0.35 }]}
               >
                 {imageUrls.map((url, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: url }}
-                    style={styles.image}
-                    resizeMode="contain"
-                    onError={(e) => console.error(`Failed to load image ${url}:`, e.nativeEvent.error)}
-                  />
+                  <View key={index} style={[styles.imageContainer, { width: SCREEN_WIDTH }]}>
+                    <Image
+                      source={{ uri: url }}
+                      style={styles.image}
+                      resizeMode="contain"
+                    />
+                  </View>
                 ))}
               </ScrollView>
-            )}
-          </View>
-        ) : (
-          <View style={styles.noImageContainer}>
-            <Text style={styles.noImageText}>No images available for this exercise.</Text>
-          </View>
-        )}
-
-        <View style={styles.content}>
-          <Text style={styles.title}>Description</Text>
-          <Text style={styles.description}>{exerciseDetail.description}</Text>
-
-          <Text style={styles.title}>Details</Text>
-          {renderDetailRow('Reps', exerciseDetail.reps)}
-          {renderDetailRow('Sets', exerciseDetail.sets)}
-          {renderDetailRow('Rest Time', `${exerciseDetail.rest_time_sec} seconds`)}
-          {renderDetailRow('Duration', `${exerciseDetail.duration_min} minutes`)}
-          {renderDetailRow('Calories Burned Estimated', exerciseDetail.calories_burned)}
-          {renderDetailRow('Target Muscle', exerciseDetail.target_muscle)}
-          {renderDetailRow('Type', exerciseDetail.type)}
-          {renderDetailRow('Difficulty', exerciseDetail.difficulty)}
-
-          {exerciseDetail.caution && (
-            <View style={styles.cautionContainer}>
-              <Text style={styles.cautionLabel}>Caution:</Text>
-              <Text style={styles.cautionText}>{exerciseDetail.caution}</Text>
+              
+              {/* Image Pagination */}
+              {imageUrls.length > 1 && (
+                <View style={styles.pagination}>
+                  {imageUrls.map((_, index) => (
+                    <View 
+                      key={index} 
+                      style={[
+                        styles.paginationDot,
+                        index === activeImageIndex && styles.paginationDotActive
+                      ]} 
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={[styles.noImageContainer, { height: SCREEN_HEIGHT * 0.25 }]}>
+              <MaterialCommunityIcons 
+                name="image-off" 
+                size={SCREEN_WIDTH * 0.12} 
+                color="#E0E0E0" 
+              />
+              <Text style={styles.noImageText}>No images available</Text>
             </View>
           )}
-        </View>
+
+          {/* Difficulty Badge */}
+          <View style={[
+            styles.difficultyBadge,
+            { backgroundColor: getDifficultyColor(exerciseDetail.difficulty) }
+          ]}>
+            <Text style={styles.difficultyText}>
+              {exerciseDetail.difficulty}
+            </Text>
+          </View>
+
+          {/* Exercise Description */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Description</Text>
+            <Text style={styles.description}>
+              {exerciseDetail.description}
+            </Text>
+          </View>
+
+          {/* Exercise Details */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Workout Details</Text>
+            {renderDetailRow(
+              <MaterialCommunityIcons name="repeat" size={SCREEN_WIDTH * 0.05} color="#ff1297" />,
+              'Reps',
+              exerciseDetail.reps
+            )}
+            {renderDetailRow(
+              <MaterialCommunityIcons name="format-list-numbered" size={SCREEN_WIDTH * 0.05} color="#ff1297" />,
+              'Sets',
+              exerciseDetail.sets
+            )}
+            {renderDetailRow(
+              <MaterialCommunityIcons name="timer-sand" size={SCREEN_WIDTH * 0.05} color="#ff1297" />,
+              'Rest Time',
+              `${exerciseDetail.rest_time_sec} sec`
+            )}
+            {renderDetailRow(
+              <MaterialCommunityIcons name="clock-outline" size={SCREEN_WIDTH * 0.05} color="#ff1297" />,
+              'Duration',
+              `${exerciseDetail.duration_min} min`
+            )}
+            {renderDetailRow(
+              <MaterialCommunityIcons name="fire" size={SCREEN_WIDTH * 0.05} color="#ff1297" />,
+              'Calories Burned',
+              exerciseDetail.calories_burned
+            )}
+          </View>
+
+          {/* Additional Info */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Additional Info</Text>
+            {renderDetailRow(
+              <MaterialCommunityIcons name="weight-lifter" size={SCREEN_WIDTH * 0.05} color="#ff1297" />,
+              'Type',
+              exerciseDetail.type
+            )}
+            {renderDetailRow(
+              <MaterialCommunityIcons name="target" size={SCREEN_WIDTH * 0.05} color="#ff1297" />,
+              'Primary Muscle',
+              exerciseDetail.target_muscle ?? 'No muscle group'
+            )}
+          </View>
+
+          {/* Caution Section */}
+          {exerciseDetail.caution && (
+            <View style={styles.cautionContainer}>
+              <View style={styles.cautionHeader}>
+                <MaterialCommunityIcons 
+                  name="alert-circle" 
+                  size={SCREEN_WIDTH * 0.06} 
+                  color="#D32F2F" 
+                />
+                <Text style={styles.cautionTitle}>Important Caution</Text>
+              </View>
+              <Text style={styles.cautionText}>
+                {exerciseDetail.caution}
+              </Text>
+            </View>
+          )}
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -365,162 +479,253 @@ export default function ExerciseDetail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#F9F9F9',
   },
   // Header Styles
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: '#d63384',
-    elevation: 4,
+    justifyContent: 'space-between',
+    paddingHorizontal: Dimensions.get('window').width * 0.04,
+    paddingVertical: Dimensions.get('window').height * 0.02,
+    paddingTop: Dimensions.get('window').height * 0.03,
+    backgroundColor: '#ff1297',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 10,
   },
   headerText: {
-    fontSize: 20,
+    fontSize: Dimensions.get('window').width * 0.045,
     fontWeight: 'bold',
     color: '#fff',
-    flex: 1,
     textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    flex: 1,
   },
   backButton: {
-    padding: 8,
+    padding: Dimensions.get('window').width * 0.02,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  // Main Content Styles
-  contentContainer: {
-    paddingBottom: 20,
-  },
-  subHeaderText: {
-    fontSize: 16,
-    color: '#888',
-    marginVertical: 10,
-    textAlign: 'center',
-  },
-  // Image Styles
-  imageContainer: {
-    marginBottom: 30,
-  },
-  imageScrollView: {
-    marginHorizontal: 16,
-  },
-  imageScrollContent: {
-    alignItems: 'center',
-  },
-  singleImageContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 16,
-  },
-  image: {
-    width: 230,
-    height: 330,
-    borderRadius: 8,
-    marginHorizontal: 8,
-  },
-  noImageContainer: {
-    height: 230,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginBottom: 30,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-  },
-  noImageText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  // Slider Icon Styles
-  sliderIconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  sliderIconText: {
-    fontSize: 14,
-    color: '#EC4899',
-    marginLeft: 8,
-  },
-  content: {
-    paddingHorizontal: 18,
-    paddingBottom: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    marginTop: 16,
-    color: 'black',
-  },
-  description: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
-    lineHeight: 24,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    marginBottom: 10,
-    alignItems: 'baseline',
-  },
-  detailLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
-    minWidth: 140,
-    color: '#ec4899',
-  },
-  detailValue: {
-    fontSize: 16,
-    color: '#666',
-    flexShrink: 1,
-  },
-  cautionContainer: {
-    backgroundColor: '#fff0f5',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  cautionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#d63384',
-    marginBottom: 4,
-  },
-  cautionText: {
-    fontSize: 15,
-    color: '#666',
-    lineHeight: 22,
-  },
+  // Loading Styles
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#F9F9F9',
   },
+  loadingAnimation: {
+    marginBottom: 20,
+  },
+  loadingText: {
+    fontSize: Dimensions.get('window').width * 0.045,
+    color: '#666',
+    fontWeight: '500',
+  },
+  // Error Styles
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
+    padding: Dimensions.get('window').width * 0.075,
+    backgroundColor: '#F9F9F9',
   },
   errorText: {
-    fontSize: 16,
-    color: '#EC4899',
+    fontSize: Dimensions.get('window').width * 0.045,
+    color: '#333',
     textAlign: 'center',
-    marginBottom: 20,
+    marginVertical: 20,
+    lineHeight: Dimensions.get('window').width * 0.065,
   },
   backButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: Dimensions.get('window').width * 0.04,
+    fontWeight: '600',
+  },
+  // Content Styles
+  contentContainer: {
+    paddingBottom: Dimensions.get('window').height * 0.04,
+  },
+  metaContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: Dimensions.get('window').height * 0.02,
+    marginBottom: Dimensions.get('window').height * 0.015,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: Dimensions.get('window').width * 0.03,
+    paddingVertical: Dimensions.get('window').width * 0.015,
+    paddingHorizontal: Dimensions.get('window').width * 0.03,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 15,
+  },
+  metaText: {
+    fontSize: Dimensions.get('window').width * 0.035,
+    color: '#666',
+    marginLeft: Dimensions.get('window').width * 0.015,
+  },
+  // Image Section
+  imageSection: {
+    marginTop: Dimensions.get('window').height * 0.015,
+    marginBottom: Dimensions.get('window').height * 0.025,
+  },
+  imageScrollView: {
+    // Height is set dynamically in the component
+  },
+  imageContainer: {
+    height: Dimensions.get('window').height * 0.35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Dimensions.get('window').width * 0.05,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    backgroundColor: '#F0F0F0',
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: Dimensions.get('window').height * 0.015,
+  },
+  paginationDot: {
+    width: Dimensions.get('window').width * 0.02,
+    height: Dimensions.get('window').width * 0.02,
+    borderRadius: Dimensions.get('window').width * 0.01,
+    backgroundColor: '#D0D0D0',
+    marginHorizontal: Dimensions.get('window').width * 0.01,
+  },
+  paginationDotActive: {
+    width: Dimensions.get('window').width * 0.03,
+    backgroundColor: '#ff1297',
+  },
+  noImageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: Dimensions.get('window').width * 0.05,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EEE',
+  },
+  noImageText: {
+    fontSize: Dimensions.get('window').width * 0.04,
+    color: '#999',
+    marginTop: Dimensions.get('window').height * 0.015,
+  },
+  // Difficulty Badge
+  difficultyBadge: {
+    alignSelf: 'center',
+    paddingVertical: Dimensions.get('window').width * 0.015,
+    paddingHorizontal: Dimensions.get('window').width * 0.04,
+    borderRadius: 20,
+    marginBottom: Dimensions.get('window').height * 0.025,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  difficultyText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: Dimensions.get('window').width * 0.035,
+    textTransform: 'uppercase',
+  },
+  // Sections
+  section: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: Dimensions.get('window').width * 0.05,
+    marginHorizontal: Dimensions.get('window').width * 0.04,
+    marginBottom: Dimensions.get('window').height * 0.02,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: Dimensions.get('window').width * 0.05,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: Dimensions.get('window').height * 0.02,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ff1297',
+    paddingLeft: Dimensions.get('window').width * 0.03,
+  },
+  description: {
+    fontSize: Dimensions.get('window').width * 0.04,
+    lineHeight: Dimensions.get('window').width * 0.06,
+    color: '#555',
+  },
+  // Detail Rows
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Dimensions.get('window').height * 0.0175,
+  },
+  detailIcon: {
+    width: Dimensions.get('window').width * 0.09,
+    height: Dimensions.get('window').width * 0.09,
+    borderRadius: Dimensions.get('window').width * 0.045,
+    backgroundColor: 'rgba(236, 72, 153, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Dimensions.get('window').width * 0.03,
+  },
+  detailTextContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    paddingBottom: Dimensions.get('window').height * 0.01,
+  },
+  detailLabel: {
+    fontSize: Dimensions.get('window').width * 0.04,
+    color: '#666',
+  },
+  detailValue: {
+    fontSize: Dimensions.get('window').width * 0.04,
+    fontWeight: '600',
+    color: '#333',
+  },
+  // Caution Section
+  cautionContainer: {
+    backgroundColor: '#FFF0F0',
+    borderRadius: 12,
+    padding: Dimensions.get('window').width * 0.04,
+    marginHorizontal: Dimensions.get('window').width * 0.04,
+    marginBottom: Dimensions.get('window').height * 0.04,
+    borderLeftWidth: 4,
+    borderLeftColor: '#D32F2F',
+  },
+  cautionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Dimensions.get('window').height * 0.01,
+  },
+  cautionTitle: {
+    fontSize: Dimensions.get('window').width * 0.045,
+    fontWeight: '600',
+    color: '#D32F2F',
+    marginLeft: Dimensions.get('window').width * 0.02,
+  },
+  cautionText: {
+    fontSize: Dimensions.get('window').width * 0.0375,
+    lineHeight: Dimensions.get('window').width * 0.055,
+    color: '#666',
   },
 });
